@@ -1,5 +1,8 @@
-package br.com.satyan.stering.saita.financasbottelegram.adapters.in.controller;
+package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.controller;
 
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.service.TelegramPaymentMessageService;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.out.s3.service.S3Service;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,10 +15,16 @@ import java.util.Map;
 @RestController
 public class TelegramWebhookController {
 
-    private final String TELEGRAM_TOKEN = "7632697875:AAEN6LRjPK1fLdMUhlV_cdNWxs0Gw4QyWao";
+    private final String TELEGRAM_TOKEN = System.getenv("TELEGRAM_TOKEN");
+    private TelegramPaymentMessageService telegramPaymentMessageService;
 
+    public TelegramWebhookController(TelegramPaymentMessageService telegramPaymentMessageService) {
+        this.telegramPaymentMessageService = telegramPaymentMessageService;
+    }
     @PostMapping("/webhook")
     public String receberMensagem(@RequestBody String payload) {
+
+        telegramPaymentMessageService.processPaymentMessage(payload);
         JSONObject json = new JSONObject(payload);
         long chatId = json.getJSONObject("message").getJSONObject("chat").getLong("id");
 
@@ -24,6 +33,8 @@ public class TelegramWebhookController {
 
         return "ok";
     }
+
+
 
     private void enviarMensagemTelegram(long chatId, String texto) {
         String url = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage";
