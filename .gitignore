@@ -24,7 +24,7 @@ hs_err_pid*
 replay_pid*
 
 # Configurações da IntelliJ IDEA
-.idea/
+financas_bot_telegram/.idea
 *.iml
 *.iws
 *.ipr
