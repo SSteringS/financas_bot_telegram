@@ -4,6 +4,8 @@ import br.com.satyan.stering.saita.financasbottelegram.application.port.in.Teleg
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.S3PortOut;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ProcessPaymentMessageUsecase {
 
@@ -15,9 +17,11 @@ public class ProcessPaymentMessageUsecase {
         this.s3PortOut = s3PortOut;
     }
 
-    public void processPaymentMessage(String imageId) {
-        byte[] imageBytes = telegramPortIn.getFile(imageId);
-        var fileName = imageId + ".jpg";
-        s3PortOut.uploadPhoto(fileName, imageBytes);
+    public void processPaymentMessage(List<String> imageIds) {
+        for (String imageId : imageIds) {
+            byte[] imageBytes = telegramPortIn.getFile(imageId);
+            var fileName = imageId + ".jpg";
+            s3PortOut.uploadPhoto(fileName, imageBytes);
+        }
     }
 }

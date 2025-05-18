@@ -15,4 +15,12 @@ public class TelegramMessageParser {
         return fileId;
     }
 
+    public JSONArray getPhotoArray(JSONObject json) {
+        return json.getJSONObject("message").optJSONArray("photo");
+    }
+
+    public String getMediaGroupId(JSONObject json) {
+        return json.getJSONObject("message").optString("media_group_id", null);
+    }
+
 }
