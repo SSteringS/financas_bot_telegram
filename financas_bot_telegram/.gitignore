@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Configurações da IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
