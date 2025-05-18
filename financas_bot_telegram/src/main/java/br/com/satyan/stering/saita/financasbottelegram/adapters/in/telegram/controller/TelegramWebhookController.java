@@ -35,7 +35,6 @@ public class TelegramWebhookController {
     }
 
 
-
     private void enviarMensagemTelegram(long chatId, String texto) {
         String url = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage";
         RestTemplate restTemplate = new RestTemplate();
