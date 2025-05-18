@@ -25,6 +25,7 @@ replay_pid*
 
 # Configurações da IntelliJ IDEA
 financas_bot_telegram/.idea
+.idea
 *.iml
 *.iws
 *.ipr
