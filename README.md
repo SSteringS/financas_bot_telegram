@@ -1,6 +1,5 @@
-# financas_bot_telegram
-Bot do telegram, responsável por registrar pagamentos em um banco de dados
-
+# 💸 Controle Pagamentos - Bot Telegram
+Bot do Telegram desenvolvido em Java com Spring Boot, responsável por registrar pagamentos a partir de imagens enviadas pelos usuários. O bot agrupa as imagens de um mesmo pagamento, armazena os comprovantes em um bucket S3 particionado por data, e salva no MySQL as URLs das imagens, data/hora, categoria e demais informações relevantes do pagamento.
 ## 🚀 Fluxo do MVP
 
 1. Usuário envia mensagem ao bot com duas imagens e uma categoria.
@@ -16,6 +15,24 @@ Bot do telegram, responsável por registrar pagamentos em um banco de dados
 - Serviço de Agrupamento (in-memory)
 - Serviço de Upload S3
 - Serviço de Persistência MySQL
+- 
+## 🏗️ MVP de Infraestrutura
+
+- Deploy automatizado no AWS ECS Fargate via pipeline CI/CD.
+- Pipeline aciona ao fazer push no Git:
+  - Build e versionamento da imagem Docker.
+  - Salva a imagem no Amazon ECR.
+  - Executa testes unitários com cobertura mínima de 99% (exceto classes configuradas para não cobrir).
+  - Realiza deploy blue/green no ECS Fargate.
+- Toda infraestrutura provisionada como código usando Terraform.
+
+**🧩 Componentes principais de Infraestrutura:**
+- AWS ECS Fargate (orquestração e execução dos containers)
+- Amazon ECR (repositório de imagens Docker)
+- AWS CodePipeline/CodeBuild (pipeline CI/CD)
+- Terraform (infraestrutura como código)
+- Amazon S3 (armazenamento de comprovantes)
+- Amazon RDS (banco de dados relacional)
 
 ## 💻 Como rodar localmente
 
@@ -58,3 +75,30 @@ br.com.satyan.stering.saita
 │   └── out             # Saídas (ex: gateways, clients externos)
 │
 └── financasBotTelegramApplication.java # Classe principal do Spring Boot
+```
+## 📦 Backlog por Feature
+
+### 1. Multi-entrada (Adapters)
+- [ ] **Bot Discord**: Criar um bot no Discord como novo adapter de entrada.
+    - [ ] Novo controller específico para o Discord.
+    - [ ] Reutilizar os mesmos usecases/core do projeto (agnóstico à tecnologia).
+
+### 2. Análise de Dados e Enriquecimento
+- [ ] **Adicionar valor do pagamento** ao registro na base.
+- [ ] **Salvar mais dados do pagamento** para análise comportamental:
+    - [ ] Data/hora do pagamento
+    - [ ] Categoria/subcategoria
+    - [ ] Método de pagamento (ex: Pix, cartão, boleto)
+    - [ ] Identificador do pagador (opcional, se fizer sentido)
+    - [ ] Localização (se disponível)
+    - [ ] Observações/comentários
+- [ ] **Ferramentas para análise de dados**:
+    - [ ] Conectar com Amazon QuickSight (dashboard e BI)
+    - [ ] Exportação automática para S3 em formato analisável (CSV/Parquet)
+    - [ ] Integração com Amazon SageMaker para análises preditivas/IA
+    - [ ] Integração com AWS Athena para consultas SQL sobre dados no S3
+
+### 3. Notificações e Integrações
+- [ ] **Notificação automática**: Após salvar o comprovante, enviar para um usuário específico no Telegram (isso é possível via API do Telegram).
+    - [ ] Configurar ID do usuário destino via variável de ambiente ou configuração.
+
