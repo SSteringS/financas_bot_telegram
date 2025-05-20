@@ -24,7 +24,9 @@ public class MediaGroupInMemoryService {
   }
 
   private void setCategoriaIfNotNull(TelegramMediaGroup group, String categoria) {
-    group.setCategoria(categoria);
+    if (categoria != null) {
+      group.setCategoria(categoria);
+    }
   }
 
   private void setOrigemIfNotNull(TelegramMediaGroup group, String origem) {

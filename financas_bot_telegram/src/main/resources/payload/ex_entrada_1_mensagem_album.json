@@ -1,0 +1,50 @@
+{
+    "update_id": 894375024,
+    "message": {
+        "message_id": 232,
+        "from": {
+            "id": 7436345622,
+            "is_bot": false,
+            "first_name": "Junior",
+            "language_code": "pt-br"
+        },
+        "chat": {
+            "id": 7436345622,
+            "first_name": "Junior",
+            "type": "private"
+        },
+        "date": 1747617676,
+        "media_group_id": "13980941414593289",
+        "photo": [
+            {
+                "file_id": "AgACAgEAAxkBAAPUaCp29E4ID9W7Vk8G-WysefT_HEMAAr6uMRslylhFNGZcyzJQXA8BAAMCAANzAAM2BA",
+                "file_unique_id": "AQADvq4xGyXKWEV4",
+                "file_size": 1085,
+                "width": 56,
+                "height": 90
+            },
+            {
+                "file_id": "AgACAgEAAxkBAAPUaCp29E4ID9W7Vk8G-WysefT_HEMAAr6uMRslylhFNGZcyzJQXA8BAAMCAANtAAM2BA",
+                "file_unique_id": "AQADvq4xGyXKWEVy",
+                "file_size": 14883,
+                "width": 198,
+                "height": 320
+            },
+            {
+                "file_id": "AgACAgEAAxkBAAPUaCp29E4ID9W7Vk8G-WysefT_HEMAAr6uMRslylhFNGZcyzJQXA8BAAMCAAN4AAM2BA",
+                "file_unique_id": "AQADvq4xGyXKWEV9",
+                "file_size": 57715,
+                "width": 495,
+                "height": 800
+            },
+            {
+                "file_id": "AgACAgEAAxkBAAPUaCp29E4ID9W7Vk8G-WysefT_HEMAAr6uMRslylhFNGZcyzJQXA8BAAMCAAN5AAM2BA",
+                "file_unique_id": "AQADvq4xGyXKWEV-",
+                "file_size": 103999,
+                "width": 792,
+                "height": 1280
+            }
+        ],
+        "caption": "Categoria: fazenda\nOrigem: pedido whats pai"
+    }
+}
