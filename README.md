@@ -15,7 +15,7 @@ Bot do Telegram desenvolvido em Java com Spring Boot, responsável por registrar
 - Serviço de Agrupamento (in-memory)
 - Serviço de Upload S3
 - Serviço de Persistência MySQL
-- 
+
 ## 🏗️ MVP de Infraestrutura
 
 - Deploy automatizado no AWS ECS Fargate via pipeline CI/CD.

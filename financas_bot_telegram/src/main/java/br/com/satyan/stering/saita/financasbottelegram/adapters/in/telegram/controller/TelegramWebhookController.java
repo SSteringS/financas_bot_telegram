@@ -1,9 +1,9 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.controller;
 
-import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.service.TelegramPaymentMessageService;
-import br.com.satyan.stering.saita.financasbottelegram.adapters.out.s3.service.S3Service;
-import org.json.JSONArray;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.service.ProcessPaymentMessageService;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,34 +15,38 @@ import java.util.Map;
 @RestController
 public class TelegramWebhookController {
 
-    private final String TELEGRAM_TOKEN = System.getenv("TELEGRAM_TOKEN");
-    private TelegramPaymentMessageService telegramPaymentMessageService;
+  private static final Logger logger = LoggerFactory.getLogger(TelegramWebhookController.class);
 
-    public TelegramWebhookController(TelegramPaymentMessageService telegramPaymentMessageService) {
-        this.telegramPaymentMessageService = telegramPaymentMessageService;
-    }
-    @PostMapping("/webhook")
-    public String receberMensagem(@RequestBody String payload) {
+  private final String TELEGRAM_TOKEN = System.getenv("TELEGRAM_TOKEN");
+  private ProcessPaymentMessageService processPaymentMessageService;
 
-        telegramPaymentMessageService.processPaymentMessage(payload);
-        JSONObject json = new JSONObject(payload);
-        long chatId = json.getJSONObject("message").getJSONObject("chat").getLong("id");
+  public TelegramWebhookController(ProcessPaymentMessageService processPaymentMessageService) {
+    this.processPaymentMessageService = processPaymentMessageService;
+  }
 
-        String resposta = "Olá, natsu cara de cu!";
-        enviarMensagemTelegram(chatId, resposta);
+  @PostMapping("/webhook")
+  public String receberMensagem(@RequestBody String payload) {
 
-        return "ok";
-    }
+    logger.info("Recebendo mensagem do Telegram: {}", payload);
+    processPaymentMessageService.processPaymentMessage(payload);
+
+    JSONObject json = new JSONObject(payload);
+    long chatId = json.getJSONObject("message").getJSONObject("chat").getLong("id");
+    String resposta = "Olá, pagoto cara de cu!";
+    enviarMensagemTelegram(chatId, resposta);
+
+    return "ok";
+  }
 
 
-    private void enviarMensagemTelegram(long chatId, String texto) {
-        String url = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage";
-        RestTemplate restTemplate = new RestTemplate();
+  private void enviarMensagemTelegram(long chatId, String texto) {
+    String url = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/sendMessage";
+    RestTemplate restTemplate = new RestTemplate();
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("chat_id", chatId);
-        body.put("text", texto);
+    Map<String, Object> body = new HashMap<>();
+    body.put("chat_id", chatId);
+    body.put("text", texto);
 
-        restTemplate.postForObject(url, body, String.class);
-    }
+    restTemplate.postForObject(url, body, String.class);
+  }
 }
