@@ -29,6 +29,8 @@ public class TelegramWebhookController {
 
     logger.info("Recebendo mensagem do Telegram: {}", payload);
     processPaymentMessageService.processPaymentMessage(payload);
+    logger.info("Mensagem processada com sucesso.");
+
 
     JSONObject json = new JSONObject(payload);
     long chatId = json.getJSONObject("message").getJSONObject("chat").getLong("id");

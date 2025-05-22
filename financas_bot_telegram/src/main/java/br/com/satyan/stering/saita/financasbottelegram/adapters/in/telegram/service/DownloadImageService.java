@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 public class DownloadImageService implements TelegramPortIn {
@@ -16,25 +17,29 @@ public class DownloadImageService implements TelegramPortIn {
   private String telegramApiFileUrl;
 
   private final String TELEGRAM_TOKEN = System.getenv("TELEGRAM_TOKEN");
+  private final WebClient webClient = WebClient.create();
 
   @Override
   public byte[] getFile(String fileId) {
-
     String filePath = getFilePath(fileId);
-
     String downloadUrl = getDownloadUrl(filePath);
 
-    RestTemplate restTemplate = new RestTemplate();
-
-    return restTemplate.getForObject(downloadUrl, byte[].class);
+    return webClient.get()
+        .uri(downloadUrl)
+        .retrieve()
+        .bodyToMono(byte[].class)
+        .block();
   }
 
-  public String getFilePath(String fileId) {
-    String getFileUrl = getTelegramApiUrlWithToken() + fileId;
-    RestTemplate restTemplate = new RestTemplate();
-    String response = restTemplate.getForObject(getFileUrl, String.class);
-    return new JSONObject(response).getJSONObject("result").getString("file_path");
-  }
+public String getFilePath(String fileId) {
+      String getFileUrl = getTelegramApiUrlWithToken() + fileId;
+      String response = webClient.get()
+          .uri(getFileUrl)
+          .retrieve()
+          .bodyToMono(String.class)
+          .block();
+      return new JSONObject(response).getJSONObject("result").getString("file_path");
+    }
 
   private String getDownloadUrl(String filePath) {
     return String.format("%s%s/%s", telegramApiFileUrl, TELEGRAM_TOKEN, filePath);
