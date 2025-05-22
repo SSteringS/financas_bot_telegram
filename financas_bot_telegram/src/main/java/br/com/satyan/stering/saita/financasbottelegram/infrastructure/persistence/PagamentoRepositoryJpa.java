@@ -1,4 +1,4 @@
-package br.com.satyan.stering.saita.financasbottelegram.domain.repository;
+package br.com.satyan.stering.saita.financasbottelegram.infrastructure.persistence;
 
 import br.com.satyan.stering.saita.financasbottelegram.domain.entity.Pagamento;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -2,10 +2,10 @@ package br.com.satyan.stering.saita.financasbottelegram.application.usecases;
 
 import br.com.satyan.stering.saita.financasbottelegram.application.mapper.TelegramMediaGroupToPagamentoMapper;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.in.TelegramPortIn;
+import br.com.satyan.stering.saita.financasbottelegram.application.port.out.PagamentoRepository;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.S3PortOut;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.TelegramMediaGroup;
-import br.com.satyan.stering.saita.financasbottelegram.domain.repository.PagamentoRepositoryAdapter;
-import br.com.satyan.stering.saita.financasbottelegram.domain.repository.PagamentoRepositoryJpa;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.out.jpa.PagamentoRepositoryAdapter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -17,13 +17,13 @@ public class ProcessPaymentMessageUsecase {
 
   private TelegramPortIn telegramPortIn;
   private S3PortOut s3PortOut;
-  private PagamentoRepositoryAdapter pagamentoRepositoryAdapter;
+  private PagamentoRepository pagamentoRepository;
 
   public ProcessPaymentMessageUsecase(TelegramPortIn telegramPortIn, S3PortOut s3PortOut,
       PagamentoRepositoryAdapter pagamentoRepositoryAdapter) {
     this.telegramPortIn = telegramPortIn;
     this.s3PortOut = s3PortOut;
-    this.pagamentoRepositoryAdapter = pagamentoRepositoryAdapter;
+    this.pagamentoRepository = pagamentoRepository;
   }
 
   public void processPaymentMessage(TelegramMediaGroup telegramMediaGroup) {
@@ -50,7 +50,7 @@ public class ProcessPaymentMessageUsecase {
     telegramMediaGroup.setUrlPedido(urlPedido);
     telegramMediaGroup.setUrlComprovante(urlComprovante);
 
-    pagamentoRepositoryAdapter.save(TelegramMediaGroupToPagamentoMapper.mapToEntity(telegramMediaGroup));
+    pagamentoRepository.save(TelegramMediaGroupToPagamentoMapper.mapToEntity(telegramMediaGroup));
 
   }
 }

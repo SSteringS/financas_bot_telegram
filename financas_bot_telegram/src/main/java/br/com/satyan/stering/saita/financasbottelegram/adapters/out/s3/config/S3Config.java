@@ -1,4 +1,4 @@
-package br.com.satyan.stering.saita.financasbottelegram.adapters.out.s3.service.config;
+package br.com.satyan.stering.saita.financasbottelegram.adapters.out.s3.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
