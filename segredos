@@ -1,0 +1,8 @@
+7632697875:AAEN6LRjPK1fLdMUhlV_cdNWxs0Gw4QyWao
+
+
+https://ngrok.com/r/ai
+
+https://api.telegram.org/bot7632697875:AAEN6LRjPK1fLdMUhlV_cdNWxs0Gw4QyWao/setWebhook?url=https://7f89de5fbcc1.ngrok-free.app/webhook
+
+export TELEGRAM_BOT_TOKEN="7632697875:AAEN6LRjPK1fLdMUhlV_cdNWxs0Gw4QyWao"

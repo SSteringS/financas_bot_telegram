@@ -53,6 +53,29 @@ Bot do Telegram desenvolvido em Java com Spring Boot, responsável por registrar
 1. Clone o repositório
 2. Execute `mvn spring-boot:run` na raiz do projeto
 
+### 🚀 Testes Locais com Ngrok (Automatizado)
+
+Para facilitar os testes locais e o recebimento de webhooks do Telegram, foi criado o script `setup_webhook.sh`. Ele automatiza o processo de iniciar o `ngrok`, obter a URL pública e configurar o webhook do seu bot.
+
+**Como usar:**
+
+1.  **Defina a variável de ambiente `TELEGRAM_BOT_TOKEN`**:
+    No Git Bash, você pode exportar a variável para a sessão atual:
+    ```bash
+    export TELEGRAM_BOT_TOKEN="<SEU_TOKEN_AQUI>"
+    ```
+    Para uma configuração permanente, adicione a linha acima ao seu arquivo `~/.bashrc` ou `~/.bash_profile`.
+
+2.  **Execute o script**:
+    ```bash
+    ./financas_bot_telegram/setup_webhook.sh
+    ```
+
+O script irá:
+- Iniciar o `ngrok` na porta `8080`.
+- Obter a URL HTTPS pública gerada pelo `ngrok`.
+- Chamar a API do Telegram para registrar o webhook do seu bot, apontando para a sua aplicação rodando localmente.
+
 **Observações:**
 - Para testar o fluxo completo (upload no S3 e gravação no banco), é obrigatório ter o bucket S3 e o banco MySQL configurados e acessíveis
 - O webhook do Telegram deve estar apontando para o endpoint `/webhook` da sua aplicação

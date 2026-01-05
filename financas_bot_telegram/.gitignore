@@ -37,3 +37,6 @@ build/
 *.iml
 *.iws
 *.ipr
+
+# Arquivos de segredos
+segredos

@@ -33,20 +33,20 @@ _(Nenhuma tarefa aqui ainda)_
 
 ## In Progress
 
-### Fase 1: Refatoração e Alinhamento com a Especificação
-- [ ] **Revisar Modelo de Dados (Entidades JPA):**
-  - [ ] Criar/Ajustar a entidade `PedidoPagamento` para corresponder à tabela `pedidos_pagamento`.
-  - [ ] Criar a entidade `Comprovante` para corresponder à tabela `comprovantes`.
-  - [ ] Garantir que os relacionamentos e tipos de dados estejam corretos (ex: ENUM para Status).
-- [ ] **Refatorar Camada de Persistência (Repositórios):**
-  - [ ] Atualizar os repositórios JPA para as novas entidades.
-  - [ ] Remover a lógica antiga de salvamento que está em desacordo com a especificação (ex: salvar URL de S3 diretamente, categorias na criação).
-- [ ] **Ajustar Lógica de Recebimento de Mensagem (Webhook):**
-  - [ ] Implementar a validação de `telegram_user_id` (Whitelist).
-  - [ ] Ajustar o serviço para persistir um `PedidoPagamento` com status `PENDENTE` ao receber uma nova imagem de cobrança.
-  - [ ] Implementar a resposta ao usuário com o ID do pedido gerado (Ex: "Registrado! Pedido #45").
+- [ ] **Refatoração da Fase 1**
 
 ## Done
 
-_(Nenhuma tarefa aqui ainda)_
+### Fase 1: Refatoração e Alinhamento com a Especificação
+- [x] **Revisar Modelo de Dados (Entidades JPA):**
+  - [x] Criar/Ajustar a entidade `PedidoPagamento` para corresponder à tabela `pedidos_pagamento`.
+  - [x] Criar a entidade `Comprovante` para corresponder à tabela `comprovantes`.
+  - [x] Garantir que os relacionamentos e tipos de dados estejam corretos (ex: ENUM para Status).
+- [x] **Refatorar Camada de Persistência (Repositórios):**
+  - [x] Atualizar os repositórios JPA para as novas entidades.
+  - [x] Remover a lógica antiga de salvamento que está em desacordo com a especificação (ex: salvar URL de S3 diretamente, categorias na criação).
+- [x] **Ajustar Lógica de Recebimento de Mensagem (Webhook):**
+  - [x] Implementar a validação de `telegram_user_id` (Whitelist).
+  - [x] Ajustar o serviço para persistir um `PedidoPagamento` com status `PENDENTE` ao receber uma nova imagem de cobrança.
+  - [x] Implementar a resposta ao usuário com o ID do pedido gerado (Ex: "Registrado! Pedido #45").
 
