@@ -102,3 +102,4 @@ br.com.satyan.stering.saita
 - [ ] **Notificação automática**: Após salvar o comprovante, enviar para um usuário específico no Telegram (isso é possível via API do Telegram).
     - [ ] Configurar ID do usuário destino via variável de ambiente ou configuração.
 
+curl -X POST "https://api.telegram.org/bot7632697875:AAEN6LRjPK1fLdMUhlV_cdNWxs0Gw4QyWao/setWebhook?url=https://656f85fd4b93.ngrok-free.app/webhook"

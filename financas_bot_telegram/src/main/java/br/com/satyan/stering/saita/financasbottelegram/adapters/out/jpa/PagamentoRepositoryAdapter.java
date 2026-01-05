@@ -1,7 +1,6 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.out.jpa;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.jpa.exceptions.DataBaseException;
-import br.com.satyan.stering.saita.financasbottelegram.domain.entity.Pagamento;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.PagamentoRepository;
 import br.com.satyan.stering.saita.financasbottelegram.infrastructure.persistence.PagamentoRepositoryJpa;
 import java.util.Optional;

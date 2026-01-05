@@ -1,6 +1,5 @@
 package br.com.satyan.stering.saita.financasbottelegram.application.mapper;
 
-import br.com.satyan.stering.saita.financasbottelegram.domain.entity.Pagamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.TelegramMediaGroup;
 import java.time.LocalDateTime;
 

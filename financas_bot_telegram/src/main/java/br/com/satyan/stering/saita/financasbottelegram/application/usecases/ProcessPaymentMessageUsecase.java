@@ -20,7 +20,7 @@ public class ProcessPaymentMessageUsecase {
   private PagamentoRepository pagamentoRepository;
 
   public ProcessPaymentMessageUsecase(TelegramPortIn telegramPortIn, S3PortOut s3PortOut,
-      PagamentoRepositoryAdapter pagamentoRepositoryAdapter) {
+      PagamentoRepository pagamentoRepository) {
     this.telegramPortIn = telegramPortIn;
     this.s3PortOut = s3PortOut;
     this.pagamentoRepository = pagamentoRepository;

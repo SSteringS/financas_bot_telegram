@@ -1,60 +1,70 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.service;
 
-import br.com.satyan.stering.saita.financasbottelegram.domain.model.TelegramMediaGroup;
-import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.util.TelegramMessageParser;
-import br.com.satyan.stering.saita.financasbottelegram.application.usecases.ProcessPaymentMessageUsecase;
+import br.com.satyan.stering.saita.financasbottelegram.application.usecases.RegistrarComprovanteUsecase;
+import br.com.satyan.stering.saita.financasbottelegram.application.usecases.SalvarPedidoPagamentoUsecase;
+import br.com.satyan.stering.saita.financasbottelegram.domain.entity.PedidoPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class ProcessPaymentMessageService {
 
-  private TelegramMessageParser parser;
-  private ProcessPaymentMessageUsecase processPaymentMessageUsecase;
-  private MediaGroupInMemoryService mediaGroupInMemoryService;
+    private final SalvarPedidoPagamentoUsecase salvarPedidoPagamentoUsecase;
+    private final RegistrarComprovanteUsecase registrarComprovanteUsecase;
+    private static final Pattern COMPROVANTE_PATTERN = Pattern.compile("#(\\d+)\\s+(.+)");
 
-  private final String TELEGRAM_TOKEN = System.getenv("TELEGRAM_TOKEN");
-
-  public ProcessPaymentMessageService(TelegramMessageParser parser,
-      ProcessPaymentMessageUsecase processPaymentMessageUsecase,
-      MediaGroupInMemoryService mediaGroupInMemoryService) {
-    this.parser = parser;
-    this.processPaymentMessageUsecase = processPaymentMessageUsecase;
-    this.mediaGroupInMemoryService = mediaGroupInMemoryService;
-  }
-
-  public void processPaymentMessage(String message) {
-    JSONObject json = new JSONObject(message);
-    JSONArray photoArray = parser.getPhotoArray(json);
-    if (photoArray != null) {
-      handlePhotoMessage(json);
+    public ProcessPaymentMessageService(SalvarPedidoPagamentoUsecase salvarPedidoPagamentoUsecase,
+                                        RegistrarComprovanteUsecase registrarComprovanteUsecase) {
+        this.salvarPedidoPagamentoUsecase = salvarPedidoPagamentoUsecase;
+        this.registrarComprovanteUsecase = registrarComprovanteUsecase;
     }
-  }
 
-  private void handlePhotoMessage(JSONObject json) {
-    String fileId = parser.getFileId(json);
-    String mediaGroupId = parser.getMediaGroupId(json);
-    String message = parser.getMessage(json);
-    var categoria = message != null ? TelegramMessageParser.extractCategoria(message) : null;
-    var origem = message != null ? TelegramMessageParser.extractOrigem(message) : null;
+    public void processPaymentMessage(String payload) {
+        JSONObject messageJson = new JSONObject(payload).getJSONObject("message");
 
-    processMediaGroup(mediaGroupId, fileId, categoria, origem);
-  }
+        String caption = messageJson.optString("caption", null);
 
+        if (caption != null) {
+            Matcher matcher = COMPROVANTE_PATTERN.matcher(caption);
+            if (matcher.matches()) {
+                handleComprovante(messageJson, matcher);
+                return;
+            }
+        }
 
-  private void processMediaGroup(String mediaGroupId, String fileId, String categoria,
-      String origem) {
-    if (mediaGroupId == null) {
-      return;
+        handleNovoPedido(messageJson);
     }
-    TelegramMediaGroup group = mediaGroupInMemoryService.addAndGetGroup(mediaGroupId, fileId,
-        categoria, origem);
-    if (group.getFileIdComprovante() != null && group.getFileIdPedido() != null) {
-      processPaymentMessageUsecase.processPaymentMessage(group);
-      mediaGroupInMemoryService.removeGroup(mediaGroupId);
-    }
-  }
 
+    private void handleNovoPedido(JSONObject messageJson) {
+        String telegramUserId = messageJson.getJSONObject("from").get("id").toString();
+        String telegramMessageId = messageJson.get("message_id").toString();
+        String descricao = messageJson.optString("caption", null);
+
+        JSONArray photoArray = messageJson.getJSONArray("photo");
+        String fileId = photoArray.getJSONObject(photoArray.length() - 1).getString("file_id");
+
+        PedidoPagamento pedido = new PedidoPagamento();
+        pedido.setTelegramUserId(telegramUserId);
+        pedido.setTelegramMessageId(telegramMessageId);
+        pedido.setFileIdTelegram(fileId);
+        pedido.setDescricao(descricao);
+        pedido.setStatus(StatusPedido.PENDENTE);
+
+        salvarPedidoPagamentoUsecase.execute(pedido);
+    }
+
+    private void handleComprovante(JSONObject messageJson, Matcher matcher) {
+        Long pedidoId = Long.parseLong(matcher.group(1));
+        String tipoPagamento = matcher.group(2);
+
+        JSONArray photoArray = messageJson.getJSONArray("photo");
+        String fileId = photoArray.getJSONObject(photoArray.length() - 1).getString("file_id");
+
+        registrarComprovanteUsecase.execute(pedidoId, tipoPagamento, fileId);
+    }
 }
