@@ -1,7 +1,6 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.strategy;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
-import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.InvalidCaptionException;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.SalvarPedidoPagamentoUsecase;
 import br.com.satyan.stering.saita.financasbottelegram.domain.entity.PedidoPagamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;

@@ -1,8 +1,7 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.controller;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.service.UpdateOrchestratorService;
-import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
-import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.InvalidUpdateException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidUpdateException;
 import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.UnauthorizedUserException;
 import java.util.List;
 import org.slf4j.Logger;

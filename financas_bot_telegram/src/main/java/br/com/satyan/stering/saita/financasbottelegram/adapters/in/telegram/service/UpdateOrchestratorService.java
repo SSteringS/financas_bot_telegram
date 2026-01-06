@@ -2,7 +2,7 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.service;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.strategy.UpdateProcessingStrategy;
-import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.InvalidMessageFormatException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

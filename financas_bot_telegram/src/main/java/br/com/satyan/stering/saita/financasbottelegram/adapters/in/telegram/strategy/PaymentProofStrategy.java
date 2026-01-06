@@ -1,8 +1,8 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.strategy;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
-import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.InvalidCaptionException;
-import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.PhotoProcessingException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidCaptionException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.PhotoProcessingException;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.RegistrarComprovanteUsecase;
 import br.com.satyan.stering.saita.financasbottelegram.domain.entity.Comprovante;
 import org.slf4j.Logger;
@@ -13,7 +13,6 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

@@ -2,10 +2,10 @@ package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exc
 
 import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.BusinessRuleException;
 import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.DatabaseException;
-import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.InvalidCaptionException;
-import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.InvalidMessageFormatException;
-import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.InvalidUpdateException;
-import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.PhotoProcessingException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidCaptionException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidUpdateException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.PhotoProcessingException;
 import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.UnauthorizedUserException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.PedidoNaoEncontradoException;
