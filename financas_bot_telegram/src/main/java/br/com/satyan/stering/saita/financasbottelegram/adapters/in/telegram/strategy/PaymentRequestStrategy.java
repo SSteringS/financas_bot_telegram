@@ -1,6 +1,7 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.strategy;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
+import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.InvalidCaptionException;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.SalvarPedidoPagamentoUsecase;
 import br.com.satyan.stering.saita.financasbottelegram.domain.entity.PedidoPagamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
@@ -39,29 +40,19 @@ public class PaymentRequestStrategy implements UpdateProcessingStrategy {
   public void process(Update update) {
     Message message = update.getMessage();
     Long chatId = message.getChatId();
-    logger.info("Estratégia de Pedido de Pagamento ativada. Mensagem: '{}'", message.getText());
+    logger.info("Estratégia de Pedido de Pagamento ativada para o chat ID: {}", chatId);
 
-    try {
-      PedidoPagamento pedido = parsePedido(message);
-      PedidoPagamento pedidoSalvo = salvarPedidoPagamentoUsecase.execute(pedido);
-      logger.info("Pedido de pagamento {} do usuário {} salvo com sucesso.", pedidoSalvo.getId(), pedido.getTelegramUserId());
+    PedidoPagamento pedido = parsePedido(message);
+    PedidoPagamento pedidoSalvo = salvarPedidoPagamentoUsecase.execute(pedido, chatId);
+    logger.info("Pedido de pagamento {} do usuário {} salvo com sucesso.", pedidoSalvo.getId(), pedido.getTelegramUserId());
 
-      String successMessage = String.format(
-          "✅ Pedido de pagamento registrado com sucesso!\n\n*ID do Pedido:* `%d`\n*Valor:* R$ %.2f\n*Descrição:* %s",
-          pedidoSalvo.getId(),
-          pedidoSalvo.getValor(),
-          pedidoSalvo.getDescricao()
-      );
-      telegramMessageSenderService.sendMessage(chatId, successMessage);
-
-    } catch (IllegalArgumentException e) {
-      logger.error("Formato de mensagem inválido para pedido de pagamento: '{}'. Erro: {}", message.getText(), e.getMessage());
-      String errorMessage = String.format("❌ Formato de mensagem inválido.\nUse: `pedido <valor> <descrição>`\n\n*Exemplo:* `pedido 150,50 para material de escritório`");
-      telegramMessageSenderService.sendMessage(chatId, errorMessage);
-    } catch (Exception e) {
-      logger.error("Erro ao processar pedido de pagamento a partir do texto: '{}'", message.getText(), e);
-      telegramMessageSenderService.sendMessage(chatId, "❌ Ocorreu um erro inesperado ao salvar seu pedido. Tente novamente.");
-    }
+    String successMessage = String.format(
+        "✅ Pedido de pagamento registrado com sucesso!\n\n*ID do Pedido:* `%d`\n*Valor:* R$ %.2f\n*Descrição:* %s",
+        pedidoSalvo.getId(),
+        pedidoSalvo.getValor(),
+        pedidoSalvo.getDescricao()
+    );
+    telegramMessageSenderService.sendMessage(chatId, successMessage);
   }
 
   /**

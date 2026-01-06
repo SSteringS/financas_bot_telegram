@@ -5,18 +5,6 @@ Este arquivo organiza as tarefas para o desenvolvimento do backend, alinhado com
 ## Backlog
 
 ### Fase 2: Implementação de Novas Features
-- [ ] **Implementar Fluxo de Registro de Comprovante:**
-  - [ ] Desenvolver a lógica para identificar se uma mensagem com foto é um comprovante (pela legenda).
-  - [ ] Implementar a extração do ID do pedido e do tipo de pagamento da legenda usando Regex (Ex: "#45 PIX").
-  - [ ] Criar o serviço para buscar o `PedidoPagamento` correspondente.
-  - [ ] Persistir o novo `Comprovante` no banco de dados.
-  - [ ] Atualizar o status do `PedidoPagamento` para `PAGO`.
-  - [ ] Implementar a resposta ao usuário confirmando o pagamento.
-- [ ] **Configurar Tratamento de Erros:**
-  - [ ] Criar exceções customizadas (ex: `PedidoNaoEncontradoException`, `UsuarioNaoAutorizadoException`).
-  - [ ] Implementar um `ControllerAdvice` para tratar exceções e retornar respostas de erro claras para o webhook.
-- [ ] **Configurar Logs:**
-  - [ ] Adicionar logs nos pontos críticos do fluxo (recebimento, persistência, erros).
 
 ### Fase 3: Infraestrutura e Deploy (Tarefas do Kanban)
 - [ ] **MVP - Infraestrutura (Geral):**
@@ -33,9 +21,23 @@ _(Nenhuma tarefa aqui ainda)_
 
 ## In Progress
 
+- [ ] **Configurar Tratamento de Erros:**
+  - [ ] Criar exceções customizadas (ex: `PedidoNaoEncontradoException`, `UsuarioNaoAutorizadoException`).
+  - [ ] Implementar um `ControllerAdvice` para tratar exceções e retornar respostas de erro claras para o webhook.
+- [ ] **Configurar Logs:**
+  - [ ] Adicionar logs nos pontos críticos do fluxo (recebimento, persistência, erros).
+
 - [ ] **Refatoração da Fase 1**
 
 ## Done
+
+- [x] **Implementar Fluxo de Registro de Comprovante:**
+  - [x] Desenvolver a lógica para identificar se uma mensagem com foto é um comprovante (pela legenda).
+  - [x] Implementar a extração do ID do pedido e do tipo de pagamento da legenda usando Regex (Ex: "#45 PIX").
+  - [x] Criar o serviço para buscar o `PedidoPagamento` correspondente.
+  - [x] Persistir o novo `Comprovante` no banco de dados.
+  - [x] Atualizar o status do `PedidoPagamento` para `PAGO`.
+  - [x] Implementar a resposta ao usuário confirmando o pagamento.
 
 ### Fase 1: Refatoração e Alinhamento com a Especificação
 - [x] **Revisar Modelo de Dados (Entidades JPA):**

@@ -1,6 +1,8 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.strategy;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
+import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.InvalidCaptionException;
+import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.PhotoProcessingException;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.RegistrarComprovanteUsecase;
 import br.com.satyan.stering.saita.financasbottelegram.domain.entity.Comprovante;
 import org.slf4j.Logger;
@@ -26,14 +28,14 @@ public class PaymentProofStrategy implements UpdateProcessingStrategy {
   // Ex: "pix 123"
   private static final Pattern COMPROVANTE_PATTERN = Pattern.compile("#(\\d+)\\s+(.+)");
 
-  public PaymentProofStrategy(RegistrarComprovanteUsecase registrarComprovanteUsecase,
-      TelegramMessageSenderService telegramMessageSenderService) {
+  public PaymentProofStrategy(RegistrarComprovanteUsecase registrarComprovanteUsecase, TelegramMessageSenderService telegramMessageSenderService) {
     this.registrarComprovanteUsecase = registrarComprovanteUsecase;
     this.telegramMessageSenderService = telegramMessageSenderService;
   }
 
   @Override
   public boolean supports(Update update) {
+
     String caption = update.getMessage().getCaption().trim();
     return COMPROVANTE_PATTERN.matcher(caption).matches();
   }
@@ -44,51 +46,32 @@ public class PaymentProofStrategy implements UpdateProcessingStrategy {
     Long chatId = message.getChatId();
     String caption = message.getCaption();
 
-    Optional<String> fileIdOpt = message.getPhoto().stream()
+    String fileId = message.getPhoto().stream()
         .max(Comparator.comparing(PhotoSize::getFileSize))
-        .map(PhotoSize::getFileId);
-
-    if (fileIdOpt.isEmpty()) {
-      logger.warn("Não foi possível obter o file_id da foto do usuário {}.", message.getFrom().getId());
-      telegramMessageSenderService.sendMessage(chatId, "⚠️ Não consegui processar a imagem. Tente enviar novamente.");
-      return;
-    }
+        .map(PhotoSize::getFileId)
+        .orElseThrow(() -> new PhotoProcessingException("Não foi possível obter o file_id da foto.", chatId));
 
     if (caption == null || caption.isBlank()) {
-      logger.warn("A foto do comprovante foi enviada sem legenda (caption) pelo usuário {}.", message.getFrom().getId());
-      String errorMessage = "❌ A foto do comprovante precisa de uma legenda.\nUse: `<tipo_pagamento> <id_pedido>`\n\n*Exemplo:* `pix 123`";
-      telegramMessageSenderService.sendMessage(chatId, errorMessage);
-      return;
+      throw new InvalidCaptionException("A foto do comprovante precisa de uma legenda.\nUse: `<tipo_pagamento> <id_pedido>`\n\n*Exemplo:* `pix 123`", chatId);
     }
 
-    String fileId = fileIdOpt.get();
     logger.info("Estratégia de Comprovante de Pagamento ativada. FileID: {}, Legenda: '{}'", fileId, caption);
 
-    try {
-      Matcher matcher = COMPROVANTE_PATTERN.matcher(caption.trim());
-      if (!matcher.matches()) {
-        throw new IllegalArgumentException("Formato da legenda inválido.");
-      }
-
-      String tipoPagamento = matcher.group(2).toUpperCase();
-      Long pedidoId = Long.parseLong(matcher.group(1));
-
-      Comprovante comprovanteSalvo = registrarComprovanteUsecase.execute(pedidoId, tipoPagamento, fileId);
-      logger.info("Comprovante para o pedido {} registrado com sucesso.", pedidoId);
-
-      String successMessage = String.format(
-          "✅ Comprovante de pagamento para o *Pedido ID %d* foi registrado com sucesso!",
-          comprovanteSalvo.getPedido().getId()
-      );
-      telegramMessageSenderService.sendMessage(chatId, successMessage);
-
-    } catch (IllegalArgumentException e) {
-      logger.error("Formato de legenda inválido para comprovante: '{}'", caption);
-      String errorMessage = "❌ Formato da legenda inválido.\nUse: `<tipo_pagamento> <id_pedido>`\n\n*Exemplo:* `pix 123`";
-      telegramMessageSenderService.sendMessage(chatId, errorMessage);
-    } catch (Exception e) {
-      logger.error("Erro ao processar comprovante de pagamento com legenda: '{}'", caption, e);
-      telegramMessageSenderService.sendMessage(chatId, "❌ Ocorreu um erro inesperado ao registrar seu comprovante. Verifique os dados e tente novamente.");
+    Matcher matcher = COMPROVANTE_PATTERN.matcher(caption.trim());
+    if (!matcher.matches()) {
+      throw new InvalidCaptionException("Formato da legenda inválido.\nUse: `<tipo_pagamento> <id_pedido>`\n\n*Exemplo:* `pix 123`", chatId);
     }
+
+    String tipoPagamento = matcher.group(2).toUpperCase();
+    Long pedidoId = Long.parseLong(matcher.group(1));
+
+    Comprovante comprovanteSalvo = registrarComprovanteUsecase.execute(pedidoId, tipoPagamento, fileId, chatId);
+    logger.info("Comprovante para o pedido {} registrado com sucesso.", pedidoId);
+
+    String successMessage = String.format(
+        "✅ Comprovante de pagamento para o *Pedido ID %d* foi registrado com sucesso!",
+        comprovanteSalvo.getPedido().getId()
+    );
+    telegramMessageSenderService.sendMessage(chatId, successMessage);
   }
 }
