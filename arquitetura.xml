@@ -1,0 +1,72 @@
+<mxfile host="app.diagrams.net" version="21.0.0">
+  <diagram id="AWS_Official_Architecture" name="Finanças Bot - AWS Official 2025">
+    <mxGraphModel dx="1422" dy="798" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="aws_cloud" value="AWS Cloud" style="swimlane;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#232F3E;dashPattern=1 4;dashed=1;strokeWidth=2;startSize=30;verticalAlign=top;align=left;spacingLeft=10;fontStyle=0;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="160" y="40" width="560" height="420" as="geometry" />
+        </mxCell>
+
+        <mxCell id="vpc" value="VPC" style="swimlane;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#3F4F5F;strokeWidth=2;startSize=30;verticalAlign=top;align=left;spacingLeft=10;fontStyle=0;fontSize=12;" vertex="1" parent="aws_cloud">
+          <mxGeometry x="20" y="50" width="520" height="340" as="geometry" />
+        </mxCell>
+
+        <mxCell id="telegram" value="Telegram API" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws4.user;fillColor=#232F3E;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="30" y="210" width="60" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="furl" value="Lambda&lt;br&gt;Function URL" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws4.endpoint;fillColor=#D05C17;strokeColor=none;" vertex="1" parent="vpc">
+          <mxGeometry x="40" y="120" width="60" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lambda" value="AWS Lambda" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws4.lambda;fillColor=#FF9900;strokeColor=none;" vertex="1" parent="vpc">
+          <mxGeometry x="180" y="120" width="60" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rds" value="Amazon RDS&lt;br&gt;MySQL Instance" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws4.rds_mysql_instance;fillColor=#2E27AD;strokeColor=none;" vertex="1" parent="vpc">
+          <mxGeometry x="380" y="230" width="60" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3" value="Amazon S3" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws4.s3;fillColor=#2E7D32;strokeColor=none;" vertex="1" parent="vpc">
+          <mxGeometry x="380" y="50" width="60" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="secrets" value="Secrets Manager" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws4.secrets_manager;fillColor=#C925D1;strokeColor=none;" vertex="1" parent="vpc">
+          <mxGeometry x="185" y="250" width="50" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge1" edge="1" source="telegram" target="furl" parent="1" style="strokeWidth=2;strokeColor=#545B64;endArrow=block;endFill=1;rounded=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge2" edge="1" source="furl" target="lambda" parent="vpc" style="strokeWidth=2;strokeColor=#545B64;endArrow=block;endFill=1;rounded=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge3" edge="1" source="lambda" target="rds" parent="vpc" style="strokeWidth=2;strokeColor=#545B64;endArrow=block;endFill=1;rounded=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="240" y="150" as="sourcePoint" />
+            <mxPoint x="380" y="260" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="300" y="150" />
+              <mxPoint x="300" y="260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge4" edge="1" source="lambda" target="s3" parent="vpc" style="strokeWidth=2;strokeColor=#545B64;endArrow=block;endFill=1;rounded=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="240" y="150" as="sourcePoint" />
+            <mxPoint x="380" y="80" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="300" y="150" />
+              <mxPoint x="300" y="80" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge5" edge="1" source="secrets" target="lambda" parent="vpc" style="strokeWidth=1;strokeColor=#545B64;endArrow=open;endFill=0;dashed=1;rounded=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

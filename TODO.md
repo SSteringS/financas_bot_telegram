@@ -4,32 +4,31 @@ Este arquivo organiza as tarefas para o desenvolvimento do backend, alinhado com
 
 ## Backlog
 
-### Fase 2: Implementação de Novas Features
-
 ### Fase 3: Infraestrutura e Deploy (Tarefas do Kanban)
 - [ ] **MVP - Infraestrutura (Geral):**
-  - [ ] Provisionar infraestrutura como código usando Terraform.
-  - [ ] Criar banco de dados MySQL (Amazon RDS).
   - [ ] Criar bucket S3 para armazenamento futuro (se necessário).
   - [ ] Configurar repositório de imagens Docker no Amazon ECR.
-  - [ ] Configurar ECS Fargate para deploy do backend.
   - [ ] Configurar Pipeline CI/CD (CodePipeline/CodeBuild).
+- [ ] **Ajustes Finos Infra - Produção**
 
 ## To Do
 
-_(Nenhuma tarefa aqui ainda)_
+### Fase Documentação
+- [ ] Fazer desenho de infraestrutura (Diagrama Arquitetural).
 
 ## In Progress
 
-- [ ] **Configurar Tratamento de Erros:**
-  - [ ] Criar exceções customizadas (ex: `PedidoNaoEncontradoException`, `UsuarioNaoAutorizadoException`).
-  - [ ] Implementar um `ControllerAdvice` para tratar exceções e retornar respostas de erro claras para o webhook.
 - [ ] **Configurar Logs:**
   - [ ] Adicionar logs nos pontos críticos do fluxo (recebimento, persistência, erros).
 
-- [ ] **Refatoração da Fase 1**
-
 ## Done
+
+- [x] **Provisionar infraestrutura como código usando Terraform**
+- [x] **Criar banco de dados MySQL (Amazon RDS)**
+- [x] **Configurar Tratamento de Erros:**
+  - [x] Criar exceções customizadas (ex: `PedidoNaoEncontradoException`, `UsuarioNaoAutorizadoException`).
+  - [x] Implementar um `ControllerAdvice` para tratar exceções e retornar respostas de erro claras para o webhook.
+- [x] **Refatoração da Fase 1**
 
 - [x] **Implementar Fluxo de Registro de Comprovante:**
   - [x] Desenvolver a lógica para identificar se uma mensagem com foto é um comprovante (pela legenda).

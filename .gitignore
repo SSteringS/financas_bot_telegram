@@ -30,4 +30,17 @@ financas_bot_telegram/.idea
 *.iws
 *.ipr
 
-segredos.txtsegredos
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Secrets
+segredos.txt
+segredos
