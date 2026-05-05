@@ -12,13 +12,13 @@
 
 - [x] **[Segurança] Rotacionar token do bot** via @BotFather — token antigo revogado
 - [x] **[Segurança] Limpar credenciais do git** — `application-dev.properties` desrastreado; `application.properties` sanitizado com placeholders; `application-dev.properties.example` criado como template
-- [x] **[Segurança] Atualizar novo token** no Secrets Manager — `finbot-prod-secrets` atualizado com token, db_host, db_username e db_password
+- [x] **[Segurança] Atualizar novo tblz, agoeraoken** no Secrets Manager — `finbot-prod-secrets` atualizado com token, db_host, db_username e db_password
 
 ---
 
 ## 🛠️ Fase 1 — Completar o Código
 
-- [ ] **[Backend] Integração Secrets Manager** — implementar `spring.config.import=aws-secretsmanager:...` para carregar credenciais na inicialização
+- [x] **[Backend] Integração Secrets Manager** — `application-prod.properties` criado com `spring.config.import=aws-secretsmanager:/finbot-prod-secrets`; credenciais injetadas via `${db_host}`, `${db_username}`, `${db_password}`, `${telegram_token}`
 - [ ] **[Backend] Teste fluxo completo** — testar ngrok + webhook + S3 upload em dev
 - [ ] **[Backend] Executar migrations SQL** — rodar `migration_s3_integration.sql` no RDS
 
