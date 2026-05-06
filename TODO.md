@@ -12,7 +12,8 @@
 
 - [x] **[Segurança] Rotacionar token do bot** via @BotFather — token antigo revogado
 - [x] **[Segurança] Limpar credenciais do git** — `application-dev.properties` desrastreado; `application.properties` sanitizado com placeholders; `application-dev.properties.example` criado como template
-- [x] **[Segurança] Atualizar novo tblz, agoeraoken** no Secrets Manager — `finbot-prod-secrets` atualizado com token, db_host, db_username e db_password
+- [x] **[Segurança] Atualizar novo tblz, agoera
+- oken** no Secrets Manager — `finbot-prod-secrets` atualizado com token, db_host, db_username e db_password
 
 ---
 
@@ -26,11 +27,13 @@
 
 ## 🏗️ Fase 2 — Infraestrutura (Terraform)
 
-- [ ] **[Infra] Adicionar EC2 t4g.micro** — subnet pública, Internet Gateway, Elastic IP
-- [ ] **[Infra] Security Group EC2** — porta 8443 inbound (Telegram IPs) + SSH restrito ao IP pessoal
-- [ ] **[Infra] Remover Lambda** — remover recursos Lambda, alias, Function URL e NAT (não existe, mas confirmar limpeza)
-- [ ] **[Infra] Backend remoto Terraform** — mover `terraform.tfstate` para bucket S3 (evita conflito entre 2 pessoas)
-- [ ] **[Infra] Permissão S3 de upload** — adicionar policy `s3:PutObject` na role EC2 (atualmente só tem `s3:GetObject` para o artefato)
+- [x] **[Infra] Adicionar EC2 t4g.micro** — `ec2.tf` criado: subnet pública, Internet Gateway, Elastic IP, Amazon Linux 2023 ARM64, Java 21 via user_data
+- [x] **[Infra] Security Group EC2** — porta 8443 inbound aberta + SSH restrito a `var.my_ip`
+- [x] **[Infra] Remover Lambda** — `lambda.tf` esvaziado; recursos Lambda removidos do Terraform
+- [x] **[Infra] Backend remoto Terraform** — S3 backend configurado em `provider.tf` (bucket: `finbot-tfstate-satyans`)
+- [x] **[Infra] Permissão S3 de upload** — policy EC2 com `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject` no bucket de imagens
+- [ ] **[Infra] Pré-requisitos antes do apply** — criar bucket S3 de estado + key pair EC2 + preencher `prod.tfvars` + `terraform init -migrate-state`
+- [ ] **[Infra] Liberar EC2 no RDS SG** — após apply, adicionar `ec2_sg_id` (output) como inbound 3306 no `finbot-prod-sg-rds`
 
 ---
 

@@ -6,6 +6,12 @@ terraform {
       version = "~> 5.0"
     }
   }
+
+  backend "s3" {
+    bucket = "finbot-tfstate-satyans"
+    key    = "prod/terraform.tfstate"
+    region = "us-east-1"
+  }
 }
 
 provider "aws" {
@@ -14,7 +20,7 @@ provider "aws" {
   default_tags {
     tags = {
       Project   = "finbot"
-      Env       = var.env # Usando a variável que definimos!
+      Env       = var.env
       ManagedBy = "terraform"
       Owner     = "Satyan"
     }
