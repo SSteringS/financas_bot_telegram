@@ -1,5 +1,17 @@
+# =============================================================================
+# AMBIENTE DE DESENVOLVIMENTO LOCAL
+# =============================================================================
+# Copie este arquivo para application-dev.properties e preencha os valores.
+# O arquivo application-dev.properties é gitignored — nunca commite com credenciais reais.
+#
+# Separação de ambientes:
+#   Dev  → bot Telegram DEV + bucket S3 DEV + MySQL local
+#   Prod → bot Telegram PROD + bucket S3 PROD + RDS AWS (credenciais no Secrets Manager)
+# =============================================================================
+
 spring.application.name=financas_bot_telegram
 
+# MySQL local
 spring.datasource.url=jdbc:mysql://localhost:3306/financas_bot_telegram_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
 spring.datasource.username=CHANGE_ME
 spring.datasource.password=CHANGE_ME
@@ -9,16 +21,14 @@ spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
 
-# Configs do bot do Telegram
+# Bot do Telegram — use o bot de DEV criado via @BotFather (/newbot)
+# NUNCA coloque aqui o token do bot de produção
 telegram.api.url=https://api.telegram.org/bot
 telegram.api.file.url=https://api.telegram.org/file/bot
-# IDs de usuário do Telegram autorizados a interagir com o bot
 telegram.allowed-user-ids=CHANGE_ME
-# Token do Bot do Telegram — obtenha via @BotFather
 telegram.bot-token=CHANGE_ME
 
-financasbot.s3.base-url=https://s3.amazonaws.com/CHANGE_ME/
-
-# Configs do AWS S3
-aws.s3.bucket-name=CHANGE_ME
+# Bucket S3 exclusivo para dev — imagens de teste separadas do prod
+aws.s3.bucket-name=bot-financas-pagamentos-dev
 aws.s3.region=us-east-1
+financasbot.s3.base-url=https://s3.amazonaws.com/bot-financas-pagamentos-dev/
