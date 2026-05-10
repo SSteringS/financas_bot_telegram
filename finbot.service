@@ -1,0 +1,15 @@
+[Unit]
+Description=Financas Bot Telegram
+After=network.target
+
+[Service]
+User=finbot
+Environment=AWS_REGION=us-east-1
+ExecStart=/usr/bin/java -jar -Dspring.profiles.active=prod /opt/finbot/app.jar
+Restart=on-failure
+RestartSec=15
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

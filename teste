@@ -1,0 +1,5 @@
+Ferramenta,Objetivo,Por que usar?
+Notion,Central de ideias e Tarefas,"Centraliza tudo (requisitos, links da nuvem, prints de telas) de forma visual e rápida."
+GitHub Issues/Projects,Gestão de Tarefas,"Integrado ao código. Se você pensar em uma funcionalidade, abre uma issue e já vincula ao commit."
+Excalidraw,Desenho Técnico,"É ""mão livre"". Você desenha a arquitetura em 2 minutos, tira um print e cola no Notion."
+Mermaid.js,Diagramas em Código,Permite criar diagramas de sequência ou fluxo usando apenas texto dentro do próprio GitHub/Markdown.
