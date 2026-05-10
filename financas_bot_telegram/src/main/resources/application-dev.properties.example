@@ -17,9 +17,9 @@ spring.datasource.username=CHANGE_ME
 spring.datasource.password=CHANGE_ME
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
-spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.ddl-auto=none
 spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
 
 # Bot do Telegram — use o bot de DEV criado via @BotFather (/newbot)
 # NUNCA coloque aqui o token do bot de produção
@@ -32,3 +32,9 @@ telegram.bot-token=CHANGE_ME
 aws.s3.bucket-name=bot-financas-pagamentos-dev
 aws.s3.region=us-east-1
 financasbot.s3.base-url=https://s3.amazonaws.com/bot-financas-pagamentos-dev/
+
+# Flyway: em dev, banco pode estar vazio ou desatualizado.
+# Se vazio, Flyway aplica V1 do zero. Se já tem schema, baseline-on-migrate evita erro.
+spring.flyway.baseline-on-migrate=true
+spring.flyway.baseline-version=1
+spring.flyway.baseline-description=Schema inicial consolidado
