@@ -43,3 +43,4 @@ override.tf.json
 
 application-dev.properties
 *.env
+*.pem
