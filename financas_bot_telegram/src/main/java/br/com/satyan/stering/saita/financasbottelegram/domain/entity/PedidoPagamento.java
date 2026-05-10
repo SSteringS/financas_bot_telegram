@@ -28,6 +28,9 @@ public class PedidoPagamento {
     @Column(name = "file_id_telegram")
     private String fileIdTelegram;
 
+    @Column(name = "imagem_url", columnDefinition = "TEXT")
+    private String imagemUrl;
+
     @Column(precision = 10, scale = 2)
     private BigDecimal valor;
 

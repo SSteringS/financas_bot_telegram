@@ -2,7 +2,7 @@
 
 ## 🎯 MVP para Produção — 2 usuários
 
-**Arquitetura escolhida:** EC2 t4g.micro + RDS MySQL (private subnet) + S3
+**Arquitetura escolhida:** EC2 t4g.micro + RDS MySQL (default VPC, acesso restrito ao IP da EC2) + S3
 **Custo estimado:** ~$8–15/mês
 **Decisão:** Lambda removido em favor de EC2 — elimina NAT Gateway ($32/mês), cold starts e complexidade de deploy.
 
@@ -12,59 +12,52 @@
 
 - [x] **[Segurança] Rotacionar token do bot** via @BotFather — token antigo revogado
 - [x] **[Segurança] Limpar credenciais do git** — `application-dev.properties` desrastreado; `application.properties` sanitizado com placeholders; `application-dev.properties.example` criado como template
-- [x] **[Segurança] Atualizar novo tblz, agoera
-- oken** no Secrets Manager — `finbot-prod-secrets` atualizado com token, db_host, db_username e db_password
+- [x] **[Segurança] Atualizar novo token** no Secrets Manager — `finbot-prod-secrets` atualizado com token, db_host, db_username e db_password
+    
+---
+
+## ✅ Fase 1 — Completar o Código (CONCLUÍDA)
+
+- [x] **[Backend] Integração Secrets Manager** — `application-prod.properties` criado; credenciais injetadas via `${db_host}`, `${db_username}`, `${db_password}`, `${telegram_token}`
+- [x] **[Backend] Teste fluxo completo local** — fluxo de pedido e comprovante testados com S3 upload em dev
+- [x] **[Backend] Migrations SQL** — `migration_s3_integration.sql` executado no RDS; schema consolidado em `schema.sql`
+- [x] **[Backend] Ambiente dev separado** — bot DEV criado no @BotFather, bucket S3 `bot-financas-pagamentos-dev` criado, `application-dev.properties` configurado localmente
 
 ---
 
-## 🛠️ Fase 1 — Completar o Código
+## ✅ Fase 2 — Infraestrutura (Terraform) (CONCLUÍDA)
 
-- [x] **[Backend] Integração Secrets Manager** — `application-prod.properties` criado com `spring.config.import=aws-secretsmanager:/finbot-prod-secrets`; credenciais injetadas via `${db_host}`, `${db_username}`, `${db_password}`, `${telegram_token}`
-- [ ] **[Backend] Teste fluxo completo** — testar ngrok + webhook + S3 upload em dev
-- [ ] **[Backend] Executar migrations SQL** — rodar `migration_s3_integration.sql` no RDS
-
----
-
-## 🏗️ Fase 2 — Infraestrutura (Terraform)
-
-- [x] **[Infra] Adicionar EC2 t4g.micro** — `ec2.tf` criado: subnet pública, Internet Gateway, Elastic IP, Amazon Linux 2023 ARM64, Java 21 via user_data
-- [x] **[Infra] Security Group EC2** — porta 8443 inbound aberta + SSH restrito a `var.my_ip`
-- [x] **[Infra] Remover Lambda** — `lambda.tf` esvaziado; recursos Lambda removidos do Terraform
-- [x] **[Infra] Backend remoto Terraform** — S3 backend configurado em `provider.tf` (bucket: `finbot-tfstate-satyans`)
-- [x] **[Infra] Permissão S3 de upload** — policy EC2 com `s3:PutObject`, `s3:GetObject`, `s3:DeleteObject` no bucket de imagens
-- [ ] **[Infra] Pré-requisitos antes do apply** — criar bucket S3 de estado + key pair EC2 + preencher `prod.tfvars` + `terraform init -migrate-state`
-- [ ] **[Infra] Liberar EC2 no RDS SG** — após apply, adicionar `ec2_sg_id` (output) como inbound 3306 no `finbot-prod-sg-rds`
+- [x] **[Infra] Adicionar EC2 t4g.micro** — `ec2.tf` criado: subnet pública, Internet Gateway, Elastic IP (`3.228.138.109`), Amazon Linux 2023 ARM64, Java 21
+- [x] **[Infra] Security Group EC2** — porta 8443 inbound aberta ao mundo + SSH restrito ao IP do dev
+- [x] **[Infra] Remover Lambda** — `lambda.tf` esvaziado; recursos Lambda removidos
+- [x] **[Infra] Backend remoto Terraform** — S3 backend em `provider.tf` (bucket: `finbot-tfstate-satyans`)
+- [x] **[Infra] Permissão S3 + Secrets Manager** — IAM role da EC2 com acesso ao bucket de imagens e leitura do secret
+- [x] **[Infra] Liberar EC2 no RDS SG** — regra inbound 3306 adicionada no SG do RDS para o Elastic IP da EC2
 
 ---
 
-## 🚀 Fase 3 — Deploy e Webhook
+## ✅ Fase 3 — Deploy e Webhook (CONCLUÍDA)
 
-- [ ] **[Deploy] Build do JAR** — `mvn package -DskipTests`
-- [ ] **[Deploy] Configurar systemd** — service file para Spring Boot rodar como daemon na EC2
-- [ ] **[Deploy] Script de deploy** — `scp` do JAR + restart do serviço
-- [ ] **[Deploy] Configurar webhook Telegram** — apontar para `https://<EC2-IP>:8443/webhook`
+- [x] **[Deploy] Build do JAR** — `mvn package -DskipTests`
+- [x] **[Deploy] Configurar systemd** — `finbot.service` criado e habilitado na EC2; app roda como usuário `finbot`
+- [x] **[Deploy] SSL auto-assinado** — keystore PKCS12 gerado em `/opt/finbot/keystore.p12`; HTTPS na porta 8443
+- [x] **[Deploy] Deploy do JAR** — JAR enviado via SCP para `/opt/finbot/app.jar`; serviço ativo e healthy
+- [x] **[Deploy] Configurar webhook Telegram** — apontando para `https://3.228.138.109:8443/webhook` com certificado custom; `has_custom_certificate: true`
+- [x] **[Deploy] Teste em produção** — fluxo de pedido e comprovante validados com 2 usuários reais
 
 ---
 
 ## 📡 Fase 4 — Operação Básica
 
 - [ ] **[Ops] CloudWatch alarm** — alarme para erros no log do Spring Boot
-- [ ] **[Ops] Ajustar horário RDS** — confirmar que auto start/stop do EventBridge cobre o horário de uso real (atualmente: liga 11h UTC, desliga 1h UTC)
-
----
-
-## ✅ Done (Vitória)
-
-- [x] **[Backend] Tratamento de Erros** — GlobalExceptionHandler com mensagens amigáveis
-- [x] **[Backend] Orquestração** — UpdateOrchestrator e Strategies (Pedido vs Comprovante)
-- [x] **[Backend] Persistência** — Entidades JPA e Repositórios
-- [x] **[Backend] Integração S3** — S3ImageUploadService, TelegramFileDownloaderService, refatoração dos Strategies
-- [x] **[Infra] VPC + RDS** — Terraform provisionado (VPC, subnets privadas, RDS MySQL, Secrets Manager, EventBridge)
+- [ ] **[Ops] Ajustar horário RDS** — confirmar que auto start/stop do EventBridge cobre o horário de uso real
 
 ---
 
 ## 🔭 Backlog (Futuro — pós MVP)
 
+- [ ] **[CI/CD] Pipeline GitHub Actions** — push para `main` → `mvn test` → SCP do JAR → restart systemd via SSH (secrets: `EC2_HOST`, `EC2_SSH_KEY`)
+- [ ] **[Infra] Mover RDS para VPC do Terraform** — atualmente no default VPC com acesso público restrito; mover para subnet privada é melhoria de segurança
 - [ ] **Discovery:** Analisar integração direta com API do WhatsApp (Morpheus)
 - [ ] **Feature:** OCR para extração automática de valores de boletos/prints
 - [ ] **UX:** Comandos de resumo de gastos mensais

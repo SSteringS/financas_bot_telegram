@@ -1,0 +1,49 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run tests
+        run: mvn test -f financas_bot_telegram/pom.xml
+
+      - name: Build JAR
+        run: mvn package -DskipTests -f financas_bot_telegram/pom.xml
+
+      - name: Set up SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/ec2-key.pem
+          chmod 600 /tmp/ec2-key.pem
+
+      - name: Copy JAR to EC2
+        run: |
+          scp -i /tmp/ec2-key.pem -o StrictHostKeyChecking=no \
+            financas_bot_telegram/target/financas-bot-telegram-0.0.1-SNAPSHOT.jar \
+            ec2-user@${{ secrets.EC2_HOST }}:/tmp/app.jar
+
+      - name: Deploy and restart service
+        run: |
+          ssh -i /tmp/ec2-key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} \
+            "sudo mv /tmp/app.jar /opt/finbot/app.jar && \
+             sudo chown finbot:finbot /opt/finbot/app.jar && \
+             sudo systemctl restart finbot && \
+             sleep 20 && \
+             sudo systemctl is-active finbot"
+
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f /tmp/ec2-key.pem

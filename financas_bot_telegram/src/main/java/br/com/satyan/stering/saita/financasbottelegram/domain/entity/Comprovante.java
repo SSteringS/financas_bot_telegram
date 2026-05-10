@@ -23,6 +23,9 @@ public class Comprovante {
     @Column(name = "file_id_telegram")
     private String fileIdTelegram;
 
+    @Column(name = "imagem_url", columnDefinition = "TEXT")
+    private String imagemUrl;
+
     @Column(name = "tipo_pagamento")
     private String tipoPagamento;
 

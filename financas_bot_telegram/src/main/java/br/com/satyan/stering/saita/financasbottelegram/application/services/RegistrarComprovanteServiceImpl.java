@@ -24,7 +24,7 @@ public class RegistrarComprovanteServiceImpl implements RegistrarComprovanteUsec
     }
 
     @Override
-    public Comprovante execute(Long pedidoId, String tipoPagamento, String fileIdTelegram, Long chatId) {
+    public Comprovante execute(Long pedidoId, String tipoPagamento, String fileIdTelegram, String imagemUrl, Long chatId) {
         try {
             PedidoPagamento pedido = pedidoPagamentoRepository.findById(pedidoId)
                     .orElseThrow(() -> new PedidoNaoEncontradoException("Pedido com ID #" + pedidoId + " não encontrado.", chatId));
@@ -38,6 +38,7 @@ public class RegistrarComprovanteServiceImpl implements RegistrarComprovanteUsec
             comprovante.setPedido(pedido);
             comprovante.setTipoPagamento(tipoPagamento);
             comprovante.setFileIdTelegram(fileIdTelegram);
+            comprovante.setImagemUrl(imagemUrl);
 
             return comprovanteRepository.save(comprovante);
         } catch (DataAccessException e) {

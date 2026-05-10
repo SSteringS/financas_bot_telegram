@@ -40,3 +40,6 @@ build/
 
 # Arquivos de segredos
 segredos
+
+application-dev.properties
+*.env

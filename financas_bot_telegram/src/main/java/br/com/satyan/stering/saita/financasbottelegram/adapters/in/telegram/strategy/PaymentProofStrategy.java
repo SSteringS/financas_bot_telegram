@@ -1,5 +1,7 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.strategy;
 
+import br.com.satyan.stering.saita.financasbottelegram.adapters.out.s3.service.S3ImageUploadService;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramFileDownloaderService;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidCaptionException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.PhotoProcessingException;
@@ -22,14 +24,21 @@ public class PaymentProofStrategy implements UpdateProcessingStrategy {
   private static final Logger logger = LoggerFactory.getLogger(PaymentProofStrategy.class);
   private final RegistrarComprovanteUsecase registrarComprovanteUsecase;
   private final TelegramMessageSenderService telegramMessageSenderService;
+  private final S3ImageUploadService s3ImageUploadService;
+  private final TelegramFileDownloaderService telegramFileDownloaderService;
 
   // Expressão regular para capturar o tipo de pagamento e o ID do pedido.
-  // Ex: "pix 123"
+  // Ex: "#123 pix"
   private static final Pattern COMPROVANTE_PATTERN = Pattern.compile("#(\\d+)\\s+(.+)");
 
-  public PaymentProofStrategy(RegistrarComprovanteUsecase registrarComprovanteUsecase, TelegramMessageSenderService telegramMessageSenderService) {
+  public PaymentProofStrategy(RegistrarComprovanteUsecase registrarComprovanteUsecase,
+      TelegramMessageSenderService telegramMessageSenderService,
+      S3ImageUploadService s3ImageUploadService,
+      TelegramFileDownloaderService telegramFileDownloaderService) {
     this.registrarComprovanteUsecase = registrarComprovanteUsecase;
     this.telegramMessageSenderService = telegramMessageSenderService;
+    this.s3ImageUploadService = s3ImageUploadService;
+    this.telegramFileDownloaderService = telegramFileDownloaderService;
   }
 
   @Override
@@ -45,26 +54,32 @@ public class PaymentProofStrategy implements UpdateProcessingStrategy {
     Long chatId = message.getChatId();
     String caption = message.getCaption();
 
-    String fileId = message.getPhoto().stream()
-        .max(Comparator.comparing(PhotoSize::getFileSize))
-        .map(PhotoSize::getFileId)
-        .orElseThrow(() -> new PhotoProcessingException("Não foi possível obter o file_id da foto.", chatId));
+    String fileId = extractHighestQualityImageFileId(message, chatId);
 
     if (caption == null || caption.isBlank()) {
-      throw new InvalidCaptionException("A foto do comprovante precisa de uma legenda.\nUse: `<tipo_pagamento> <id_pedido>`\n\n*Exemplo:* `pix 123`", chatId);
+      throw new InvalidCaptionException("A foto do comprovante precisa de uma legenda.\nUse: `#<id_pedido> <tipo_pagamento>`\n\n*Exemplo:* `#123 pix`", chatId);
     }
 
     logger.info("Estratégia de Comprovante de Pagamento ativada. FileID: {}, Legenda: '{}'", fileId, caption);
 
     Matcher matcher = COMPROVANTE_PATTERN.matcher(caption.trim());
     if (!matcher.matches()) {
-      throw new InvalidCaptionException("Formato da legenda inválido.\nUse: `<tipo_pagamento> <id_pedido>`\n\n*Exemplo:* `pix 123`", chatId);
+      throw new InvalidCaptionException("Formato da legenda inválido.\nUse: `#<id_pedido> <tipo_pagamento>`\n\n*Exemplo:* `#123 pix`", chatId);
     }
 
-    String tipoPagamento = matcher.group(2).toUpperCase();
     Long pedidoId = Long.parseLong(matcher.group(1));
+    String tipoPagamento = matcher.group(2).toUpperCase();
 
-    Comprovante comprovanteSalvo = registrarComprovanteUsecase.execute(pedidoId, tipoPagamento, fileId, chatId);
+    // Download da imagem do Telegram
+    byte[] imageBytes = telegramFileDownloaderService.downloadImageByFileId(fileId);
+
+    // Upload para S3
+    String s3ImageUrl = s3ImageUploadService.uploadImage(imageBytes);
+    logger.info("Comprovante enviado para S3: {}", s3ImageUrl);
+
+    // Salvar comprovante no banco
+
+    Comprovante comprovanteSalvo = registrarComprovanteUsecase.execute(pedidoId, tipoPagamento, fileId, s3ImageUrl, chatId);
     logger.info("Comprovante para o pedido {} registrado com sucesso.", pedidoId);
 
     String successMessage = String.format(
@@ -72,5 +87,15 @@ public class PaymentProofStrategy implements UpdateProcessingStrategy {
         comprovanteSalvo.getPedido().getId()
     );
     telegramMessageSenderService.sendMessage(chatId, successMessage);
+  }
+
+  /**
+   * Extrai o file_id da foto com maior qualidade (maior tamanho).
+   */
+  private String extractHighestQualityImageFileId(Message message, Long chatId) {
+    return message.getPhoto().stream()
+        .max(Comparator.comparing(PhotoSize::getFileSize))
+        .map(PhotoSize::getFileId)
+        .orElseThrow(() -> new PhotoProcessingException("Não foi possível obter o file_id da foto.", chatId));
   }
 }

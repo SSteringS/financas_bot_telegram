@@ -41,6 +41,5 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
-# Secrets
-segredos.txt
-segredos
+application-dev.properties
+*.env
