@@ -1,4 +1,4 @@
-package br.com.satyan.stering.saita.financasbottelegram.domain.entity;
+package br.com.satyan.stering.saita.financasbottelegram.adapters.out.persistence.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -10,7 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @Setter
 @Entity
 @Table(name = "comprovantes")
-public class Comprovante {
+public class ComprovanteEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +18,7 @@ public class Comprovante {
 
     @ManyToOne
     @JoinColumn(name = "pedido_id", nullable = false)
-    private PedidoPagamento pedido;
+    private PedidoPagamentoEntity pedido;
 
     @Column(name = "file_id_telegram")
     private String fileIdTelegram;
@@ -33,4 +33,3 @@ public class Comprovante {
     @Column(name = "data_pagamento", updatable = false)
     private LocalDateTime dataPagamento;
 }
-

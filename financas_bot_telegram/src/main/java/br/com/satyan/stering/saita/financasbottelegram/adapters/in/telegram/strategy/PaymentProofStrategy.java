@@ -6,7 +6,7 @@ import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.ser
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidCaptionException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.PhotoProcessingException;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.RegistrarComprovanteUsecase;
-import br.com.satyan.stering.saita.financasbottelegram.domain.entity.Comprovante;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.Comprovante;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -84,7 +84,7 @@ public class PaymentProofStrategy implements UpdateProcessingStrategy {
 
     String successMessage = String.format(
         "✅ Comprovante de pagamento para o *Pedido ID %d* foi registrado com sucesso!",
-        comprovanteSalvo.getPedido().getId()
+        comprovanteSalvo.getPedidoId()
     );
     telegramMessageSenderService.sendMessage(chatId, successMessage);
   }
