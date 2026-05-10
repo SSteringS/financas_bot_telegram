@@ -60,7 +60,7 @@ main (protegida — só via PR)
 - Pipeline em `.github/workflows/deploy.yml`
 - Dispara no merge para `main`
 - Faz build do JAR do back + deploy via SSH na EC2 (`3.228.138.109`)
-- Testes pulados temporariamente (`-DskipTests`) — reativar com H2 antes da próxima feature
+- Pipeline roda testes unitários no merge para `main`. Cobertura mínima: toda classe com lógica não-trivial tem teste; tarefas BE-* devem incluir testes próprios como critério de aceitação
 
 ## Infraestrutura (produção)
 

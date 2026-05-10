@@ -18,6 +18,9 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Run Tests
+        run: mvn test -f financas_bot_telegram/pom.xml
+
       - name: Build JAR
         run: mvn package -DskipTests -f financas_bot_telegram/pom.xml
 
