@@ -56,7 +56,7 @@
 
 ## 🔭 Backlog (Futuro — pós MVP)
 
-- [ ] **[CI/CD] Pipeline GitHub Actions** — push para `main` → `mvn test` → SCP do JAR → restart systemd via SSH (secrets: `EC2_HOST`, `EC2_SSH_KEY`)
+- [ ] **[CI/CD] Reativar testes na pipeline** — testes estão sendo pulados (`-DskipTests`) por falta de configuração de teste isolada; **obrigatório antes da próxima feature**: criar `application-test.properties` com H2 em memória e reativar `mvn test` no `deploy.yml`
 - [ ] **[Infra] Mover RDS para VPC do Terraform** — atualmente no default VPC com acesso público restrito; mover para subnet privada é melhoria de segurança
 - [ ] **Discovery:** Analisar integração direta com API do WhatsApp (Morpheus)
 - [ ] **Feature:** OCR para extração automática de valores de boletos/prints
