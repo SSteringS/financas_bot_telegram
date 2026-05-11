@@ -44,3 +44,6 @@ override.tf.json
 application-dev.properties
 *.env
 *.pem
+
+# Claude Code local settings
+.claude/settings.local.json

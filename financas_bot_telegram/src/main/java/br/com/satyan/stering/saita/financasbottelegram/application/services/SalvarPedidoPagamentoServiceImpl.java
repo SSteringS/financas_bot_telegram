@@ -3,7 +3,7 @@ package br.com.satyan.stering.saita.financasbottelegram.application.services;
 import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.BusinessRuleException;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.PedidoPagamentoRepositoryPort;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.SalvarPedidoPagamentoUsecase;
-import br.com.satyan.stering.saita.financasbottelegram.domain.entity.PedidoPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
 import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 
@@ -46,4 +46,3 @@ public class SalvarPedidoPagamentoServiceImpl implements SalvarPedidoPagamentoUs
         }
     }
 }
-

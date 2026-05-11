@@ -1,4 +1,4 @@
-package br.com.satyan.stering.saita.financasbottelegram.domain.entity;
+package br.com.satyan.stering.saita.financasbottelegram.adapters.out.persistence.entity;
 
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
 import jakarta.persistence.*;
@@ -12,7 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @Setter
 @Entity
 @Table(name = "pedidos_pagamento")
-public class PedidoPagamento {
+public class PedidoPagamentoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
