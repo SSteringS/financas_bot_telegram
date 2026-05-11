@@ -14,6 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -111,6 +112,8 @@ public class PaymentRequestStrategy implements UpdateProcessingStrategy {
         .telegramUserId(message.getFrom().getId().toString())
         .telegramMessageId(message.getMessageId().toString())
         .status(StatusPedido.PENDENTE)
+        .requisitanteId(1L)
+        .dataPedido(LocalDate.now())
         .build();
   }
 }

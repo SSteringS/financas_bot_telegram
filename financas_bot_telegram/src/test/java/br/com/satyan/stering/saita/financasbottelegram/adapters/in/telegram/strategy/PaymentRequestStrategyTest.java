@@ -13,6 +13,7 @@ import br.com.satyan.stering.saita.financasbottelegram.application.usecases.Salv
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,6 +80,8 @@ class PaymentRequestStrategyTest {
         assertThat(capturado.getTelegramUserId()).isEqualTo("99");
         assertThat(capturado.getFileIdTelegram()).isEqualTo("file_abc");
         assertThat(capturado.getImagemUrl()).isEqualTo("https://s3.example.com/foto.jpg");
+        assertThat(capturado.getRequisitanteId()).isEqualTo(1L);
+        assertThat(capturado.getDataPedido()).isEqualTo(LocalDate.now());
     }
 
     @Test
