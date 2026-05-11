@@ -14,7 +14,7 @@ CREATE TABLE requisitante (
 
 -- 2. Linha inicial — ajustar telefone para o real antes de rodar em prod
 INSERT INTO requisitante (id, nome, telefone, email, ativo, criado_em)
-VALUES (1, 'Pedro Marques', '+5511XXXXXXXXX', NULL, TRUE, NOW());
+VALUES (1, 'Satyan Saita', '+5548991825902', NULL, TRUE, NOW());
 
 -- 3. Novos campos em pedidos_pagamento
 --    Adicionados como NULL primeiro para permitir backfill antes de impor NOT NULL
