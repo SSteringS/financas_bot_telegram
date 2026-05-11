@@ -4,7 +4,7 @@ import br.com.satyan.stering.saita.financasbottelegram.adapters.out.s3.service.S
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramFileDownloaderService;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.SalvarPedidoPagamentoUsecase;
-import br.com.satyan.stering.saita.financasbottelegram.domain.entity.PedidoPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +14,7 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -105,13 +106,14 @@ public class PaymentRequestStrategy implements UpdateProcessingStrategy {
 
     String descricao = matcher.group(3);
 
-    PedidoPagamento pedido = new PedidoPagamento();
-    pedido.setValor(valor);
-    pedido.setDescricao(descricao);
-    pedido.setTelegramUserId(message.getFrom().getId().toString());
-    pedido.setTelegramMessageId(message.getMessageId().toString());
-    pedido.setStatus(StatusPedido.PENDENTE);
-
-    return pedido;
+    return PedidoPagamento.builder()
+        .valor(valor)
+        .descricao(descricao)
+        .telegramUserId(message.getFrom().getId().toString())
+        .telegramMessageId(message.getMessageId().toString())
+        .status(StatusPedido.PENDENTE)
+        .requisitanteId(1L)
+        .dataPedido(LocalDate.now())
+        .build();
   }
 }

@@ -1,8 +1,10 @@
-package br.com.satyan.stering.saita.financasbottelegram.domain.entity;
+package br.com.satyan.stering.saita.financasbottelegram.adapters.out.persistence.entity;
 
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoPagamento;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,12 +14,15 @@ import org.hibernate.annotations.CreationTimestamp;
 @Setter
 @Entity
 @Table(name = "pedidos_pagamento")
-public class PedidoPagamento {
+public class PedidoPagamentoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
+
+    @Column(name = "requisitante_id", nullable = false)
+    private Long requisitanteId;
 
     @Column(name = "telegram_user_id")
     private String telegramUserId;
@@ -39,6 +44,16 @@ public class PedidoPagamento {
 
     @Enumerated(EnumType.STRING)
     private StatusPedido status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo")
+    private TipoPagamento tipo;
+
+    @Column(name = "data_pedido", nullable = false)
+    private LocalDate dataPedido;
+
+    @Column(name = "data_pagamento")
+    private LocalDate dataPagamento;
 
     @CreationTimestamp
     @Column(name = "data_criacao", updatable = false)

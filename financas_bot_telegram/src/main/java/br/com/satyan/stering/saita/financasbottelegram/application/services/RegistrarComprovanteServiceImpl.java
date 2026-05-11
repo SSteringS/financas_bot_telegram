@@ -5,8 +5,8 @@ import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.Da
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.ComprovanteRepositoryPort;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.PedidoPagamentoRepositoryPort;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.RegistrarComprovanteUsecase;
-import br.com.satyan.stering.saita.financasbottelegram.domain.entity.Comprovante;
-import br.com.satyan.stering.saita.financasbottelegram.domain.entity.PedidoPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.Comprovante;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.PedidoNaoEncontradoException;
 import org.springframework.dao.DataAccessException;
@@ -34,11 +34,12 @@ public class RegistrarComprovanteServiceImpl implements RegistrarComprovanteUsec
             pedido.setStatus(StatusPedido.PAGO);
             pedidoPagamentoRepository.save(pedido);
 
-            Comprovante comprovante = new Comprovante();
-            comprovante.setPedido(pedido);
-            comprovante.setTipoPagamento(tipoPagamento);
-            comprovante.setFileIdTelegram(fileIdTelegram);
-            comprovante.setImagemUrl(imagemUrl);
+            Comprovante comprovante = Comprovante.builder()
+                    .pedidoId(pedidoId)
+                    .tipoPagamento(tipoPagamento)
+                    .fileIdTelegram(fileIdTelegram)
+                    .imagemUrl(imagemUrl)
+                    .build();
 
             return comprovanteRepository.save(comprovante);
         } catch (DataAccessException e) {

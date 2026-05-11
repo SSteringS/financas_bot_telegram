@@ -28,7 +28,7 @@ A operação do bot continua igual. O que muda:
 | Visualização de comprovante | Modal com imagem grande e botão de download |
 | Cancelamento de pedido | Fora do MVP |
 | Notificação automática | Fora do MVP (vai pra evolução, junto da migração pro WhatsApp) |
-| Variante de design | C — timeline cronológica (ver `design-proposals/variante-c-timeline.html`) |
+| Variante de design | C — timeline cronológica (ver `docs/architecture/design-proposals/variante-c-timeline.html`) |
 
 ---
 
@@ -131,7 +131,7 @@ Fase 3d — Evolução pós-MVP (não fazer agora)
 **Contexto**: definir o contrato formal antes de implementar endpoints. Isso desbloqueia a Fase 3b (front) pra rodar contra mock se necessário.
 
 **Arquivos**:
-- `docs/api/openapi.yaml` (criar) — contrato OpenAPI 3.1 cobrindo todos os endpoints da seção 2 da `design-proposals/especificacao-tecnica.md`
+- `docs/api/openapi.yaml` (criar) — contrato OpenAPI 3.1 cobrindo todos os endpoints da seção 2 da `docs/architecture/especificacao-tecnica.md`
 - `application/dto/PedidoResumoDTO.java` — DTO da listagem
 - `application/dto/PedidoDetalheDTO.java`
 - `application/dto/ResumoMesDTO.java`
@@ -429,7 +429,7 @@ Fase 3d — Evolução pós-MVP (não fazer agora)
 
 ## FE-05 — Componente PedidoCard (variante C)
 
-**Contexto**: replicar fielmente o cartão da `design-proposals/variante-c-timeline.html` em React.
+**Contexto**: replicar fielmente o cartão da `docs/architecture/design-proposals/variante-c-timeline.html` em React.
 
 **Arquivos**:
 - `src/components/PedidoCard.tsx`

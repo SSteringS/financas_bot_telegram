@@ -107,21 +107,30 @@ Isso é a primeira coisa que o Claude Code vai configurar (no FE-02).
 
 ### 3.1. Decidir estrutura: monorepo ou repo separado
 
-**Recomendo monorepo** — pasta `frontend/` dentro do repo `bot-financas` que você já tem. Vantagens: 1 só repo, commits podem cruzar back+front quando preciso, contexto único, e o IntelliJ trata os dois como subprojetos no mesmo workspace.
+**Recomendo monorepo** — pasta `frontend/` dentro do repo `financas_bot_telegram` que você já tem. Vantagens: 1 só repo, commits podem cruzar back+front quando preciso, contexto único, e o IntelliJ trata os dois como subprojetos no mesmo workspace.
 
 Estrutura final:
 ```
-bot-financas/
-├── src/main/java/...        (backend Spring que você já tem)
-├── infra/                    (Terraform que você já tem)
-├── frontend/                 (NOVO — projeto React)
+financas_bot_telegram/
+├── src/main/java/...                          (backend Spring que você já tem)
+├── infra/                                     (Terraform que você já tem)
+├── pom.xml, mvnw, mvnw.cmd                    (Maven)
+├── frontend/                                  (NOVO — projeto React)
 │   ├── src/
 │   ├── package.json
 │   ├── vite.config.ts
 │   └── ...
-├── design-proposals/         (mockups que a gente fez)
-├── FASE-3-VISUALIZACAO.md   (TODO completo)
-└── ROTEIRO-FRONTEND.md      (este arquivo)
+└── docs/                                      (planejamento e referência)
+    ├── README.md                              (regras desta pasta)
+    ├── architecture/                          (fonte da verdade técnica)
+    │   ├── especificacao-tecnica.md
+    │   └── design-proposals/                  (mockups das variantes A/B/C)
+    ├── plans/                                 (planos de fase)
+    │   └── FASE-3-VISUALIZACAO.md
+    ├── runbooks/                              (roteiros de execução)
+    │   └── ROTEIRO-FRONTEND.md                (este arquivo)
+    ├── status/                                (relatórios pós-tarefa)
+    └── decisions/                             (ADRs — decisões com data e contexto)
 ```
 
 ### 3.2. Abrir o projeto no IntelliJ
@@ -176,10 +185,10 @@ git checkout -b feature/frontend-setup
 
 ### 4.1. Anatomia de uma sessão
 
-O fluxo recomendado pra cada tarefa do `FASE-3-VISUALIZACAO.md`:
+O fluxo recomendado pra cada tarefa do `docs/plans/FASE-3-VISUALIZACAO.md`:
 
 1. **Cole o prompt da tarefa** (templates abaixo) na conversa do Claude Code
-2. Ele lê o `FASE-3-VISUALIZACAO.md`, a especificação técnica e os mockups, e implementa
+2. Ele lê o `docs/plans/FASE-3-VISUALIZACAO.md`, a especificação técnica e os mockups, e implementa
 3. **Você revisa o diff** — IntelliJ mostra um marcador no gutter (lateral) e abre uma janela de diff lado-a-lado quando você clica. Ou, mais formal: `View → Tool Windows → Git` → aba `Local Changes` mostra todos os arquivos modificados, clique pra abrir diff
 4. Se algo não bate com o esperado, **peça ajustes específicos** ("o botão de comprovante deveria ter padding maior no mobile" etc)
 5. Quando satisfeito, **roda os testes/validação**: `npm run lint`, `npm run dev`, abre no navegador
@@ -189,7 +198,7 @@ git add .
 git commit -m "[FE-XX] descrição curta"
 git push origin feature/frontend-setup
 ```
-7. Marca a tarefa como `[x]` no `FASE-3-VISUALIZACAO.md`
+7. Marca a tarefa como `[x]` no `docs/plans/FASE-3-VISUALIZACAO.md`
 8. Vai pra próxima tarefa
 
 ### 4.2. Quando o Claude Code atrasa ou trava
@@ -233,11 +242,11 @@ Pra cada tarefa abaixo: **copie o prompt** e cole no Claude Code. Ele vai ler os
 **Prompt:**
 
 ```
-Vou trabalhar na tarefa FE-01 do arquivo FASE-3-VISUALIZACAO.md.
+Vou trabalhar na tarefa FE-01 do arquivo docs/plans/FASE-3-VISUALIZACAO.md.
 
 Antes de começar, leia:
-1. FASE-3-VISUALIZACAO.md (a tarefa FE-01 inteira)
-2. design-proposals/especificacao-tecnica.md (seção 4 — estrutura do projeto React)
+1. docs/plans/FASE-3-VISUALIZACAO.md (a tarefa FE-01 inteira)
+2. docs/architecture/especificacao-tecnica.md (seção 4 — estrutura do projeto React)
 
 Crie a pasta `frontend/` na raiz do repo e faça scaffold de um projeto Vite + React + TypeScript com Tailwind CSS.
 
@@ -283,11 +292,11 @@ git push -u origin feature/frontend-setup
 **Prompt:**
 
 ```
-Vou trabalhar na tarefa FE-02 do FASE-3-VISUALIZACAO.md, com uma extensão: também vou adicionar MSW pra mockar a API enquanto o backend não está pronto.
+Vou trabalhar na tarefa FE-02 do docs/plans/FASE-3-VISUALIZACAO.md, com uma extensão: também vou adicionar MSW pra mockar a API enquanto o backend não está pronto.
 
 Leia:
-1. FASE-3-VISUALIZACAO.md tarefa FE-02
-2. design-proposals/especificacao-tecnica.md seção 2 (contratos da API)
+1. docs/plans/FASE-3-VISUALIZACAO.md tarefa FE-02
+2. docs/architecture/especificacao-tecnica.md seção 2 (contratos da API)
 
 Faça duas coisas:
 
@@ -325,9 +334,9 @@ git push
 **Prompt:**
 
 ```
-Vou trabalhar na FE-03 do FASE-3-VISUALIZACAO.md.
+Vou trabalhar na FE-03 do docs/plans/FASE-3-VISUALIZACAO.md.
 
-Leia FASE-3-VISUALIZACAO.md tarefa FE-03.
+Leia docs/plans/FASE-3-VISUALIZACAO.md tarefa FE-03.
 
 Crie:
 - src/api/client.ts: wrapper sobre fetch com get<T>(path, params) e post<T>(path, body), credentials:'include' sempre. Em 401 dispara um event customizado que será capturado pelo router depois pra navegar pra /erro?motivo=sessao-expirada (por enquanto, só console.warn). Em outros erros lança ApiError(codigo, mensagem).
@@ -358,9 +367,9 @@ deve retornar dados do MSW
 **Prompt:**
 
 ```
-Vou trabalhar na FE-04 do FASE-3-VISUALIZACAO.md.
+Vou trabalhar na FE-04 do docs/plans/FASE-3-VISUALIZACAO.md.
 
-Leia a tarefa FE-04 inteira no FASE-3-VISUALIZACAO.md.
+Leia a tarefa FE-04 inteira no docs/plans/FASE-3-VISUALIZACAO.md.
 
 Instale react-router-dom.
 
@@ -392,11 +401,11 @@ Visual ainda simples — vamos polir nas próximas tarefas. Foco é fluxo corret
 **Prompt:**
 
 ```
-Vou trabalhar na FE-05 do FASE-3-VISUALIZACAO.md.
+Vou trabalhar na FE-05 do docs/plans/FASE-3-VISUALIZACAO.md.
 
-Antes de começar, ABRA E LEIA o arquivo design-proposals/variante-c-timeline.html no navegador (ou peça pra eu te mostrar). Esse é o design de referência. O cartão de pedido aparece várias vezes lá. PRECISA replicar fielmente o visual: foto pequena, descrição, valor grande, status badge (Pendente=âmbar, Pago=verde), datas, e (somente se PAGO) o botão verde grande "Ver comprovante" largura total.
+Antes de começar, ABRA E LEIA o arquivo docs/architecture/design-proposals/variante-c-timeline.html no navegador (ou peça pra eu te mostrar). Esse é o design de referência. O cartão de pedido aparece várias vezes lá. PRECISA replicar fielmente o visual: foto pequena, descrição, valor grande, status badge (Pendente=âmbar, Pago=verde), datas, e (somente se PAGO) o botão verde grande "Ver comprovante" largura total.
 
-Leia também a tarefa FE-05 no FASE-3-VISUALIZACAO.md.
+Leia também a tarefa FE-05 no docs/plans/FASE-3-VISUALIZACAO.md.
 
 Crie:
 - src/components/PedidoCard.tsx (props: pedido: PedidoResumo, onAbrirComprovante: () => void)
@@ -413,7 +422,7 @@ Acessibilidade: botão tem aria-label, área de toque mínima 44x44.
 **Validação manual:**
 
 1. `npm run dev`, abrir `http://localhost:5173/_showcase`
-2. Comparar lado-a-lado com `design-proposals/variante-c-timeline.html`. Deve ficar visualmente idêntico nos cartões.
+2. Comparar lado-a-lado com `docs/architecture/design-proposals/variante-c-timeline.html`. Deve ficar visualmente idêntico nos cartões.
 3. Verificar mobile: DevTools (`F12`) → toggle device toolbar → iPhone 12 → cartões empilham bem
 4. Commit `[FE-05] PedidoCard + StatusBadge + formato`
 
@@ -424,7 +433,7 @@ Acessibilidade: botão tem aria-label, área de toque mínima 44x44.
 **Prompt:**
 
 ```
-Tarefa FE-06 do FASE-3-VISUALIZACAO.md.
+Tarefa FE-06 do docs/plans/FASE-3-VISUALIZACAO.md.
 
 Crie:
 - src/components/FiltroStatus.tsx (props: value: 'TUDO'|'PENDENTE'|'PAGO', onChange, contadores: {tudo, pendente, pago})
@@ -450,7 +459,7 @@ Adicione esses componentes ao /_showcase pra eu validar visualmente.
 **Prompt:**
 
 ```
-Tarefa FE-07 do FASE-3-VISUALIZACAO.md.
+Tarefa FE-07 do docs/plans/FASE-3-VISUALIZACAO.md.
 
 Instale @tanstack/react-query.
 
@@ -492,7 +501,7 @@ Visual: replicar mockup variante C o mais fiel possível.
 **Prompt:**
 
 ```
-Tarefa FE-08 do FASE-3-VISUALIZACAO.md.
+Tarefa FE-08 do docs/plans/FASE-3-VISUALIZACAO.md.
 
 Crie src/components/CabecalhoApp.tsx que:
 - Mostra "Olá, {requisitante.nome}" usando useAuth
@@ -516,7 +525,7 @@ Integre na Home.tsx no topo, acima dos filtros.
 **Prompt:**
 
 ```
-Tarefa FE-09 do FASE-3-VISUALIZACAO.md, com a decisão fixada: opção (a) — modal sobre a tela com imagem grande e botão de download.
+Tarefa FE-09 do docs/plans/FASE-3-VISUALIZACAO.md, com a decisão fixada: opção (a) — modal sobre a tela com imagem grande e botão de download.
 
 Crie:
 - src/components/ModalComprovante.tsx
@@ -551,7 +560,7 @@ Adicione handler do MSW pra /api/v1/pedidos/{id}/comprovante: retorna 302 com Lo
 **Prompt:**
 
 ```
-Tarefa FE-10 do FASE-3-VISUALIZACAO.md.
+Tarefa FE-10 do docs/plans/FASE-3-VISUALIZACAO.md.
 
 Instale vite-plugin-pwa.
 
@@ -592,7 +601,7 @@ Atualize index.html com:
 **Prompt:**
 
 ```
-Tarefa FE-11 do FASE-3-VISUALIZACAO.md.
+Tarefa FE-11 do docs/plans/FASE-3-VISUALIZACAO.md.
 
 Faça uma passagem de acessibilidade no projeto inteiro:
 
