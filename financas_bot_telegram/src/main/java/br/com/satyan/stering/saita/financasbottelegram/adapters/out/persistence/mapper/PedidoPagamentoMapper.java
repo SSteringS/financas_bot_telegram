@@ -11,6 +11,7 @@ public class PedidoPagamentoMapper {
         if (entity == null) return null;
         return PedidoPagamento.builder()
                 .id(entity.getId())
+                .requisitanteId(entity.getRequisitanteId())
                 .telegramUserId(entity.getTelegramUserId())
                 .telegramMessageId(entity.getTelegramMessageId())
                 .fileIdTelegram(entity.getFileIdTelegram())
@@ -18,6 +19,9 @@ public class PedidoPagamentoMapper {
                 .valor(entity.getValor())
                 .descricao(entity.getDescricao())
                 .status(entity.getStatus())
+                .tipo(entity.getTipo())
+                .dataPedido(entity.getDataPedido())
+                .dataPagamento(entity.getDataPagamento())
                 .dataCriacao(entity.getDataCriacao())
                 .build();
     }
@@ -26,6 +30,7 @@ public class PedidoPagamentoMapper {
         if (domain == null) return null;
         PedidoPagamentoEntity entity = new PedidoPagamentoEntity();
         entity.setId(domain.getId());
+        entity.setRequisitanteId(domain.getRequisitanteId());
         entity.setTelegramUserId(domain.getTelegramUserId());
         entity.setTelegramMessageId(domain.getTelegramMessageId());
         entity.setFileIdTelegram(domain.getFileIdTelegram());
@@ -33,6 +38,9 @@ public class PedidoPagamentoMapper {
         entity.setValor(domain.getValor());
         entity.setDescricao(domain.getDescricao());
         entity.setStatus(domain.getStatus());
+        entity.setTipo(domain.getTipo());
+        entity.setDataPedido(domain.getDataPedido());
+        entity.setDataPagamento(domain.getDataPagamento());
         entity.setDataCriacao(domain.getDataCriacao());
         return entity;
     }
