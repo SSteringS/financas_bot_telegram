@@ -36,6 +36,7 @@ financasbot.s3.base-url=https://s3.amazonaws.com/bot-financas-pagamentos-dev/
 # Auth admin
 app.admin.api-key=dev-admin-key-apenas-para-testes-locais
 app.frontend.base-url=http://localhost:5173
+app.cors.allowed-origin=http://localhost:5173
 
 # Auth JWT — gerar com: openssl rand -base64 48
 app.jwt.secret=dev-secret-must-be-at-least-32-chars-ok
