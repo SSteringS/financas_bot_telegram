@@ -1,26 +1,25 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.rest.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
-import br.com.satyan.stering.saita.financasbottelegram.application.dto.AuthExchangeRequest;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.AuthMeResponse;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.RequisitanteRepositoryPort;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.ExchangeTokenUseCase;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.Requisitante;
 import br.com.satyan.stering.saita.financasbottelegram.infra.security.CookieFactory;
 import br.com.satyan.stering.saita.financasbottelegram.infra.security.JwtService;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 
 @ExtendWith(MockitoExtension.class)
-class AuthControllerTest {
+class AuthControllerMeTest {
 
     @Mock private ExchangeTokenUseCase exchangeUseCase;
     @Mock private JwtService jwtService;
@@ -35,22 +34,24 @@ class AuthControllerTest {
     }
 
     @Test
-    void deveRetornar200ComCookieEBodyQuandoTokenValido() {
-        String tokenPlain = "token-valido-de-teste-aqui12345";
-        Requisitante req = Requisitante.builder().id(1L).nome("Satyan").build();
-        ResponseCookie cookie = ResponseCookie.from("finbot_session", "jwt.token.aqui")
-                .httpOnly(true).path("/").build();
+    void deveRetornarRequisitanteAutenticado() {
+        when(requisitanteRepo.findById(1L))
+                .thenReturn(Optional.of(Requisitante.builder().id(1L).nome("Satyan").build()));
 
-        when(exchangeUseCase.exchange(tokenPlain)).thenReturn(req);
-        when(jwtService.gerar(1L)).thenReturn("jwt.token.aqui");
-        when(cookieFactory.criar("jwt.token.aqui")).thenReturn(cookie);
-
-        ResponseEntity<AuthMeResponse> response = controller.exchange(new AuthExchangeRequest(tokenPlain));
+        ResponseEntity<AuthMeResponse> response = controller.me(1L);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().requisitante().id()).isEqualTo(1L);
         assertThat(response.getBody().requisitante().nome()).isEqualTo("Satyan");
-        assertThat(response.getHeaders().getFirst(HttpHeaders.SET_COOKIE)).contains("finbot_session");
+    }
+
+    @Test
+    void deveLancarExcecaoSeRequisitanteDoJwtNaoExisteNoBanco() {
+        when(requisitanteRepo.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> controller.me(99L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("99");
     }
 }
