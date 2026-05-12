@@ -23,12 +23,14 @@ class PedidoControllerDetalheTest {
 
     @Mock private ListarPedidosUseCase listarUseCase;
     @Mock private BuscarPedidoUseCase buscarUseCase;
+    @Mock private br.com.satyan.stering.saita.financasbottelegram.application.usecases.ObterUrlImagemPedidoUseCase obterUrlImagemPedidoUseCase;
+    @Mock private br.com.satyan.stering.saita.financasbottelegram.application.usecases.ObterUrlComprovanteUseCase obterUrlComprovanteUseCase;
 
     private PedidoController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new PedidoController(listarUseCase, buscarUseCase);
+        controller = new PedidoController(listarUseCase, buscarUseCase, obterUrlImagemPedidoUseCase, obterUrlComprovanteUseCase);
     }
 
     private PedidoDetalheDTO detalhe(Long id) {

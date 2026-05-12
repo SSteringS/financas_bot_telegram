@@ -6,6 +6,8 @@ import br.com.satyan.stering.saita.financasbottelegram.application.dto.PedidoDet
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.PedidoResumoDTO;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.BuscarPedidoUseCase;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.ListarPedidosUseCase;
+import br.com.satyan.stering.saita.financasbottelegram.application.usecases.ObterUrlComprovanteUseCase;
+import br.com.satyan.stering.saita.financasbottelegram.application.usecases.ObterUrlImagemPedidoUseCase;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoPagamento;
 import br.com.satyan.stering.saita.financasbottelegram.infra.security.RequisitanteId;
@@ -13,6 +15,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,10 +26,17 @@ public class PedidoController {
 
     private final ListarPedidosUseCase listarUseCase;
     private final BuscarPedidoUseCase buscarUseCase;
+    private final ObterUrlImagemPedidoUseCase obterUrlImagemPedidoUseCase;
+    private final ObterUrlComprovanteUseCase obterUrlComprovanteUseCase;
 
-    public PedidoController(ListarPedidosUseCase listarUseCase, BuscarPedidoUseCase buscarUseCase) {
+    public PedidoController(ListarPedidosUseCase listarUseCase,
+                             BuscarPedidoUseCase buscarUseCase,
+                             ObterUrlImagemPedidoUseCase obterUrlImagemPedidoUseCase,
+                             ObterUrlComprovanteUseCase obterUrlComprovanteUseCase) {
         this.listarUseCase = listarUseCase;
         this.buscarUseCase = buscarUseCase;
+        this.obterUrlImagemPedidoUseCase = obterUrlImagemPedidoUseCase;
+        this.obterUrlComprovanteUseCase = obterUrlComprovanteUseCase;
     }
 
     @GetMapping
@@ -50,5 +62,29 @@ public class PedidoController {
             @PathVariable Long id,
             @RequisitanteId Long requisitanteId) {
         return buscarUseCase.buscar(id, requisitanteId);
+    }
+
+    @GetMapping("/{id}/foto-pedido")
+    @Operation(summary = "Redireciona pra pre-signed URL da foto original do pedido")
+    public ResponseEntity<Void> fotoPedido(
+            @PathVariable Long id,
+            @RequisitanteId Long requisitanteId) {
+        String url = obterUrlImagemPedidoUseCase.obter(id, requisitanteId);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, url)
+                .header(HttpHeaders.CACHE_CONTROL, "private, max-age=600")
+                .build();
+    }
+
+    @GetMapping("/{id}/comprovante")
+    @Operation(summary = "Redireciona pra pre-signed URL do comprovante do pedido")
+    public ResponseEntity<Void> comprovante(
+            @PathVariable Long id,
+            @RequisitanteId Long requisitanteId) {
+        String url = obterUrlComprovanteUseCase.obter(id, requisitanteId);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, url)
+                .header(HttpHeaders.CACHE_CONTROL, "private, max-age=600")
+                .build();
     }
 }

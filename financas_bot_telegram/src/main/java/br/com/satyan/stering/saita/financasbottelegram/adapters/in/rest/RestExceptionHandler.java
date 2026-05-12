@@ -2,6 +2,8 @@ package br.com.satyan.stering.saita.financasbottelegram.adapters.in.rest;
 
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.ErroDTO;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.AuthTokenInvalidoException;
+import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.ComprovanteNaoEncontradoException;
+import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.ImagemNaoEncontradaException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.PedidoNaoAutorizadoException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.PedidoNaoEncontradoException;
 import java.util.stream.Collectors;
@@ -29,6 +31,18 @@ public class RestExceptionHandler {
     public ResponseEntity<ErroDTO> handlePedidoNaoAutorizado(PedidoNaoAutorizadoException e) {
         return ResponseEntity.status(403)
                 .body(new ErroDTO("ACESSO_NEGADO", "Pedido pertence a outro requisitante"));
+    }
+
+    @ExceptionHandler(ImagemNaoEncontradaException.class)
+    public ResponseEntity<ErroDTO> handleImagemNaoEncontrada(ImagemNaoEncontradaException e) {
+        return ResponseEntity.status(404)
+                .body(new ErroDTO("IMAGEM_NAO_ENCONTRADA", e.getMessage()));
+    }
+
+    @ExceptionHandler(ComprovanteNaoEncontradoException.class)
+    public ResponseEntity<ErroDTO> handleComprovanteNaoEncontrado(ComprovanteNaoEncontradoException e) {
+        return ResponseEntity.status(404)
+                .body(new ErroDTO("COMPROVANTE_NAO_ENCONTRADO", e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
