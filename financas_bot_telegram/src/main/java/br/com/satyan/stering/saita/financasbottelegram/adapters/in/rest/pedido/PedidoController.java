@@ -2,7 +2,9 @@ package br.com.satyan.stering.saita.financasbottelegram.adapters.in.rest.pedido;
 
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.ListarPedidosFiltro;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.PaginaDTO;
+import br.com.satyan.stering.saita.financasbottelegram.application.dto.PedidoDetalheDTO;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.PedidoResumoDTO;
+import br.com.satyan.stering.saita.financasbottelegram.application.usecases.BuscarPedidoUseCase;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.ListarPedidosUseCase;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoPagamento;
@@ -18,9 +20,11 @@ import org.springframework.web.bind.annotation.*;
 public class PedidoController {
 
     private final ListarPedidosUseCase listarUseCase;
+    private final BuscarPedidoUseCase buscarUseCase;
 
-    public PedidoController(ListarPedidosUseCase listarUseCase) {
+    public PedidoController(ListarPedidosUseCase listarUseCase, BuscarPedidoUseCase buscarUseCase) {
         this.listarUseCase = listarUseCase;
+        this.buscarUseCase = buscarUseCase;
     }
 
     @GetMapping
@@ -38,5 +42,13 @@ public class PedidoController {
         return listarUseCase.listar(
                 new ListarPedidosFiltro(status, tipos, de, ate, busca, page, tamanho),
                 requisitanteId);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Detalhe de um pedido específico")
+    public PedidoDetalheDTO buscar(
+            @PathVariable Long id,
+            @RequisitanteId Long requisitanteId) {
+        return buscarUseCase.buscar(id, requisitanteId);
     }
 }

@@ -13,4 +13,6 @@ public interface ComprovanteJpaRepository extends JpaRepository<ComprovanteEntit
 
     @Query("SELECT c.pedido.id FROM ComprovanteEntity c WHERE c.pedido.id IN :ids")
     Set<Long> findPedidoIdsByPedidoIdIn(@Param("ids") List<Long> ids);
+
+    boolean existsByPedidoId(Long pedidoId);
 }

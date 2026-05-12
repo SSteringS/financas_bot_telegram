@@ -22,12 +22,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PedidoControllerListarTest {
 
     @Mock private ListarPedidosUseCase listarUseCase;
+    @Mock private br.com.satyan.stering.saita.financasbottelegram.application.usecases.BuscarPedidoUseCase buscarUseCase;
 
     private PedidoController controller;
 
     @BeforeEach
     void setUp() {
-        controller = new PedidoController(listarUseCase);
+        controller = new PedidoController(listarUseCase, buscarUseCase);
     }
 
     @Test
