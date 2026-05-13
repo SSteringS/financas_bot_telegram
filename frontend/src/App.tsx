@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { AuthGuard } from './components/AuthGuard'
 import { Entrar } from './paginas/Entrar'
 import { Erro } from './paginas/Erro'
 import { Home } from './paginas/Home'
+
+const Showcase = import.meta.env.DEV ? lazy(() => import('./paginas/_Showcase').then((m) => ({ default: m.Showcase }))) : null
 
 function SessaoExpiradaListener() {
   const navigate = useNavigate()
@@ -34,13 +36,13 @@ function AppRoutes() {
             </AuthGuard>
           }
         />
-        {import.meta.env.DEV && (
+        {import.meta.env.DEV && Showcase && (
           <Route
             path="/_showcase"
             element={
-              <div className="p-4">
-                <p className="text-zinc-400 text-xs mb-4">Showcase (dev only)</p>
-              </div>
+              <Suspense fallback={<div className="p-4 text-zinc-400 text-sm">Carregando…</div>}>
+                <Showcase />
+              </Suspense>
             }
           />
         )}
