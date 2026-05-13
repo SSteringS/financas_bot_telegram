@@ -6,6 +6,7 @@ import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.ser
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.SalvarPedidoPagamentoUsecase;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
+import br.com.satyan.stering.saita.financasbottelegram.domain.service.LegendaParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -114,6 +115,7 @@ public class PaymentRequestStrategy implements UpdateProcessingStrategy {
         .status(StatusPedido.PENDENTE)
         .requisitanteId(1L)
         .dataPedido(LocalDate.now())
+        .tipo(LegendaParser.parseTipo(text))
         .build();
   }
 }

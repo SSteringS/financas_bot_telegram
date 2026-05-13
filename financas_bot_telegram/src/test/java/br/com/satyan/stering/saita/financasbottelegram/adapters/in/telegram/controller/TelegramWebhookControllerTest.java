@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -50,7 +51,7 @@ class TelegramWebhookControllerTest {
         Update update = updateValido(100L, 123L);
         TelegramWebhookController ctrl = controller("123");
 
-        ResponseEntity<Void> response = ctrl.receberMensagem(update);
+        ResponseEntity<Void> response = ctrl.receberMensagem(update, new MockHttpServletRequest());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         verify(orchestratorService).process(update);
@@ -61,7 +62,7 @@ class TelegramWebhookControllerTest {
         Update update = updateValido(100L, 999L);
         TelegramWebhookController ctrl = controller("123", "456");
 
-        assertThatThrownBy(() -> ctrl.receberMensagem(update))
+        assertThatThrownBy(() -> ctrl.receberMensagem(update, new MockHttpServletRequest()))
                 .isInstanceOf(UnauthorizedUserException.class)
                 .satisfies(ex -> assertThat(((UnauthorizedUserException) ex).getChatId()).isEqualTo(100L));
     }
@@ -71,7 +72,7 @@ class TelegramWebhookControllerTest {
         Update update = new Update();
         TelegramWebhookController ctrl = controller("123");
 
-        assertThatThrownBy(() -> ctrl.receberMensagem(update))
+        assertThatThrownBy(() -> ctrl.receberMensagem(update, new MockHttpServletRequest()))
                 .isInstanceOf(InvalidUpdateException.class);
     }
 
@@ -83,7 +84,7 @@ class TelegramWebhookControllerTest {
         update.setMessage(message);
         TelegramWebhookController ctrl = controller("123");
 
-        assertThatThrownBy(() -> ctrl.receberMensagem(update))
+        assertThatThrownBy(() -> ctrl.receberMensagem(update, new MockHttpServletRequest()))
                 .isInstanceOf(InvalidUpdateException.class);
     }
 }

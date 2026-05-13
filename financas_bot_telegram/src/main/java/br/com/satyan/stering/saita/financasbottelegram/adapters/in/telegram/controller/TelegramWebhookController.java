@@ -3,6 +3,7 @@ package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.con
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.service.UpdateOrchestratorService;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidUpdateException;
 import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.UnauthorizedUserException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +29,9 @@ public class TelegramWebhookController {
   }
 
   @PostMapping("/webhook")
-  public ResponseEntity<Void> receberMensagem(@RequestBody Update update) {
+  public ResponseEntity<Void> receberMensagem(@RequestBody Update update, HttpServletRequest request) {
     logger.info("Recebendo mensagem do Telegram: {}", update);
+    request.setAttribute("__update", update);
 
     validateRequest(update);
     authorizeUser(update);

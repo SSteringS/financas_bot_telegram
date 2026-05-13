@@ -3,6 +3,8 @@ package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidCaptionException;
@@ -21,7 +23,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 @ExtendWith(MockitoExtension.class)
 class GlobalTelegramExceptionHandlerTest {
@@ -107,5 +113,60 @@ class GlobalTelegramExceptionHandlerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         verify(telegramMessageSenderService).sendMessage(eq(700L), any());
+    }
+
+    @Test
+    void handleAnyOther_deveRetornar200EEnviarMensagemComChatIdDoUpdate() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        Update update = updateComChatId(42L);
+        request.setAttribute("__update", update);
+
+        ResponseEntity<Void> response = handler.handleAnyOther(new RuntimeException("bug"), request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(telegramMessageSenderService).sendMessage(eq(42L), any());
+    }
+
+    @Test
+    void handleAnyOther_deveRetornar200MesmoQuandoSendMessageFalha() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setAttribute("__update", updateComChatId(42L));
+        doThrow(new RuntimeException("send falhou")).when(telegramMessageSenderService).sendMessage(any(), any());
+
+        ResponseEntity<Void> response = handler.handleAnyOther(new RuntimeException("bug"), request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void handleAnyOther_deveRetornar200SemEnviarMensagemQuandoUpdateSemMessage() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        Update update = new Update();
+        request.setAttribute("__update", update);
+
+        ResponseEntity<Void> response = handler.handleAnyOther(new NullPointerException("npe"), request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(telegramMessageSenderService, never()).sendMessage(any(), any());
+    }
+
+    @Test
+    void handleAnyOther_deveRetornar200SemEnviarMensagemQuandoSemAttributeNoRequest() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+
+        ResponseEntity<Void> response = handler.handleAnyOther(new IllegalStateException("erro"), request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(telegramMessageSenderService, never()).sendMessage(any(), any());
+    }
+
+    private Update updateComChatId(Long chatId) {
+        Chat chat = new Chat();
+        chat.setId(chatId);
+        Message message = new Message();
+        message.setChat(chat);
+        Update update = new Update();
+        update.setMessage(message);
+        return update;
     }
 }
