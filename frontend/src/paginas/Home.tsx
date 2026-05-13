@@ -9,6 +9,7 @@ import { Timeline } from '../components/Timeline'
 import { CarregandoLista } from '../components/CarregandoLista'
 import { ListaVazia } from '../components/ListaVazia'
 import { ModalComprovante } from '../components/ModalComprovante'
+import { CabecalhoApp } from '../components/CabecalhoApp'
 import type { Pagina, PedidoResumo } from '../api/tipos'
 
 type FiltroStatusValue = 'TUDO' | 'PENDENTE' | 'PAGO'
@@ -82,6 +83,9 @@ export function Home() {
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen pb-24">
+      {/* Cabeçalho com saudação e resumo */}
+      <CabecalhoApp />
+
       {/* Seletor de mês — sticky */}
       <div className="px-5 py-4 sticky top-0 bg-white border-b border-zinc-100 z-10">
         <SeletorMes value={mes} onChange={handleMes} />
