@@ -9,6 +9,11 @@ public class PedidoNaoEncontradoException extends RuntimeException {
         this.chatId = chatId;
     }
 
+    public PedidoNaoEncontradoException(Long pedidoId) {
+        super("Pedido não encontrado: id=" + pedidoId);
+        this.chatId = null;
+    }
+
     public Long getChatId() {
         return chatId;
     }

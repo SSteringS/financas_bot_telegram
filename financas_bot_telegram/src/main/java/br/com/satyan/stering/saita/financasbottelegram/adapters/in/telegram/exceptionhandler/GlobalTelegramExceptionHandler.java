@@ -9,14 +9,16 @@ import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exce
 import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.UnauthorizedUserException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.PedidoNaoEncontradoException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
-@ControllerAdvice
+@RestControllerAdvice(basePackages = "br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram")
 public class GlobalTelegramExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalTelegramExceptionHandler.class);
@@ -81,5 +83,33 @@ public class GlobalTelegramExceptionHandler {
         logger.error("Erro de banco de dados para o Chat ID {}: {}", ex.getChatId(), ex.getMessage(), ex.getCause());
         telegramMessageSenderService.sendMessage(ex.getChatId(), "🚨 Ocorreu um erro interno ao acessar o banco de dados. A equipe de desenvolvimento já foi notificada.");
         return ResponseEntity.status(500).build();
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Void> handleAnyOther(Exception e, HttpServletRequest request) {
+        logger.error("Exceção não mapeada no processamento de Update do Telegram", e);
+
+        Long chatId = extrairChatIdSeguramente(request);
+        if (chatId != null) {
+            try {
+                telegramMessageSenderService.sendMessage(chatId,
+                        "❌ Houve um problema processando sua mensagem. " +
+                        "Tente novamente em alguns instantes ou avise o admin.");
+            } catch (Exception sendErr) {
+                logger.error("Falha ao enviar mensagem amigável após erro original", sendErr);
+            }
+        } else {
+            logger.warn("Não consegui extrair chatId do request — usuário não receberá feedback");
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+    private Long extrairChatIdSeguramente(HttpServletRequest request) {
+        Object attr = request.getAttribute("__update");
+        if (attr instanceof Update update && update.getMessage() != null) {
+            return update.getMessage().getChatId();
+        }
+        return null;
     }
 }
