@@ -20,7 +20,7 @@ export function FiltroStatus({ value, onChange, contadores }: FiltroStatusProps)
         const count = contadores?.[opcao.chave]
         const label = count !== undefined ? `${opcao.label} (${count})` : opcao.label
 
-        let className = 'flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-colors '
+        let className = 'flex-1 px-3 py-2.5 rounded-lg text-xs font-semibold transition-colors min-h-[44px] '
 
         if (ativo) {
           className += 'bg-zinc-900 text-white'

@@ -42,7 +42,7 @@ export function SeletorMes({ value, onChange }: SeletorMesProps) {
             key={mes}
             role="option"
             aria-selected={ativo}
-            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors min-h-[44px] ${
               ativo
                 ? 'bg-zinc-900 text-white font-semibold'
                 : 'bg-zinc-100 text-zinc-700'

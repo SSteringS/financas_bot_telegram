@@ -18,7 +18,7 @@ export function ListaVazia() {
         </svg>
       </div>
       <p className="text-sm font-medium text-zinc-500">Nenhum pedido neste filtro</p>
-      <p className="text-xs text-zinc-400 mt-1">Tente mudar o mês ou o filtro de status</p>
+      <p className="text-xs text-zinc-500 mt-1">Tente mudar o mês ou o filtro de status</p>
     </div>
   )
 }
