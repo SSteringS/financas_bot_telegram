@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.persistence.entity.ComprovanteEntity;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.persistence.entity.PedidoPagamentoEntity;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoArquivo;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.Comprovante;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
@@ -76,5 +77,53 @@ class ComprovanteMapperTest {
     @Test
     void deveRetornarNullParaDomainNulo() {
         assertThat(mapper.toEntity(null, new PedidoPagamentoEntity())).isNull();
+    }
+
+    @Test
+    void deveMappearTipoArquivoImagemRoundTrip() {
+        Comprovante domain = Comprovante.builder()
+                .id(10L)
+                .pedidoId(5L)
+                .tipoArquivo(TipoArquivo.IMAGEM)
+                .tipoPagamento("PIX")
+                .build();
+        PedidoPagamentoEntity pedidoEntity = new PedidoPagamentoEntity();
+        pedidoEntity.setId(5L);
+
+        ComprovanteEntity entity = mapper.toEntity(domain, pedidoEntity);
+        assertThat(entity.getTipoArquivo()).isEqualTo(TipoArquivo.IMAGEM);
+
+        Comprovante back = mapper.toDomain(entity);
+        assertThat(back.getTipoArquivo()).isEqualTo(TipoArquivo.IMAGEM);
+    }
+
+    @Test
+    void deveMappearTipoArquivoPdfRoundTrip() {
+        Comprovante domain = Comprovante.builder()
+                .id(11L)
+                .pedidoId(6L)
+                .tipoArquivo(TipoArquivo.PDF)
+                .tipoPagamento("BOLETO")
+                .build();
+        PedidoPagamentoEntity pedidoEntity = new PedidoPagamentoEntity();
+        pedidoEntity.setId(6L);
+
+        ComprovanteEntity entity = mapper.toEntity(domain, pedidoEntity);
+        assertThat(entity.getTipoArquivo()).isEqualTo(TipoArquivo.PDF);
+
+        Comprovante back = mapper.toDomain(entity);
+        assertThat(back.getTipoArquivo()).isEqualTo(TipoArquivo.PDF);
+    }
+
+    @Test
+    void deveUsarDefaultImagemQuandoTipoArquivoNulo() {
+        ComprovanteEntity entity = new ComprovanteEntity();
+        entity.setId(12L);
+        entity.setTipoArquivo(null);
+        entity.setTipoPagamento("TED");
+
+        Comprovante domain = mapper.toDomain(entity);
+
+        assertThat(domain.getTipoArquivo()).isEqualTo(TipoArquivo.IMAGEM);
     }
 }

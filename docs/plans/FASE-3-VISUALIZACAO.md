@@ -726,6 +726,8 @@ Hoje só existe Pedro. Se outras pessoas (mãe, irmão, etc) começarem a usar, 
 
 ## EVO-07 — Aceitar comprovantes como Document (PDF, imagens do WhatsApp, etc)
 
+**Status:** ✅ **Concluída** — branch `feature/backend-polish-evo07`, commit `feat(EVO-07)`. Migration V3 aplicada. Strategies aceitam `photo` e `document`. `TipoArquivo` (IMAGEM/PDF) salvo na tabela e propagado pelo domain. 212 testes passando.
+
 **Contexto**: hoje as strategies (`PaymentProofStrategy.extractHighestQualityImageFileId` e equivalente em `PaymentRequestStrategy`) aceitam **somente foto** (`message.photo`). Mensagens com `document` (PDFs de boleto, imagens compartilhadas do WhatsApp que vêm como anexo, etc) **caem em NullPointerException** quando o regex da legenda casa mas a estrutura da mensagem não é `photo`. Isso já causou um incidente em prod onde uma mensagem antiga com PDF travou a fila inteira por dias.
 
 **Escopo desta evolução:**

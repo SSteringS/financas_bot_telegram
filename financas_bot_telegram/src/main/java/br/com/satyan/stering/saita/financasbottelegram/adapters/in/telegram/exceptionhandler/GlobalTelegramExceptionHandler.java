@@ -6,6 +6,7 @@ import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exce
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidUpdateException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.PhotoProcessingException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.TipoArquivoNaoSuportadoException;
 import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.UnauthorizedUserException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.PedidoNaoEncontradoException;
@@ -67,6 +68,13 @@ public class GlobalTelegramExceptionHandler {
     @ExceptionHandler(InvalidCaptionException.class)
     public ResponseEntity<Void> handleInvalidCaption(InvalidCaptionException ex, WebRequest request) {
         logger.warn("Legenda inválida recebida do Chat ID {}: {}", ex.getChatId(), ex.getMessage());
+        telegramMessageSenderService.sendMessage(ex.getChatId(), "❌ " + ex.getMessage());
+        return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(TipoArquivoNaoSuportadoException.class)
+    public ResponseEntity<Void> handleTipoArquivoNaoSuportado(TipoArquivoNaoSuportadoException ex, WebRequest request) {
+        logger.warn("Tipo de arquivo não suportado para o Chat ID {}: {}", ex.getChatId(), ex.getMessage());
         telegramMessageSenderService.sendMessage(ex.getChatId(), "❌ " + ex.getMessage());
         return ResponseEntity.ok().build();
     }
