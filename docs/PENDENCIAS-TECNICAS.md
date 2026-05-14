@@ -57,24 +57,6 @@ Não confundir com `docs/plans/` (planos de tarefa ativos) nem com a seção "Fa
 
 ---
 
-### Revisar mensagens de erro/ajuda do bot
-
-**Contexto:** algumas mensagens que o bot manda pro usuário estão desatualizadas em relação às features atuais. Identificadas até agora:
-
-- `PaymentRequestStrategy.parsePedido()` joga `IllegalArgumentException("Formato inválido. Use: pedido <valor> <descrição>")` quando a legenda não bate com o regex. **A mensagem não menciona que dá pra incluir o tipo (boleto, pix, ted, agendamento) na descrição** pra o pedido ser auto-categorizado pela BE-03.
-- Provavelmente há outras mensagens (no `GlobalTelegramExceptionHandler`, no `PaymentProofStrategy`, etc) que ficaram parados na versão anterior.
-
-**Fix sugerido:** varredura geral nas strings que o bot manda pro chat (`sendMessage`, mensagens de exceptions), atualizando pra refletir o estado atual das features. Idealmente:
-
-- Mensagem de ajuda no caso de legenda inválida no `PaymentRequestStrategy`: `"Formato inválido. Use: <valor> <descrição com tipo opcional>. Exemplos: \`100 boleto Energia\`, \`200 pix Maria\`, \`50 Almoço\` (sem tipo vira OUTRO)"`
-- Mensagem do `PaymentProofStrategy` quando legenda não bate: já tem exemplo `"#123 pix"`, mas vale revisar se está em sincronia com o esperado.
-- Considerar criar um comando `/ajuda` no bot que envia o quick reference de formatos suportados.
-
-**Esforço:** baixo a médio (depende de quantas mensagens forem encontradas; provavelmente 5-10 strings).
-
-**Prioridade:** baixa. Não bloqueia uso (você sabe os formatos), mas melhora UX se outras pessoas usarem o bot.
-
----
 
 ## Itens resolvidos
 
@@ -89,3 +71,7 @@ Resolvido em `feature/backend-polish-evo07` (commit `fix(BE-15b)`). `GlobalTeleg
 ### ~~`server.ssl.key-store-password` hardcoded em `application-prod.properties`~~
 
 Resolvido em `feature/backend-polish-evo07` (commit `fix(FIX-keystore-password-secret)`). Trocado `finbot123` por `${keystore_password}`. **Ação manual obrigatória do humano antes do próximo deploy:** adicionar chave `keystore_password` com valor `finbot123` no segredo `finbot-prod-secrets` no AWS Secrets Manager.
+
+### ~~Revisar mensagens de erro/ajuda do bot~~
+
+Resolvido em `feature/backend-polish-evo07` (commit `fix(FIX-revisar-msgs-erro-bot)`). `PaymentRequestStrategy.parsePedido()` agora lança `InvalidMessageFormatException` (em vez de `IllegalArgumentException`) com mensagem didática e exemplos de todos os tipos. Mensagens de `InvalidCaptionException` em `PaymentProofStrategy` também atualizadas com exemplos. Mensagem de sucesso do pedido inclui o tipo detectado e dica quando OUTRO.

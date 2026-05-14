@@ -57,14 +57,28 @@ public class PaymentProofStrategy implements UpdateProcessingStrategy {
     String fileId = extractHighestQualityImageFileId(message, chatId);
 
     if (caption == null || caption.isBlank()) {
-      throw new InvalidCaptionException("A foto do comprovante precisa de uma legenda.\nUse: `#<id_pedido> <tipo_pagamento>`\n\n*Exemplo:* `#123 pix`", chatId);
+      throw new InvalidCaptionException(
+          "A foto do comprovante precisa de uma legenda.\n\n" +
+          "Use: `#<id_pedido> <tipo_pagamento>`\n\n" +
+          "*Exemplos:*\n" +
+          "• `#123 pix`\n" +
+          "• `#456 boleto`\n" +
+          "• `#789 ted`\n\n" +
+          "O `<id_pedido>` é o número que apareceu quando você registrou o pedido.", chatId);
     }
 
     logger.info("Estratégia de Comprovante de Pagamento ativada. FileID: {}, Legenda: '{}'", fileId, caption);
 
     Matcher matcher = COMPROVANTE_PATTERN.matcher(caption.trim());
     if (!matcher.matches()) {
-      throw new InvalidCaptionException("Formato da legenda inválido.\nUse: `#<id_pedido> <tipo_pagamento>`\n\n*Exemplo:* `#123 pix`", chatId);
+      throw new InvalidCaptionException(
+          "Formato da legenda inválido.\n\n" +
+          "Use: `#<id_pedido> <tipo_pagamento>`\n\n" +
+          "*Exemplos:*\n" +
+          "• `#123 pix`\n" +
+          "• `#456 boleto`\n" +
+          "• `#789 ted`\n\n" +
+          "O `<id_pedido>` é o número que apareceu quando você registrou o pedido.", chatId);
     }
 
     Long pedidoId = Long.parseLong(matcher.group(1));
@@ -83,8 +97,9 @@ public class PaymentProofStrategy implements UpdateProcessingStrategy {
     logger.info("Comprovante para o pedido {} registrado com sucesso.", pedidoId);
 
     String successMessage = String.format(
-        "✅ Comprovante de pagamento para o *Pedido ID %d* foi registrado com sucesso!",
-        comprovanteSalvo.getPedidoId()
+        "✅ Comprovante registrado!\n\n*Pedido:* #%d\n*Tipo:* %s",
+        comprovanteSalvo.getPedidoId(),
+        comprovanteSalvo.getTipoPagamento()
     );
     telegramMessageSenderService.sendMessage(chatId, successMessage);
   }

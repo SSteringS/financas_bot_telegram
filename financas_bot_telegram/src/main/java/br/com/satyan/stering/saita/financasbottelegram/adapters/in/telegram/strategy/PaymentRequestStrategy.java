@@ -1,11 +1,13 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.strategy;
 
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.s3.service.S3ImageUploadService;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramFileDownloaderService;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.SalvarPedidoPagamentoUsecase;
-import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.service.LegendaParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,11 +74,16 @@ public class PaymentRequestStrategy implements UpdateProcessingStrategy {
     PedidoPagamento pedidoSalvo = salvarPedidoPagamentoUsecase.execute(pedido, chatId);
     logger.info("Pedido de pagamento {} do usuário {} salvo com sucesso.", pedidoSalvo.getId(), pedido.getTelegramUserId());
 
+    String dica = pedidoSalvo.getTipo() == TipoPagamento.OUTRO
+        ? "\n\n_Tipo não detectado. Inclua 'boleto', 'pix', 'ted' ou 'agendamento' na descrição para auto-categorizar._"
+        : "";
     String successMessage = String.format(
-        "✅ Pedido de pagamento registrado com sucesso!\n\n*ID do Pedido:* `%d`\n*Valor:* R$ %.2f\n*Descrição:* %s",
+        "✅ Pedido registrado!\n\n*ID:* `%d`\n*Valor:* R$ %.2f\n*Descrição:* %s\n*Tipo:* %s%s",
         pedidoSalvo.getId(),
         pedidoSalvo.getValor(),
-        pedidoSalvo.getDescricao()
+        pedidoSalvo.getDescricao(),
+        pedidoSalvo.getTipo(),
+        dica
     );
     telegramMessageSenderService.sendMessage(chatId, successMessage);
   }
@@ -99,7 +106,16 @@ public class PaymentRequestStrategy implements UpdateProcessingStrategy {
     Matcher matcher = PEDIDO_PATTERN.matcher(text);
 
     if (!matcher.matches()) {
-      throw new IllegalArgumentException("Formato inválido. Use: pedido <valor> <descrição>");
+      throw new InvalidMessageFormatException(
+          "Use: `<valor> <descrição>`\n\n" +
+          "*Exemplos:*\n" +
+          "• `100 boleto Energia`\n" +
+          "• `200 pix Maria`\n" +
+          "• `1500 ted Construtora`\n" +
+          "• `300 agendamento Luz`\n" +
+          "• `50 Almoço` (sem tipo vira OUTRO)\n\n" +
+          "O tipo é detectado automaticamente pela palavra-chave na descrição.",
+          message.getChatId());
     }
 
     String valorStr = matcher.group(1).replace(',', '.');

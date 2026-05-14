@@ -1,16 +1,20 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.strategy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.s3.service.S3ImageUploadService;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramFileDownloaderService;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.SalvarPedidoPagamentoUsecase;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoPagamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -66,7 +70,7 @@ class PaymentRequestStrategyTest {
         Update update = updateCompleto("150.50 Almoço com cliente", 12345L, 99L, 10, "file_abc");
         when(telegramFileDownloaderService.downloadImageByFileId("file_abc")).thenReturn(new byte[]{1, 2, 3});
         when(s3ImageUploadService.uploadImage(any())).thenReturn("https://s3.example.com/foto.jpg");
-        PedidoPagamento salvo = PedidoPagamento.builder().id(1L).valor(new BigDecimal("150.50")).descricao("Almoço com cliente").build();
+        PedidoPagamento salvo = PedidoPagamento.builder().id(1L).valor(new BigDecimal("150.50")).descricao("Almoço com cliente").tipo(TipoPagamento.OUTRO).build();
         when(salvarPedidoPagamentoUsecase.execute(any(), eq(12345L))).thenReturn(salvo);
 
         strategy.process(update);
@@ -89,7 +93,7 @@ class PaymentRequestStrategyTest {
         Update update = updateCompleto("99,90 Café", 12345L, 99L, 10, "file_001");
         when(telegramFileDownloaderService.downloadImageByFileId(any())).thenReturn(new byte[]{});
         when(s3ImageUploadService.uploadImage(any())).thenReturn("https://s3.example.com/foto.jpg");
-        PedidoPagamento salvo = PedidoPagamento.builder().id(2L).valor(new BigDecimal("99.90")).descricao("Café").build();
+        PedidoPagamento salvo = PedidoPagamento.builder().id(2L).valor(new BigDecimal("99.90")).descricao("Café").tipo(TipoPagamento.OUTRO).build();
         when(salvarPedidoPagamentoUsecase.execute(any(), any())).thenReturn(salvo);
 
         strategy.process(update);
@@ -97,6 +101,32 @@ class PaymentRequestStrategyTest {
         ArgumentCaptor<PedidoPagamento> captor = ArgumentCaptor.forClass(PedidoPagamento.class);
         verify(salvarPedidoPagamentoUsecase).execute(captor.capture(), any());
         assertThat(captor.getValue().getValor()).isEqualByComparingTo("99.90");
+    }
+
+    @Test
+    void deveMostrarTipoNaMensagemDeSucesso() {
+        Update update = updateCompleto("200 pix Maria", 12345L, 99L, 10, "file_pix");
+        when(telegramFileDownloaderService.downloadImageByFileId(any())).thenReturn(new byte[]{});
+        when(s3ImageUploadService.uploadImage(any())).thenReturn("https://s3.example.com/foto.jpg");
+        PedidoPagamento salvo = PedidoPagamento.builder().id(3L).valor(new BigDecimal("200")).descricao("pix Maria").tipo(TipoPagamento.PIX).build();
+        when(salvarPedidoPagamentoUsecase.execute(any(), any())).thenReturn(salvo);
+
+        strategy.process(update);
+
+        verify(telegramMessageSenderService).sendMessage(eq(12345L), contains("PIX"));
+    }
+
+    @Test
+    void deveMostrarDicaQuandoTipoForOUTRO() {
+        Update update = updateCompleto("50 Almoço", 12345L, 99L, 10, "file_outro");
+        when(telegramFileDownloaderService.downloadImageByFileId(any())).thenReturn(new byte[]{});
+        when(s3ImageUploadService.uploadImage(any())).thenReturn("https://s3.example.com/foto.jpg");
+        PedidoPagamento salvo = PedidoPagamento.builder().id(4L).valor(new BigDecimal("50")).descricao("Almoço").tipo(TipoPagamento.OUTRO).build();
+        when(salvarPedidoPagamentoUsecase.execute(any(), any())).thenReturn(salvo);
+
+        strategy.process(update);
+
+        verify(telegramMessageSenderService).sendMessage(eq(12345L), contains("Tipo não detectado"));
     }
 
     // --- helpers ---
