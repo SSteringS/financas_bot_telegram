@@ -16,17 +16,6 @@ Não confundir com `docs/plans/` (planos de tarefa ativos) nem com a seção "Fa
 
 
 
-### `server.ssl.key-store-password` hardcoded em `application-prod.properties`
-
-**Contexto:** atualmente a senha do keystore SSL está direto no `application-prod.properties` como string puro (`finbot123`). Não é segredo crítico (cert é auto-assinado, vai ser substituído eventualmente), mas idealmente deveria vir do Secrets Manager.
-
-**Fix sugerido:** adicionar chave `keystore_password` no `finbot-prod-secrets`, mudar property pra `server.ssl.key-store-password=${keystore_password}`.
-
-**Esforço:** baixo (~3 linhas + ajuste no Secrets Manager).
-
-**Prioridade:** baixa. Será obsoleto quando migrar pra Let's Encrypt + domínio real (próximo item).
-
----
 
 ### Substituir cert self-signed por Let's Encrypt + domínio real
 
@@ -96,3 +85,7 @@ Resolvido em `feature/backend-polish-evo07` (commit `fix(FIX-hide-requisitanteid
 ### ~~Escopo dos `@RestControllerAdvice` (BE-15b)~~
 
 Resolvido em `feature/backend-polish-evo07` (commit `fix(BE-15b)`). `GlobalTelegramExceptionHandler` migrado de `@ControllerAdvice` para `@RestControllerAdvice(basePackages = "...adapters.in.telegram")`. `RestExceptionHandler` já tinha `basePackages` correto desde a BE-11.
+
+### ~~`server.ssl.key-store-password` hardcoded em `application-prod.properties`~~
+
+Resolvido em `feature/backend-polish-evo07` (commit `fix(FIX-keystore-password-secret)`). Trocado `finbot123` por `${keystore_password}`. **Ação manual obrigatória do humano antes do próximo deploy:** adicionar chave `keystore_password` com valor `finbot123` no segredo `finbot-prod-secrets` no AWS Secrets Manager.
