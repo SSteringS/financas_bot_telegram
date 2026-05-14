@@ -15,17 +15,6 @@ Não confundir com `docs/plans/` (planos de tarefa ativos) nem com a seção "Fa
 ## Itens abertos
 
 
-### Escopo dos `@RestControllerAdvice` (BE-15b)
-
-**Contexto:** o `GlobalTelegramExceptionHandler` captura exceções de qualquer controller (incluindo endpoints REST e do springdoc), porque está sem `basePackages` no `@RestControllerAdvice`. Gera logs confusos atribuindo erros de outros contextos ao handler do Telegram.
-
-**Plano completo:** `docs/plans/BE-15b-escopo-exception-handlers.md`.
-
-**Esforço:** baixo (~uma linha de mudança + testes).
-
-**Prioridade:** média. Não bloqueia, mas mascara informação útil no debug. Trata antes do deploy final em prod.
-
----
 
 ### `server.ssl.key-store-password` hardcoded em `application-prod.properties`
 
@@ -103,3 +92,7 @@ Não confundir com `docs/plans/` (planos de tarefa ativos) nem com a seção "Fa
 ### ~~Esconder `@RequisitanteId` do Swagger UI~~
 
 Resolvido em `feature/backend-polish-evo07` (commit `fix(FIX-hide-requisitanteid-swagger)`). Adicionado bloco `static { SpringDocUtils.getConfig().addAnnotationsToIgnore(RequisitanteId.class); }` em `OpenApiConfig.java`.
+
+### ~~Escopo dos `@RestControllerAdvice` (BE-15b)~~
+
+Resolvido em `feature/backend-polish-evo07` (commit `fix(BE-15b)`). `GlobalTelegramExceptionHandler` migrado de `@ControllerAdvice` para `@RestControllerAdvice(basePackages = "...adapters.in.telegram")`. `RestExceptionHandler` já tinha `basePackages` correto desde a BE-11.
