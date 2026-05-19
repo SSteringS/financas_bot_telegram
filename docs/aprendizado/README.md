@@ -32,6 +32,16 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 ### React / TypeScript fundamentos
 
 - [`fetch-wrapper-pattern.md`](fetch-wrapper-pattern.md) — padrão de cliente HTTP em React (FE-03)
+- [`react-hooks-e-renderizacao.md`](react-hooks-e-renderizacao.md) — modelo de re-render, useState/useEffect/useRef, StrictMode (FE-04)
+- [`react-router-rotas-protegidas.md`](react-router-rotas-protegidas.md) — roteamento e padrão de rota protegida (FE-04)
+- [`react-componentes-props-e-listas.md`](react-componentes-props-e-listas.md) — props, renderização condicional, listas com key (FE-05)
+- [`react-controlled-components-e-debounce.md`](react-controlled-components-e-debounce.md) — componentes controlados e debounce (FE-06)
+- [`react-tanstack-query.md`](react-tanstack-query.md) — gerenciamento de estado de servidor (FE-07)
+- [`react-estado-derivado-e-composicao-de-hooks.md`](react-estado-derivado-e-composicao-de-hooks.md) — estado derivado e composição de hooks (FE-08)
+
+### Ferramentas / fluxo
+
+- [`git-reset-e-area-de-staging.md`](git-reset-e-area-de-staging.md) — index, modos de `git reset`, lock file
 
 ### Segurança web
 
