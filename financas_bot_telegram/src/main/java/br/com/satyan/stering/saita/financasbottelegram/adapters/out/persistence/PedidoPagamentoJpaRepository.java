@@ -27,4 +27,20 @@ public interface PedidoPagamentoJpaRepository
             @Param("requisitanteId") Long requisitanteId,
             @Param("inicioMes") LocalDate inicioMes,
             @Param("fimMes") LocalDate fimMes);
+
+    @Query("""
+           SELECT new br.com.satyan.stering.saita.financasbottelegram.adapters.out.persistence.AgregadoStatus(
+               p.status, COUNT(p), COALESCE(SUM(p.valor), 0))
+           FROM PedidoPagamentoEntity p
+           WHERE p.requisitanteId = :requisitanteId
+             AND p.dataPedido >= :inicioMes
+             AND p.dataPedido <= :fimMes
+             AND LOWER(p.descricao) LIKE :buscaPattern
+           GROUP BY p.status
+           """)
+    List<AgregadoStatus> agregarPorStatusNoIntervaloComBusca(
+            @Param("requisitanteId") Long requisitanteId,
+            @Param("inicioMes") LocalDate inicioMes,
+            @Param("fimMes") LocalDate fimMes,
+            @Param("buscaPattern") String buscaPattern);
 }
