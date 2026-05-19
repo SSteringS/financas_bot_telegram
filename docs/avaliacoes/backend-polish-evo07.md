@@ -22,17 +22,17 @@ Execute os testes abaixo com o ambiente dev rodando (`mvn spring-boot:run -Dspri
 ### Task 1 — FIX-hide-requisitanteid-swagger
 
 | # | Ação | Esperado | Resultado | Observação |
-|---|---|---|---|---|
-| 1.1 | Abrir `http://localhost:8080/swagger-ui.html` e expandir qualquer endpoint de `PedidoController` (ex: `GET /pedidos`) | Sem campo `requisitanteId` nos parâmetros | | |
-| 1.2 | Expandir endpoint de `ResumoController` (ex: `GET /resumo/mes`) | Sem campo `requisitanteId` nos parâmetros | | |
+|---|---|---|---------|---|
+| 1.1 | Abrir `http://localhost:8080/swagger-ui.html` e expandir qualquer endpoint de `PedidoController` (ex: `GET /pedidos`) | Sem campo `requisitanteId` nos parâmetros |         | |
+| 1.2 | Expandir endpoint de `ResumoController` (ex: `GET /resumo/mes`) | Sem campo `requisitanteId` nos parâmetros |         | |
 
 ---
 
 ### Task 2 — BE-15b (@RestControllerAdvice restrito ao package telegram)
 
 | # | Ação | Esperado | Resultado | Observação |
-|---|---|---|---|---|
-| 2.1 | `GET /pedidos` sem JWT (sem header Authorization) | Resposta JSON de erro, status 401 ou 403 — **não** uma resposta 200 vazia | | |
+|---|---|---|--------|---|
+| 2.1 | `GET /pedidos` sem JWT (sem header Authorization) | Resposta JSON de erro, status 401 ou 403 — **não** uma resposta 200 vazia |        | |
 
 ---
 
@@ -54,7 +54,7 @@ Execute os testes abaixo com o ambiente dev rodando (`mvn spring-boot:run -Dspri
 | 4.1 | Enviar foto + legenda `200 pix Maria` | Resposta com `*Tipo:* PIX`, sem dica adicional | | |
 | 4.2 | Enviar foto + legenda `50 Almoço` | Resposta com `*Tipo:* OUTRO` + dica em itálico sobre usar `boleto`/`pix`/`ted`/`agendamento` | | |
 | 4.3 | Enviar foto + legenda inválida sem valor (ex: `Almoço`) | Mensagem de erro com exemplos: `100 boleto Energia`, `200 pix Maria`, etc. | | |
-| 4.4 | Enviar foto + legenda de comprovante fora do formato (ex: `123 pix` sem `#`) | Mensagem de erro descritiva com exemplo correto (`#123 PIX`) | | |
+| 4.4 | Enviar foto + legenda de comprovante fora do formato (ex: `123 pix` sem `#`) | ⚠️ **Comportamento previsto, não é o "esperado":** o sistema diferencia pedido de comprovante pelo formato da legenda. Sem o `#`, cai no matcher de pedido e salva como pedido novo (valor=123, descrição="pix") — não exibe o erro descritivo de comprovante. Registrado em `docs/PENDENCIAS-TECNICAS.md`. | | |
 
 ---
 

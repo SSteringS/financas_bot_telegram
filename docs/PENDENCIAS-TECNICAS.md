@@ -57,6 +57,28 @@ Não confundir com `docs/plans/` (planos de tarefa ativos) nem com a seção "Fa
 
 ---
 
+### Comprovante mal-formado (sem `#`) é classificado como pedido novo
+
+**Contexto:** o webhook do bot recebe todas as mensagens num único endpoint e decide entre `PaymentRequestStrategy` e `PaymentProofStrategy` puramente pelo formato da legenda:
+
+- `<valor> <descrição>` (regex `^(\d+([.,]\d{1,2})?)\s+(.+)$`) → pedido
+- `#<id> <tipo>` (regex `#(\d+)\s+(.+)`) → comprovante
+
+Se o usuário enviar foto de comprovante com legenda `123 pix` (esquecendo o `#`), o sistema **não dispara** a mensagem de erro descritiva prevista pra "comprovante mal-formado". A legenda cai no matcher do `PaymentRequestStrategy` (que aceita "número + texto"), e o bot salva um pedido novo com `valor=123` e `descricao="pix"`. Identificado no teste 4.4 do roteiro de validação manual do `feature/backend-polish-evo07`.
+
+**Por que não corrigir agora:** comportamento é consequência do design atual de despacho por regex, está estável, e o único usuário do bot hoje já está treinado pra usar `#`. Não atrapalha no curto prazo.
+
+**Fix sugerido (a decidir quando virar problema):**
+- Detectar legendas que "parecem comprovante mal-formado" antes de cair no `PaymentRequestStrategy` (ex: começa com `#` mas não bate o regex completo) e responder com mensagem orientadora; ou
+- Migrar a UI do bot pra comandos explícitos (`/pedido`, `/comprovante`) em vez de inferir por formato; ou
+- Confirmar o tipo com botão inline antes de salvar quando a legenda for ambígua.
+
+**Esforço:** médio. Decidir abordagem antes de implementar.
+
+**Prioridade:** baixa. Vira problema relevante quando o bot expandir pra mais de um usuário ou quando a usabilidade do pai precisar de mais robustez.
+
+---
+
 
 ## Itens resolvidos
 
