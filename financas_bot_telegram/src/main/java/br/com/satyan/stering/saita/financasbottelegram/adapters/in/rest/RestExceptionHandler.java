@@ -4,6 +4,7 @@ import br.com.satyan.stering.saita.financasbottelegram.application.dto.ErroDTO;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.AuthTokenInvalidoException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.ComprovanteNaoEncontradoException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.ImagemNaoEncontradaException;
+import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.MesFormatoInvalidoException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.PedidoNaoAutorizadoException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.PedidoNaoEncontradoException;
 import java.util.stream.Collectors;
@@ -43,6 +44,12 @@ public class RestExceptionHandler {
     public ResponseEntity<ErroDTO> handleComprovanteNaoEncontrado(ComprovanteNaoEncontradoException e) {
         return ResponseEntity.status(404)
                 .body(new ErroDTO("COMPROVANTE_NAO_ENCONTRADO", e.getMessage()));
+    }
+
+    @ExceptionHandler(MesFormatoInvalidoException.class)
+    public ResponseEntity<ErroDTO> handleMesFormatoInvalido(MesFormatoInvalidoException e) {
+        return ResponseEntity.badRequest()
+                .body(new ErroDTO("MES_INVALIDO", e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
