@@ -15,6 +15,7 @@ import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.ser
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.RegistrarComprovanteUsecase;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoArquivo;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoUploadS3;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.Comprovante;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -66,7 +67,7 @@ class PaymentProofStrategyTest {
     void deveProcessarComprovanteComSucesso() {
         Update update = updateComFoto("#123 PIX", 12345L, "file_xyz");
         when(telegramFileDownloaderService.downloadImageByFileId("file_xyz")).thenReturn(new byte[]{1, 2, 3});
-        when(s3ImageUploadService.uploadFile(any(), any())).thenReturn("https://s3.example.com/comprovante.jpg");
+        when(s3ImageUploadService.uploadFile(any(), any(), any())).thenReturn("https://s3.example.com/comprovante.jpg");
         Comprovante salvo = Comprovante.builder().id(1L).pedidoId(123L).tipoPagamento("PIX").build();
         when(registrarComprovanteUsecase.execute(eq(123L), eq("PIX"), eq("file_xyz"), any(), eq(TipoArquivo.IMAGEM), eq(12345L))).thenReturn(salvo);
 
@@ -88,7 +89,7 @@ class PaymentProofStrategyTest {
     void deveConverterTipoPagamentoParaMaiusculo() {
         Update update = updateComFoto("#10 ted", 12345L, "file_abc");
         when(telegramFileDownloaderService.downloadImageByFileId(any())).thenReturn(new byte[]{});
-        when(s3ImageUploadService.uploadFile(any(), any())).thenReturn("https://s3.example.com/img.jpg");
+        when(s3ImageUploadService.uploadFile(any(), any(), any())).thenReturn("https://s3.example.com/img.jpg");
         Comprovante salvo = Comprovante.builder().id(2L).pedidoId(10L).tipoPagamento("TED").build();
         when(registrarComprovanteUsecase.execute(eq(10L), eq("TED"), any(), any(), eq(TipoArquivo.IMAGEM), eq(12345L))).thenReturn(salvo);
 
@@ -103,7 +104,7 @@ class PaymentProofStrategyTest {
     void deveAceitarDocumentComMimeTypeImageJpeg() {
         Update update = updateComDocument("#50 pix", 12345L, "doc_jpg", "image/jpeg");
         when(telegramFileDownloaderService.downloadImageByFileId("doc_jpg")).thenReturn(new byte[]{});
-        when(s3ImageUploadService.uploadFile(any(), eq("jpg"))).thenReturn("https://s3.example.com/file.jpg");
+        when(s3ImageUploadService.uploadFile(any(), eq("jpg"), any())).thenReturn("https://s3.example.com/file.jpg");
         Comprovante salvo = Comprovante.builder().id(3L).pedidoId(50L).tipoPagamento("PIX").build();
         when(registrarComprovanteUsecase.execute(eq(50L), eq("PIX"), eq("doc_jpg"), any(), eq(TipoArquivo.IMAGEM), eq(12345L))).thenReturn(salvo);
 
@@ -116,7 +117,7 @@ class PaymentProofStrategyTest {
     void deveAceitarDocumentComMimeTypePdf() {
         Update update = updateComDocument("#99 boleto", 12345L, "doc_pdf", "application/pdf");
         when(telegramFileDownloaderService.downloadImageByFileId("doc_pdf")).thenReturn(new byte[]{});
-        when(s3ImageUploadService.uploadFile(any(), eq("pdf"))).thenReturn("https://s3.example.com/file.pdf");
+        when(s3ImageUploadService.uploadFile(any(), eq("pdf"), any())).thenReturn("https://s3.example.com/file.pdf");
         Comprovante salvo = Comprovante.builder().id(4L).pedidoId(99L).tipoPagamento("BOLETO").build();
         when(registrarComprovanteUsecase.execute(eq(99L), eq("BOLETO"), eq("doc_pdf"), any(), eq(TipoArquivo.PDF), eq(12345L))).thenReturn(salvo);
 
@@ -129,13 +130,26 @@ class PaymentProofStrategyTest {
     void deveAceitarDocumentOctetStreamComoImagem() {
         Update update = updateComDocument("#77 ted", 12345L, "doc_ws", "application/octet-stream");
         when(telegramFileDownloaderService.downloadImageByFileId("doc_ws")).thenReturn(new byte[]{});
-        when(s3ImageUploadService.uploadFile(any(), eq("jpg"))).thenReturn("https://s3.example.com/file.jpg");
+        when(s3ImageUploadService.uploadFile(any(), eq("jpg"), any())).thenReturn("https://s3.example.com/file.jpg");
         Comprovante salvo = Comprovante.builder().id(5L).pedidoId(77L).tipoPagamento("TED").build();
         when(registrarComprovanteUsecase.execute(eq(77L), eq("TED"), eq("doc_ws"), any(), eq(TipoArquivo.IMAGEM), eq(12345L))).thenReturn(salvo);
 
         strategy.process(update);
 
         verify(registrarComprovanteUsecase).execute(eq(77L), eq("TED"), eq("doc_ws"), any(), eq(TipoArquivo.IMAGEM), eq(12345L));
+    }
+
+    @Test
+    void deveUsarTipoUploadComprovanteNoS3() {
+        Update update = updateComFoto("#20 pix", 12345L, "file_chk");
+        when(telegramFileDownloaderService.downloadImageByFileId(any())).thenReturn(new byte[]{});
+        when(s3ImageUploadService.uploadFile(any(), any(), any())).thenReturn("https://s3.example.com/comprovantes/abc.jpg");
+        Comprovante salvo = Comprovante.builder().id(9L).pedidoId(20L).tipoPagamento("PIX").build();
+        when(registrarComprovanteUsecase.execute(any(), any(), any(), any(), any(), any())).thenReturn(salvo);
+
+        strategy.process(update);
+
+        verify(s3ImageUploadService).uploadFile(any(), any(), eq(TipoUploadS3.COMPROVANTE));
     }
 
     @Test
