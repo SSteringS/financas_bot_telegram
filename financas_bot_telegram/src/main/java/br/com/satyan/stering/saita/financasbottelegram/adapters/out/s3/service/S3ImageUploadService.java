@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -22,7 +21,6 @@ public class S3ImageUploadService {
   private static final Logger logger = LoggerFactory.getLogger(S3ImageUploadService.class);
   private static final String FOLDER_PREFIX = "pedidos";
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
-  private static final String FILE_EXTENSION = ".jpg";
 
   private final S3Template s3Template;
   private final String bucketName;
@@ -36,42 +34,29 @@ public class S3ImageUploadService {
     this.baseUrl = baseUrl;
   }
 
-  /**
-   * Faz upload da imagem para o S3 com particionamento por data.
-   *
-   * @param imageBytes Array de bytes da imagem
-   * @return URL da imagem no S3
-   */
   public String uploadImage(byte[] imageBytes) {
+    return uploadFile(imageBytes, "jpg");
+  }
+
+  public String uploadFile(byte[] bytes, String extension) {
     try {
-      String key = generateS3Key();
-      logger.info("Iniciando upload da imagem para S3 com chave: {}", key);
-
-      InputStream inputStream = new ByteArrayInputStream(imageBytes);
-      s3Template.upload(bucketName, key, inputStream);
-
-      String imageUrl = buildImageUrl(key);
-      logger.info("Imagem enviada com sucesso para S3. URL: {}", imageUrl);
-      return imageUrl;
-
+      String key = construirChaveS3(extension);
+      logger.info("Iniciando upload para S3 com chave: {}", key);
+      s3Template.upload(bucketName, key, new ByteArrayInputStream(bytes));
+      String url = buildImageUrl(key);
+      logger.info("Arquivo enviado para S3. URL: {}", url);
+      return url;
     } catch (Exception e) {
-      logger.error("Erro ao fazer upload da imagem para S3", e);
-      throw new S3UploadException("Falha ao salvar imagem no S3: " + e.getMessage(), e);
+      logger.error("Erro ao fazer upload do arquivo para S3", e);
+      throw new S3UploadException("Falha ao salvar arquivo no S3: " + e.getMessage(), e);
     }
   }
 
-  /**
-   * Gera a chave S3 com particionamento por data: pedidos/YYYYMMDD/UUID.jpg
-   */
-  private String generateS3Key() {
+  private String construirChaveS3(String extension) {
     String today = LocalDate.now().format(DATE_FORMATTER);
-    String fileName = UUID.randomUUID() + FILE_EXTENSION;
-    return String.format("%s/%s/%s", FOLDER_PREFIX, today, fileName);
+    return String.format("%s/%s/%s.%s", FOLDER_PREFIX, today, UUID.randomUUID(), extension);
   }
 
-  /**
-   * Constrói a URL completa da imagem no S3.
-   */
   private String buildImageUrl(String key) {
     return baseUrl + key;
   }

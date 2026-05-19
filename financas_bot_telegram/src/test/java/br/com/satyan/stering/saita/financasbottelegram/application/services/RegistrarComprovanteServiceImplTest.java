@@ -11,6 +11,7 @@ import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.Bu
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.ComprovanteRepositoryPort;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.PedidoPagamentoRepositoryPort;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoArquivo;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.PedidoNaoEncontradoException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.Comprovante;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
@@ -48,7 +49,7 @@ class RegistrarComprovanteServiceImplTest {
         when(comprovanteRepository.save(any())).thenReturn(comprovanteEsperado);
         when(pedidoPagamentoRepository.save(any())).thenReturn(pedido);
 
-        Comprovante resultado = service.execute(1L, "PIX", "file_123", "https://s3.example.com/img.jpg", 999L);
+        Comprovante resultado = service.execute(1L, "PIX", "file_123", "https://s3.example.com/img.jpg", TipoArquivo.IMAGEM, 999L);
 
         assertThat(resultado.getPedidoId()).isEqualTo(1L);
         assertThat(resultado.getTipoPagamento()).isEqualTo("PIX");
@@ -62,7 +63,7 @@ class RegistrarComprovanteServiceImplTest {
     void deveLancarExcecaoQuandoPedidoNaoEncontrado() {
         when(pedidoPagamentoRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.execute(99L, "PIX", "file", "url", 999L))
+        assertThatThrownBy(() -> service.execute(99L, "PIX", "file", "url", TipoArquivo.IMAGEM, 999L))
                 .isInstanceOf(PedidoNaoEncontradoException.class)
                 .hasMessageContaining("99");
         verify(comprovanteRepository, never()).save(any());
@@ -74,7 +75,7 @@ class RegistrarComprovanteServiceImplTest {
         pedidoPago.setStatus(StatusPedido.PAGO);
         when(pedidoPagamentoRepository.findById(2L)).thenReturn(Optional.of(pedidoPago));
 
-        assertThatThrownBy(() -> service.execute(2L, "PIX", "file", "url", 999L))
+        assertThatThrownBy(() -> service.execute(2L, "PIX", "file", "url", TipoArquivo.IMAGEM, 999L))
                 .isInstanceOf(BusinessRuleException.class)
                 .hasMessageContaining("pago");
         verify(comprovanteRepository, never()).save(any());
@@ -88,7 +89,7 @@ class RegistrarComprovanteServiceImplTest {
         Comprovante salvo = Comprovante.builder().id(5L).pedidoId(3L).fileIdTelegram("fid").imagemUrl("http://url").build();
         when(comprovanteRepository.save(any())).thenReturn(salvo);
 
-        service.execute(3L, "TED", "fid", "http://url", 999L);
+        service.execute(3L, "TED", "fid", "http://url", TipoArquivo.IMAGEM, 999L);
 
         ArgumentCaptor<Comprovante> captor = ArgumentCaptor.forClass(Comprovante.class);
         verify(comprovanteRepository).save(captor.capture());

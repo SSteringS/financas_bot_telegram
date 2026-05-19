@@ -1,15 +1,21 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.strategy;
 
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.PhotoProcessingException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.TipoArquivoNaoSuportadoException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.s3.service.S3ImageUploadService;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramFileDownloaderService;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.SalvarPedidoPagamentoUsecase;
-import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoArquivo;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.service.LegendaParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -53,58 +59,96 @@ public class PaymentRequestStrategy implements UpdateProcessingStrategy {
     Long chatId = message.getChatId();
     logger.info("Estratégia de Pedido de Pagamento ativada para o chat ID: {}", chatId);
 
-    // Obter o file_id da imagem de maior qualidade
-    String fileId = extractHighestQualityImageFileId(message);
+    ExtraidoArquivo extraido = extrair(message, chatId);
 
-    // Download da imagem do Telegram
-    byte[] imageBytes = telegramFileDownloaderService.downloadImageByFileId(fileId);
+    byte[] bytes = telegramFileDownloaderService.downloadImageByFileId(extraido.fileId());
 
-    // Upload para S3
-    String s3ImageUrl = s3ImageUploadService.uploadImage(imageBytes);
-    logger.info("Imagem do pedido enviada para S3: {}", s3ImageUrl);
+    String s3Url = s3ImageUploadService.uploadFile(bytes, extraido.extensao());
+    logger.info("Imagem do pedido enviada para S3: {}", s3Url);
 
-    // Parsear dados do pedido
     PedidoPagamento pedido = parsePedido(message);
-    pedido.setFileIdTelegram(fileId);
-    pedido.setImagemUrl(s3ImageUrl);
+    pedido.setFileIdTelegram(extraido.fileId());
+    pedido.setImagemUrl(s3Url);
 
-    // Salvar pedido no banco
     PedidoPagamento pedidoSalvo = salvarPedidoPagamentoUsecase.execute(pedido, chatId);
     logger.info("Pedido de pagamento {} do usuário {} salvo com sucesso.", pedidoSalvo.getId(), pedido.getTelegramUserId());
 
+    String dica = pedidoSalvo.getTipo() == TipoPagamento.OUTRO
+        ? "\n\n_Tipo não detectado. Inclua 'boleto', 'pix', 'ted' ou 'agendamento' na descrição para auto-categorizar._"
+        : "";
     String successMessage = String.format(
-        "✅ Pedido de pagamento registrado com sucesso!\n\n*ID do Pedido:* `%d`\n*Valor:* R$ %.2f\n*Descrição:* %s",
+        "✅ Pedido registrado!\n\n*ID:* `%d`\n*Valor:* R$ %.2f\n*Descrição:* %s\n*Tipo:* %s%s",
         pedidoSalvo.getId(),
         pedidoSalvo.getValor(),
-        pedidoSalvo.getDescricao()
+        pedidoSalvo.getDescricao(),
+        pedidoSalvo.getTipo(),
+        dica
     );
     telegramMessageSenderService.sendMessage(chatId, successMessage);
   }
 
-  /**
-   * Extrai o file_id da foto com maior qualidade (maior tamanho).
-   */
-  private String extractHighestQualityImageFileId(Message message) {
-    return message.getPhoto().stream()
-        .max(Comparator.comparing(PhotoSize::getFileSize))
-        .map(PhotoSize::getFileId)
-        .orElseThrow(() -> new IllegalArgumentException("Nenhuma foto encontrada na mensagem"));
+  private ExtraidoArquivo extrair(Message message, Long chatId) {
+    if (message.getPhoto() != null && !message.getPhoto().isEmpty()) {
+      String fileId = message.getPhoto().stream()
+          .max(Comparator.comparing(PhotoSize::getFileSize))
+          .map(PhotoSize::getFileId)
+          .orElseThrow(() -> new PhotoProcessingException("Foto sem file_id válido.", chatId));
+      return new ExtraidoArquivo(fileId, TipoArquivo.IMAGEM, "jpg");
+    }
+
+    if (message.getDocument() != null) {
+      Document doc = message.getDocument();
+      String mime = doc.getMimeType() != null ? doc.getMimeType() : "";
+
+      if (mime.startsWith("image/")) {
+        return new ExtraidoArquivo(doc.getFileId(), TipoArquivo.IMAGEM, extensaoDeMime(mime));
+      }
+      if (mime.equals("application/pdf")) {
+        return new ExtraidoArquivo(doc.getFileId(), TipoArquivo.PDF, "pdf");
+      }
+      if (mime.equals("application/octet-stream") || mime.isBlank()) {
+        return new ExtraidoArquivo(doc.getFileId(), TipoArquivo.IMAGEM, "jpg");
+      }
+
+      throw new TipoArquivoNaoSuportadoException(
+          "Tipo de arquivo '" + mime + "' não suportado. Envie foto, imagem ou PDF.", chatId);
+    }
+
+    throw new PhotoProcessingException(
+        "Nenhuma imagem ou anexo encontrado. Envie como foto ou anexo.", chatId);
   }
 
-  /**
-   * Converte a mensagem do Telegram em um objeto PedidoPagamento usando regex.
-   */
+  private record ExtraidoArquivo(String fileId, TipoArquivo tipo, String extensao) {}
+
+  private String extensaoDeMime(String mime) {
+    return switch (mime) {
+      case "image/jpeg", "image/jpg" -> "jpg";
+      case "image/png" -> "png";
+      case "image/webp" -> "webp";
+      case "image/gif" -> "gif";
+      default -> "jpg";
+    };
+  }
+
   private PedidoPagamento parsePedido(Message message) {
     String text = message.getCaption().trim();
     Matcher matcher = PEDIDO_PATTERN.matcher(text);
 
     if (!matcher.matches()) {
-      throw new IllegalArgumentException("Formato inválido. Use: pedido <valor> <descrição>");
+      throw new InvalidMessageFormatException(
+          "Use: `<valor> <descrição>`\n\n" +
+          "*Exemplos:*\n" +
+          "• `100 boleto Energia`\n" +
+          "• `200 pix Maria`\n" +
+          "• `1500 ted Construtora`\n" +
+          "• `300 agendamento Luz`\n" +
+          "• `50 Almoço` (sem tipo vira OUTRO)\n\n" +
+          "O tipo é detectado automaticamente pela palavra-chave na descrição.",
+          message.getChatId());
     }
 
     String valorStr = matcher.group(1).replace(',', '.');
     BigDecimal valor = new BigDecimal(valorStr);
-
     String descricao = matcher.group(3);
 
     return PedidoPagamento.builder()
