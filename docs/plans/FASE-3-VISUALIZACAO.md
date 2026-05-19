@@ -58,6 +58,10 @@ Fase 3d — Evolução pós-MVP (não fazer agora)
 
 ## BE-01 — Migration SQL: requisitante, datas, categoria, auth_token
 
+**Status:** ✅ **Concluída** — commits `0a61e94 feat(BE-01)` + `c0bda21 fix(BE-01)` + `HOTFIX-pedido-data-pedido-PATCH` (este último completou o Java que ficou faltando na entrega original). Migration `V2` aplicada em dev e prod. Schema reflete o que está documentado abaixo.
+
+**Pré-requisitos retroativos (também já concluídos):** BE-00 (Flyway) — commit `492ace9` · BE-00B (refatoração persistência) — commit `d810777` · BE-01a (backfill testes + reativação pipeline) — commits `2f124ba` + `d0ba1dd`. Esses três foram pré-tarefas não previstas originalmente que precisaram ser inseridas antes da BE-01 conforme o trabalho avançou. Seus planos estão em `docs/plans/BE-00-*`, `BE-00B-*`, `BE-01a-*`.
+
 **Contexto**: o schema atual não tem requisitante explícito, separação entre data_pedido/data_pagamento, tipo de pagamento, nem suporte a token de auth. Esta migration introduz tudo.
 
 **Arquivos**:
@@ -82,30 +86,19 @@ Fase 3d — Evolução pós-MVP (não fazer agora)
 
 ## BE-02 — Domain entities + Repositories pros novos campos
 
-**Contexto**: os campos novos da migration precisam aparecer no domínio Java. Manter a hexagonal — domain puro, sem dependência de Spring Data.
+**Status:** ⚠️ **Parcial** — dividida em duas frentes, com escopos diferentes.
 
-**Arquivos**:
-- `domain/Pedido.java` — adicionar `requisitanteId`, `dataPedido`, `dataPagamento`, `tipo`
-- `domain/Requisitante.java` — criar
-- `domain/TipoPagamento.java` — enum
-- `application/port/out/RequisitanteRepository.java` — port
-- `infra/persistence/JpaRequisitanteRepository.java` — adapter Spring Data
-- `infra/persistence/RequisitanteEntity.java` + mapper
-- `infra/persistence/PedidoEntity.java` — adicionar campos
-- Mapper `PedidoEntity ↔ Pedido` atualizado
+**Parte A — `PedidoPagamento` com campos novos + `TipoPagamento` enum + mapper atualizado: ✅ concluída.** Feita implicitamente pelo `HOTFIX-pedido-data-pedido-PATCH` (já em develop). Arquivos entregues: `domain/model/PedidoPagamento.java`, `domain/enums/TipoPagamento.java`, `adapters/out/persistence/entity/PedidoPagamentoEntity.java`, `adapters/out/persistence/mapper/PedidoPagamentoMapper.java`. O strategy popula `requisitanteId=1L` e `dataPedido=LocalDate.now()` ao salvar.
 
-**Critério de aceitação**:
-- Compilação ok, testes existentes passando
-- `RequisitanteRepository.findById(Long)` retorna `Optional<Requisitante>`
-- Pedido tem getters/builders pros novos campos
-- Fluxo atual do bot continua salvando pedido (com `requisitante_id=1` hardcoded por enquanto, e `data_pedido = LocalDate.now()`)
-- Testes: pelo menos 1 teste unitário do mapper Pedido com os novos campos
+**Parte B — `Requisitante` entity + repository + mapper: ⏳ deferida pra entrar junto da BE-10.** Razão: não há nenhum código nas tarefas BE-04 a BE-09 que precise instanciar ou ler `Requisitante` — o `requisitanteId` é apenas um `Long` em DTO. Quando a BE-10 (auth_token + endpoint admin) chegar, o token precisará apontar pra um requisitante existente, e nesse momento criamos a entity/repo. Trazer esses arquivos antes da hora só vira código não usado.
 
-**Dependências**: BE-01
+**Pendência fechada quando:** BE-10 implementar `RequisitanteRepository.findById` como parte do escopo dela.
 
 ---
 
 ## BE-03 — Extração de tipo (BOLETO/PIX/TED/AGENDAMENTO) da legenda
+
+**Status:** ⏳ **Pendente — independente, não bloqueia nada.** O strategy hoje salva `tipo=null` (campo nullable no banco, então não quebra). Pedidos novos vão aparecer na API com `tipo: null`. Quando esta tarefa for executada, novos pedidos passam a vir com tipo preenchido. **Não há urgência** — pode rodar a qualquer momento da Fase 3a, em paralelo com BE-04 a BE-09. Dependência foi removida (não depende mais da BE-02).
 
 **Contexto**: hoje o bot recebe legenda tipo `150.00 Almoço` ou `#123 PIX`. Precisamos enriquecer a parsing pra também detectar o tipo de pagamento (no caso de pedidos novos) e setar `tipo` no Pedido.
 
@@ -122,31 +115,19 @@ Fase 3d — Evolução pós-MVP (não fazer agora)
 - Case insensitive
 - 5+ casos de teste cobrindo todos os tipos + edge cases
 
-**Dependências**: BE-02
+**Dependências**: nenhuma (independente, conforme status acima).
 
 ---
 
-## BE-04 — Contrato OpenAPI da API + DTOs
+## BE-04 — DTOs da API REST + anotações OpenAPI (springdoc)
 
-**Contexto**: definir o contrato formal antes de implementar endpoints. Isso desbloqueia a Fase 3b (front) pra rodar contra mock se necessário.
+**Status:** ✅ **Concluída** — commits `18b3f92 fix(BE-04): completar config springdoc e remover PaymentCategory` + merge PR #49 (`187addf`). Houve um commit complementar pra fechar três gaps que faltaram no merge original. 67 testes verdes (55 anteriores + 12 novos de serialização/validação dos DTOs). Status report em `docs/status/BE-04-dtos-openapi.md`. Plano original em `docs/plans/BE-04-dtos-openapi.md`.
 
-**Arquivos**:
-- `docs/api/openapi.yaml` (criar) — contrato OpenAPI 3.1 cobrindo todos os endpoints da seção 2 da `docs/architecture/especificacao-tecnica.md`
-- `application/dto/PedidoResumoDTO.java` — DTO da listagem
-- `application/dto/PedidoDetalheDTO.java`
-- `application/dto/ResumoMesDTO.java`
-- `application/dto/AuthExchangeRequest.java`
-- `application/dto/AuthMeResponse.java`
-- `application/dto/PaginaDTO.java<T>` — wrapper genérico de paginação
+**Mudança de abordagem em relação ao escopo original:** o `pom.xml` já tem `springdoc-openapi-starter-webmvc-ui` 2.5.0, que **gera o contrato OpenAPI automaticamente a partir das anotações nas classes Java**. Não vamos escrever YAML manual — em vez disso, anotamos os DTOs e controllers com `@Schema`, `@Operation`, `@Parameter`, e o springdoc serve o OpenAPI em `/v3/api-docs` + Swagger UI em `/swagger-ui.html`. Vantagem: contrato e código nunca saem de sincronia.
 
-**Critério de aceitação**:
-- OpenAPI valida em https://editor.swagger.io
-- DTOs têm Bean Validation (`@NotNull`, `@Size`, etc) onde aplicável
-- DTOs usam `Jackson` annotations consistentes (`@JsonProperty` pra camelCase)
-- Cobre todos os endpoints listados na especificação técnica
-- Não inclui endpoints de cancelamento/delete (fora do MVP)
+**Esta tarefa entrega só os DTOs anotados.** Controllers e services vêm em BE-05 onwards.
 
-**Dependências**: BE-02. **Marco**: a partir daqui o front pode começar.
+**Dependências**: BE-01 (concluída). **Marco**: a partir do término desta tarefa, BE-05/06/07/08/09 e BE-10/11 podem rodar em paralelo.
 
 ---
 
@@ -322,6 +303,38 @@ Fase 3d — Evolução pós-MVP (não fazer agora)
 - Teste: preflight OPTIONS retorna headers corretos
 
 **Dependências**: BE-11
+
+---
+
+## BE-15 — Handler genérico de exceções pra não travar a fila do Telegram (gate antes do deploy)
+
+**Contexto**: quando uma exceção não-mapeada acontece no processamento de um Update (ex: `NullPointerException`, qualquer `RuntimeException` inesperada), o controller retorna **500**, o Telegram considera entrega falha e **fica retentando indefinidamente**, acumulando uma fila de mensagens travadas. Isso aconteceu no incidente do PDF antigo (maio/2026) — uma única mensagem travou a fila por dias até intervenção manual com `setWebhook?drop_pending_updates=true`.
+
+Esta tarefa é a **rede de segurança final antes do deploy da API REST em produção**. Sem ela, qualquer próximo bug do bot pode travar o canal de entrada principal.
+
+**Arquivos esperados:**
+- `adapters/in/telegram/exceptionhandler/GlobalTelegramExceptionHandler.java` (modificar)
+- Possivelmente novo: `domain/exceptions/DeadLetterLogger.java` ou similar (opcional)
+- Testes em `GlobalTelegramExceptionHandlerTest`
+
+**Critério de aceitação:**
+- `@ExceptionHandler(Exception.class)` adicionado como fallback final no handler
+- Comportamento ao capturar qualquer exceção não-mapeada:
+  - Logar stack trace completo em ERROR
+  - Tentar enviar mensagem amigável pro chat: "Houve um problema processando sua mensagem. Tente novamente ou contate o admin."
+  - **Sempre retornar `200 OK`** pro Telegram — não 5xx
+- Se `sendMessage` falhar também (ex: Telegram fora), logar mas ainda retornar 200
+- Princípio registrado como ADR `0003-controller-webhook-nunca-retorna-5xx.md`: o controller do webhook é responsável por não falhar de forma a bloquear a fila
+- Testes cobrindo:
+  - NPE no meio do processamento → 200 + sendMessage
+  - RuntimeException genérica → 200 + sendMessage
+  - Falha simulada do próprio `sendMessage` (S3 fora, etc) → 200, sem propagar
+  - Verificar via mock que `TelegramMessageSenderService.sendMessage` foi chamado com o `chatId` do Update original
+
+**Considerações opcionais (vale discutir):**
+- Adicionar dead-letter log (em arquivo, em CloudWatch via SLF4J marker, ou tabela `dead_letter_updates`) com Updates que falharam — pra auditoria. Pode ficar pra evolução se virar overhead.
+
+**Dependências:** nenhuma técnica. Pode rodar em paralelo a qualquer tarefa da Fase 3a. **Mas é gate obrigatório antes da Fase 3c (deploy)** — DEP-00 só começa quando BE-15 estiver em develop.
 
 ---
 
@@ -710,6 +723,32 @@ Wrap do React em Capacitor pra publicar nas lojas. Considerar quando PWA instal�
 ## EVO-06 — Multi-requisitante com convite self-service
 
 Hoje só existe Pedro. Se outras pessoas (mãe, irmão, etc) começarem a usar, criar fluxo onde você cria requisitantes pelo bot e gera links. Backend já está preparado pra isso desde BE-01.
+
+## EVO-07 — Aceitar comprovantes como Document (PDF, imagens do WhatsApp, etc)
+
+**Status:** ✅ **Concluída** — branch `feature/backend-polish-evo07`, commit `feat(EVO-07)`. Migration V3 aplicada. Strategies aceitam `photo` e `document`. `TipoArquivo` (IMAGEM/PDF) salvo na tabela e propagado pelo domain. 212 testes passando.
+
+**Contexto**: hoje as strategies (`PaymentProofStrategy.extractHighestQualityImageFileId` e equivalente em `PaymentRequestStrategy`) aceitam **somente foto** (`message.photo`). Mensagens com `document` (PDFs de boleto, imagens compartilhadas do WhatsApp que vêm como anexo, etc) **caem em NullPointerException** quando o regex da legenda casa mas a estrutura da mensagem não é `photo`. Isso já causou um incidente em prod onde uma mensagem antiga com PDF travou a fila inteira por dias.
+
+**Escopo desta evolução:**
+
+1. **Aceitar `message.document` como fallback** quando `message.photo` for null. Detalhamento da implementação está em `docs/plans/HOTFIX-document-vs-photo.md` (escrito como hotfix mas não executado — vira base desta tarefa).
+
+2. **Validar mimeType** do document e mapear pra um conjunto suportado: `image/*`, `application/pdf`. Rejeitar outros (vídeo, áudio, zip) com mensagem amigável pro usuário.
+
+3. **Salvar no S3 com extensão correta** (`.pdf` em vez de `.jpg` quando for PDF) — melhora preview no front-end (variante C do design tem modal com `<iframe>` que renderiza PDF nativamente).
+
+4. **Adicionar coluna `tipo_arquivo`** (ou `content_type`) na tabela `comprovantes` pra o front saber como renderizar (imagem inline vs iframe).
+
+5. **Atualizar `S3ImageUploadService`** pra ter um método mais genérico (`uploadFile(bytes, contentType, extension)`) em vez de assumir `image/jpeg`.
+
+6. **Testes cobrindo**: foto, document PDF, document JPG do WhatsApp, document de tipo proibido (rejeição), document de tipo desconhecido (rejeição).
+
+Depende de migration pequena (V3+) pra adicionar a coluna `tipo_arquivo` e backfill como `image/jpeg` pros registros existentes.
+
+**Prioridade:** média. Funciona em interação direta com EVO-08 (handler genérico). Enquanto EVO-08 não estiver pronto, qualquer mensagem com document vai continuar quebrando o bot — então faz sentido fechar EVO-08 antes desta, ou fazer as duas juntas.
+
+## (EVO-08 promovida pra BE-15 — virou parte do MVP, ver seção da Fase 3a)
 
 ---
 
