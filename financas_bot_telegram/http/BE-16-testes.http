@@ -1,0 +1,110 @@
+# BE-16 — Roteiro de validação manual
+# Task 1: Resumo parametrizado (cenários 1.1–1.11)
+#
+# Como usar:
+#   1. Selecione o environment "dev" no canto superior direito do IntelliJ
+#   2. Siga os passos de autenticação abaixo (0 → 1)
+#   3. O cookie finbot_session é armazenado automaticamente — pode rodar os testes em sequência
+#
+# Task 2 (S3) não tem requests HTTP — é manual via Telegram + console S3.
+
+### ============================================================
+### AUTENTICAÇÃO
+### ============================================================
+
+### Passo 0 — Gerar magic link (dev admin)
+# Retorna: {"url": "http://localhost:5173/auth?token=..."}
+# Copie o valor de "token" da URL e cole em {{TOKEN}} no Passo 1
+POST {{base_url}}/admin/api/v1/requisitantes/{{requisitante_id}}/convite
+X-Admin-Key: {{admin_key}}
+
+###
+
+### Passo 1 — Trocar token por sessão
+# Substitua TOKEN_AQUI pelo valor copiado no Passo 0
+# Após executar: o cookie finbot_session fica salvo — todos os requests abaixo já estarão autenticados
+POST {{base_url}}/api/v1/auth/exchange
+Content-Type: application/json
+
+{
+  "token": "cbiRX4DxfSqGV8l3R0W8EM9AIadicQt8Q_8vvgfhIFA"
+}
+
+###
+
+### Verificação — Confirmar sessão ativa
+GET {{base_url}}/api/v1/auth/me
+
+### ============================================================
+### TASK 1 — RESUMO PARAMETRIZADO
+### ============================================================
+
+### 1.1 — Sem params (mês corrente)
+# Esperado: 200 com campo "mes" = mês atual, + todos/pendentes/pagos com quantidade e total
+GET {{base_url}}/api/v1/resumo
+
+###
+
+### 1.2 — Mês específico com dados (abril)
+# Esperado: 200 com dados referentes a 2026-04
+GET {{base_url}}/api/v1/resumo?mes={{mes_com_dados}}
+
+###
+
+### 1.3 — Mês de maio (deve diferir de 1.2)
+# Esperado: 200 com dados de 2026-05
+GET {{base_url}}/api/v1/resumo?mes={{mes_atual}}
+
+###
+
+### 1.4 — Busca textual
+# Esperado: 200 com contadores refletindo apenas pedidos cuja descrição contém "{{busca_texto}}"
+# Ajuste o valor de busca_texto no http-client.env.json conforme o que existe no seu banco
+GET {{base_url}}/api/v1/resumo?busca={{busca_texto}}
+
+###
+
+### 1.5 — Mês + busca combinados
+# Esperado: 200 combinando filtro de mês e de texto
+GET {{base_url}}/api/v1/resumo?mes={{mes_com_dados}}&busca={{busca_texto}}
+
+###
+
+### 1.6 — Mês inválido (mês 13 não existe)
+# Esperado: 400 com erro estruturado (código MES_INVALIDO ou similar)
+GET {{base_url}}/api/v1/resumo?mes=2026-13
+
+###
+
+### 1.7 — Formato de mês inválido
+# Esperado: 400
+GET {{base_url}}/api/v1/resumo?mes=abc
+
+###
+
+### 1.8 / 1.9 — Invariante e nome do campo
+# Verificar manualmente na resposta:
+#   - Campo se chama "mes" (não "mesAtual")
+#   - todos.quantidade == pendentes.quantidade + pagos.quantidade
+#   - todos.total == pendentes.total + pagos.total
+GET {{base_url}}/api/v1/resumo?mes={{mes_atual}}
+
+###
+
+### 1.10a — Listagem do mês (para comparação com resumo)
+# Anote o campo "total" da resposta (total de pedidos sem filtro de status)
+GET {{base_url}}/api/v1/pedidos?de={{mes_atual}}-01&ate={{mes_atual}}-31
+
+###
+
+### 1.10b — Resumo do mesmo mês (comparar com 1.10a)
+# Verificar: resumo.todos.quantidade == listagem.total de 1.10a
+# Se divergirem, investigar pedidos CANCELADO (ver Observação 2 da avaliação)
+GET {{base_url}}/api/v1/resumo?mes={{mes_atual}}
+
+###
+
+### 1.11 — Sem autenticação (cookie ignorado nesta request)
+# Esperado: 401 ou 403
+# @no-cookie-jar
+GET {{base_url}}/api/v1/resumo

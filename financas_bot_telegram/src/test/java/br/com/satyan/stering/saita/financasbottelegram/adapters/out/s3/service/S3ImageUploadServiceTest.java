@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoUploadS3;
 import io.awspring.cloud.s3.S3Template;
 import java.io.InputStream;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,32 +32,42 @@ class S3ImageUploadServiceTest {
     }
 
     @Test
-    void uploadFile_deveRetornarUrlComExtensaoJpg() {
-        String url = service.uploadFile(new byte[]{1, 2, 3}, "jpg");
+    void uploadFile_pedido_deveGerarChaveComPrefixoPedidos() {
+        String url = service.uploadFile(new byte[]{1, 2, 3}, "jpg", TipoUploadS3.PEDIDO);
 
         assertThat(url).startsWith(BASE_URL + "pedidos/");
         assertThat(url).endsWith(".jpg");
     }
 
     @Test
-    void uploadFile_deveRetornarUrlComExtensaoPdf() {
-        String url = service.uploadFile(new byte[]{1, 2, 3}, "pdf");
+    void uploadFile_comprovante_deveGerarChaveComPrefixoComprovantes() {
+        String url = service.uploadFile(new byte[]{1, 2, 3}, "pdf", TipoUploadS3.COMPROVANTE);
 
-        assertThat(url).startsWith(BASE_URL + "pedidos/");
+        assertThat(url).startsWith(BASE_URL + "comprovantes/");
         assertThat(url).endsWith(".pdf");
     }
 
     @Test
+    void uploadFile_deveConterDataNoFormato_YYYYMMDD() {
+        String url = service.uploadFile(new byte[]{}, "jpg", TipoUploadS3.PEDIDO);
+
+        String chave = url.replace(BASE_URL, "");
+        String[] partes = chave.split("/");
+        assertThat(partes[1]).matches("\\d{8}");
+    }
+
+    @Test
     void uploadFile_deveChamarS3TemplateComBucketCorreto() {
-        service.uploadFile(new byte[]{}, "jpg");
+        service.uploadFile(new byte[]{}, "jpg", TipoUploadS3.PEDIDO);
 
         verify(s3Template).upload(eq(BUCKET), any(), any(InputStream.class));
     }
 
     @Test
-    void uploadImage_deveDelegarParaUploadFileComExtensaoJpg() {
+    void uploadImage_deveDelegarParaPedidoComExtensaoJpg() {
         String url = service.uploadImage(new byte[]{1});
 
+        assertThat(url).startsWith(BASE_URL + "pedidos/");
         assertThat(url).endsWith(".jpg");
         verify(s3Template).upload(eq(BUCKET), any(), any(InputStream.class));
     }
@@ -65,15 +76,15 @@ class S3ImageUploadServiceTest {
     void uploadFile_deveLancarS3UploadExceptionQuandoS3Falha() {
         doThrow(new RuntimeException("S3 indisponível")).when(s3Template).upload(any(), any(), any());
 
-        assertThatThrownBy(() -> service.uploadFile(new byte[]{}, "jpg"))
+        assertThatThrownBy(() -> service.uploadFile(new byte[]{}, "jpg", TipoUploadS3.PEDIDO))
                 .isInstanceOf(S3UploadException.class)
                 .hasMessageContaining("Falha ao salvar arquivo no S3");
     }
 
     @Test
     void uploadFile_deveGerarChavesUnicasParaUploadsDistintos() {
-        String url1 = service.uploadFile(new byte[]{}, "png");
-        String url2 = service.uploadFile(new byte[]{}, "png");
+        String url1 = service.uploadFile(new byte[]{}, "png", TipoUploadS3.PEDIDO);
+        String url2 = service.uploadFile(new byte[]{}, "png", TipoUploadS3.PEDIDO);
 
         assertThat(url1).isNotEqualTo(url2);
     }

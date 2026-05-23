@@ -8,6 +8,7 @@ import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.ser
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.RegistrarComprovanteUsecase;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoArquivo;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoUploadS3;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.Comprovante;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +87,7 @@ public class PaymentProofStrategy implements UpdateProcessingStrategy {
 
     byte[] bytes = telegramFileDownloaderService.downloadImageByFileId(extraido.fileId());
 
-    String s3Url = s3ImageUploadService.uploadFile(bytes, extraido.extensao());
+    String s3Url = s3ImageUploadService.uploadFile(bytes, extraido.extensao(), TipoUploadS3.COMPROVANTE);
     logger.info("Comprovante enviado para S3: {}", s3Url);
 
     Comprovante comprovanteSalvo = registrarComprovanteUsecase.execute(

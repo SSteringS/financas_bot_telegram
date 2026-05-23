@@ -10,6 +10,7 @@ import br.com.satyan.stering.saita.financasbottelegram.application.usecases.Salv
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoArquivo;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoUploadS3;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.service.LegendaParser;
 import org.slf4j.Logger;
@@ -63,7 +64,7 @@ public class PaymentRequestStrategy implements UpdateProcessingStrategy {
 
     byte[] bytes = telegramFileDownloaderService.downloadImageByFileId(extraido.fileId());
 
-    String s3Url = s3ImageUploadService.uploadFile(bytes, extraido.extensao());
+    String s3Url = s3ImageUploadService.uploadFile(bytes, extraido.extensao(), TipoUploadS3.PEDIDO);
     logger.info("Imagem do pedido enviada para S3: {}", s3Url);
 
     PedidoPagamento pedido = parsePedido(message);
