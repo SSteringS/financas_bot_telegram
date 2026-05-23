@@ -11,6 +11,7 @@ import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exce
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidUpdateException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.PhotoProcessingException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.TipoArquivoNaoSuportadoException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramMessageSenderService;
 import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.BusinessRuleException;
 import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.DatabaseException;
@@ -93,6 +94,16 @@ class GlobalTelegramExceptionHandlerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         verify(telegramMessageSenderService).sendMessage(eq(500L), any());
+    }
+
+    @Test
+    void deveRetornarOkEEnviarMensagemParaTipoArquivoNaoSuportadoException() {
+        TipoArquivoNaoSuportadoException ex = new TipoArquivoNaoSuportadoException("video/mp4 não suportado", 550L);
+
+        ResponseEntity<Void> response = handler.handleTipoArquivoNaoSuportado(ex, webRequest);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(telegramMessageSenderService).sendMessage(eq(550L), any());
     }
 
     @Test
