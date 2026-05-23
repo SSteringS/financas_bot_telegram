@@ -39,15 +39,10 @@ export interface Pagina<T> {
 }
 
 export interface ResumoMes {
-  mesAtual: string // YYYY-MM
-  pendentes: {
-    quantidade: number
-    total: number
-  }
-  pagos: {
-    quantidade: number
-    total: number
-  }
+  mes: string // YYYY-MM
+  todos: { quantidade: number; total: number }
+  pendentes: { quantidade: number; total: number }
+  pagos: { quantidade: number; total: number }
 }
 
 export interface Erro {

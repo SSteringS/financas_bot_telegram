@@ -34,6 +34,9 @@ export function urlComprovante(id: number): string {
   return `${API_BASE_URL}/api/v1/pedidos/${id}/comprovante`
 }
 
-export async function obterResumo(): Promise<ResumoMes> {
-  return client.get<ResumoMes>('/api/v1/resumo')
+export async function obterResumo(params: { mes?: string; busca?: string } = {}): Promise<ResumoMes> {
+  const qs: Record<string, string> = {}
+  if (params.mes) qs.mes = params.mes
+  if (params.busca) qs.busca = params.busca
+  return client.get<ResumoMes>('/api/v1/resumo', qs)
 }
