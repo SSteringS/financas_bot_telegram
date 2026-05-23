@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns'
 import { usePedidos } from '../hooks/usePedidos'
+import { useResumo } from '../hooks/useResumo'
 import { SeletorMes } from '../components/SeletorMes'
 import { FiltroStatus } from '../components/FiltroStatus'
 import { BarraBusca } from '../components/BarraBusca'
@@ -52,6 +53,8 @@ export function Home() {
     tamanho: 20,
   })
 
+  const { data: resumo } = useResumo(mes, busca || undefined)
+
   const atualizarParam = useCallback(
     (chave: string, valor: string) => {
       setSearchParams((prev) => {
@@ -76,9 +79,9 @@ export function Home() {
   const temMais = data ? pagina < (data as Pagina<PedidoResumo>).totalPaginas - 1 : false
 
   const contadores = {
-    tudo: data?.total ?? 0,
-    pendente: data?.items.filter((p) => p.status === 'PENDENTE').length ?? 0,
-    pago: data?.items.filter((p) => p.status === 'PAGO').length ?? 0,
+    tudo: resumo?.todos.quantidade ?? 0,
+    pendente: resumo?.pendentes.quantidade ?? 0,
+    pago: resumo?.pagos.quantidade ?? 0,
   }
 
   return (

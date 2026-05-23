@@ -1,7 +1,7 @@
 import { PedidoCard } from './PedidoCard'
 import type { PedidoResumo } from '../api/tipos'
 import { formatarDiaSemana, formatarDataRelativa, abreviarMes, diaDaMes } from '../lib/formato'
-import { isToday } from 'date-fns'
+import { isToday, isYesterday } from 'date-fns'
 import { parseISO } from 'date-fns'
 
 interface TimelineProps {
@@ -34,11 +34,12 @@ function agruparPorDia(pedidos: PedidoResumo[]): GrupoDia[] {
 function HeaderDia({ data, totalValor, quantidadePedidos }: { data: string; totalValor: number; quantidadePedidos: number }) {
   const dataObj = parseISO(data)
   const hoje = isToday(dataObj)
+  const ontem = isYesterday(dataObj)
   const abrev = abreviarMes(data)
   const dia = diaDaMes(data)
 
   const corFundo = hoje ? 'bg-zinc-900 text-white' : 'bg-amber-100 text-amber-900'
-  const labelDia = hoje ? 'HOJE' : abrev
+  const labelDia = hoje ? 'HOJE' : ontem ? 'ONTEM' : abrev
 
   return (
     <div className="mb-2 -ml-7 flex items-center gap-3 sticky top-[140px] bg-white py-2 z-[5]">
@@ -51,14 +52,13 @@ function HeaderDia({ data, totalValor, quantidadePedidos }: { data: string; tota
       </div>
       <div>
         <p className="text-sm font-semibold text-zinc-900">{formatarDiaSemana(data)}</p>
-        {!hoje && (
+        {(hoje || ontem) ? (
+          <p className="text-xs text-zinc-500">{formatarDataRelativa(data)}</p>
+        ) : (
           <p className="text-xs text-zinc-500">
             {quantidadePedidos} {quantidadePedidos === 1 ? 'pedido' : 'pedidos'} ·{' '}
             {totalValor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </p>
-        )}
-        {hoje && (
-          <p className="text-xs text-zinc-500">{formatarDataRelativa(data)}</p>
         )}
       </div>
     </div>

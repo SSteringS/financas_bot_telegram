@@ -234,14 +234,25 @@ export const handlers = [
     })
   }),
 
-  http.get(`${BASE}/api/v1/resumo`, () => {
-    const mesAtual = '2026-05'
-    const pedidosMes = pedidosFake.filter((p) => p.dataPedido.startsWith(mesAtual))
-    const pendentes = pedidosMes.filter((p) => p.status === StatusPedido.PENDENTE)
-    const pagos = pedidosMes.filter((p) => p.status === StatusPedido.PAGO)
+  http.get(`${BASE}/api/v1/resumo`, ({ request }) => {
+    const url = new URL(request.url)
+    const mes = url.searchParams.get('mes') ?? '2026-05'
+    const busca = url.searchParams.get('busca')?.toLowerCase()
+
+    let filtrados = pedidosFake.filter((p) => p.dataPedido.startsWith(mes))
+    if (busca) {
+      filtrados = filtrados.filter((p) => p.descricao.toLowerCase().includes(busca))
+    }
+
+    const pendentes = filtrados.filter((p) => p.status === StatusPedido.PENDENTE)
+    const pagos = filtrados.filter((p) => p.status === StatusPedido.PAGO)
 
     const resumo: ResumoMes = {
-      mesAtual,
+      mes,
+      todos: {
+        quantidade: filtrados.length,
+        total: filtrados.reduce((acc, p) => acc + p.valor, 0),
+      },
       pendentes: {
         quantidade: pendentes.length,
         total: pendentes.reduce((acc, p) => acc + p.valor, 0),

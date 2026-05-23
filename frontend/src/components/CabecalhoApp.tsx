@@ -1,10 +1,16 @@
+import { useSearchParams } from 'react-router-dom'
+import { format } from 'date-fns'
 import { useAuth } from '../hooks/useAuth'
 import { useResumo } from '../hooks/useResumo'
 import { formatarMoeda } from '../lib/formato'
 
 export function CabecalhoApp() {
+  const [searchParams] = useSearchParams()
+  const mes = searchParams.get('mes') ?? format(new Date(), 'yyyy-MM')
+  const busca = searchParams.get('busca') ?? ''
+
   const { requisitante } = useAuth()
-  const { data: resumo, isLoading } = useResumo()
+  const { data: resumo, isLoading } = useResumo(mes, busca)
 
   const nomeExibido = requisitante?.nome ?? '…'
   const primeiroNome = nomeExibido.split(' ')[0]
