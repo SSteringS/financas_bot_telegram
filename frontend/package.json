@@ -10,7 +10,9 @@
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "gen:api": "curl -s http://localhost:8080/v3/api-docs -o openapi.json",
+    "gen:types": "openapi-typescript ./openapi.json -o ./src/api/tipos-gerados.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.100.10",
@@ -37,6 +39,7 @@
     "happy-dom": "^20.9.0",
     "jsdom": "^29.1.1",
     "msw": "^2.14.5",
+    "openapi-typescript": "^6.7.6",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
     "tailwindcss": "^3.4.17",
