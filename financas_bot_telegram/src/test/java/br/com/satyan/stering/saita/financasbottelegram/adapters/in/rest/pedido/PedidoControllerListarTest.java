@@ -38,7 +38,7 @@ class PedidoControllerListarTest {
         PaginaDTO<PedidoResumoDTO> pagina = new PaginaDTO<>(List.of(), 0, 0, 20, 0);
         when(listarUseCase.listar(any(), any())).thenReturn(pagina);
 
-        controller.listar(StatusPedido.PAGO, null, null, null, "energia", 0, 20, 1L);
+        controller.listar("PAGO", null, null, null, "energia", 0, 20, 1L);
 
         ArgumentCaptor<ListarPedidosFiltro> captor = ArgumentCaptor.forClass(ListarPedidosFiltro.class);
         verify(listarUseCase).listar(captor.capture(), any());
