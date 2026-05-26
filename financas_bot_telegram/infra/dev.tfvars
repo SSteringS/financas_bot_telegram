@@ -2,3 +2,4 @@
 
 env               = "dev"
 db_instance_class = "db.t4g.micro"
+domain_name       = "satyansaita.com"
