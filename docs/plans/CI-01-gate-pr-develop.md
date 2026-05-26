@@ -124,10 +124,20 @@ jobs:
 - Um PR só de `docs/` não dispara back/front (só o `branch-name`).
 - Testado de verdade: abrir um PR de teste (ou push numa branch de feature) e confirmar os jobs rodando e o resultado correto.
 
-## Pós-implementação (decisão de processo, humano)
+## Pós-implementação (decisão de processo, humano) — DECIDIDO (2026-05-26)
 
-- Adotar fluxo **PR → `develop`** e ligar **branch protection** em `develop` exigindo os checks `backend`, `frontend` e `branch-name` (os que se aplicam). Sem isso o gate é informativo, não bloqueante.
-- Avaliar exigir também o check no PR `develop → main` (antes do deploy).
+**Decisão do humano:** adotar **PR → `develop`** (abrir PR de cada feature branch; parar de mergear local). **Branch protection: adiada por ora** — o humano optou por *não* ligar agora.
+
+Consequência prática: o `ci.yml` roda no PR e mostra verde/vermelho, mas **não bloqueia o merge** (é informativo). Travar o merge depende de ligar branch protection no GitHub, o que fica pra depois.
+
+Ações:
+
+- **Agora (back):** criar o `ci.yml` (esta task). O gate começa a rodar e dar feedback nos PRs.
+- **Fluxo (humano):** abrir PR de cada feature branch pra `develop` em vez de merge local.
+- **Adiado (humano, quando quiser tornar bloqueante):** ligar branch protection em `develop` exigindo os checks `backend`, `frontend`, `branch-name` + "require PR before merging".
+- **Avaliar depois:** exigir o check também no PR `develop → main` (antes do deploy).
+
+> Estado atual: gate **informativo**. A decisão de torná-lo bloqueante está tomada em princípio, mas a ativação (branch protection) foi adiada pelo humano.
 
 ## Coordenação
 

@@ -14,7 +14,7 @@ gates:
   branch_convencao: ok
   territorio: ok
 commits:
-  - 3aa3d62
+  - 0340b83
 pr: null
 desvios: 1
 pendencias_humano: 0
