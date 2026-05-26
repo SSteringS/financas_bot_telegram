@@ -47,6 +47,12 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 
 - [`structured-outputs.md`](structured-outputs.md) — saídas estruturadas de LLM (schema mode, semântica vs. sintaxe), aplicação no parser do bot e no workflow de Claudes
 
+### Infra / deploy / AWS
+
+- [`hospedagem-spa-s3-cloudfront.md`](hospedagem-spa-s3-cloudfront.md) — SPA estática em S3+CloudFront: OAC, cert us-east-1, alias no apex, SPA fallback 403/404 (DEP-02)
+- [`front-api-hostnames-separados.md`](front-api-hostnames-separados.md) — por que front (apex) e API (subdomínio) ficam separados: cache oposto, cross-origin vs same-site, tradeoff do single-origin
+- [`cloudfront-functions-e-security-headers.md`](cloudfront-functions-e-security-headers.md) — edge compute (CloudFront Functions vs Lambda@Edge), redirect www→apex, Response Headers Policy (HSTS/CSP)
+
 ### Segurança web
 
 - [`cookies-samesite.md`](cookies-samesite.md) — atributo SameSite e proteção CSRF

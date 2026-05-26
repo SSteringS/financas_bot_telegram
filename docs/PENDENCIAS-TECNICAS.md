@@ -94,6 +94,20 @@ Se o usuário enviar foto de comprovante com legenda `123 pix` (esquecendo o `#`
 
 ---
 
+### Headers de segurança no CloudFront (HSTS, CSP, etc.)
+
+**Contexto:** o front será servido via CloudFront (DEP-02), mas a distribuição não envia headers de segurança. O caminho recomendado é um **Response Headers Policy** (`aws_cloudfront_response_headers_policy`, declarativo, sem código no edge) anexado ao cache behavior — ver `docs/aprendizado/cloudfront-functions-e-security-headers.md`. Surgiu na discussão pós-DEP-02.
+
+**Fix sugerido:**
+- Ganhos fáceis primeiro (baixo risco): `Strict-Transport-Security` (HSTS), `X-Content-Type-Options: nosniff`, `frame-options: DENY`, `Referrer-Policy`.
+- `Content-Security-Policy` (CSP) **por último e com cuidado** — numa SPA é fácil quebrar estilos inline / bundle do Vite. Precisa calibrar `connect-src` pra liberar a API em `api.satyansaita.com` e testar contra o build real antes de aplicar. `preload` do HSTS só depois de HTTPS garantido em tudo.
+
+**Esforço:** baixo pros headers simples (uma policy + anexar no behavior); médio pra CSP (calibração + teste).
+
+**Prioridade:** média. **Não implementar agora** — o humano quer estudar o tema (sobretudo CSP) antes de aplicar. Não bloqueia o DEP-02 nem o deploy do MVP.
+
+---
+
 
 ## Itens resolvidos
 
