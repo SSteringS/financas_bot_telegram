@@ -1,0 +1,21 @@
+# Fim de linha: normaliza tudo pra LF no working tree.
+# Alvo de deploy é Linux; Terraform/bash/Spring preferem LF, e o Terraform lê
+# user_data byte a byte — CRLF causa drift. Cobre .tf, .tfvars, .sh, .properties,
+# .ts, .tsx, .java, .yml, .md, etc. via a regra global abaixo.
+* text=auto eol=lf
+
+# Binários — git nunca converte
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.ico      binary
+*.jar      binary
+*.p12      binary
+*.keystore binary
+*.woff     binary
+*.woff2    binary
+
+# Arquivos que (se existirem) precisam de CRLF no Windows
+*.bat text eol=crlf
+*.cmd text eol=crlf
