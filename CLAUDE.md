@@ -14,9 +14,12 @@ Bot de finanças para Telegram com frontend web. Monorepo com múltiplos módulo
 
 ## Regra de ouro — isolamento por pasta
 
-- **Claude do back:** toca apenas em `financas_bot_telegram/`, `infra/`, `finbot.service`, `.github/workflows/`
-- **Claude do front:** toca apenas em `frontend/`
-- **Claude de planejamento:** toca apenas em `docs/` — commita direto em `develop`
+O isolamento vale pra **código**. `docs/` é área **compartilhada** — todas as instâncias escrevem ali.
+
+- **Claude do back:** código apenas em `financas_bot_telegram/`, `infra/`, `finbot.service`, `.github/workflows/`
+- **Claude do front:** código apenas em `frontend/`
+- **Claude de planejamento:** commita direto em `develop` e é o **mantenedor** da estrutura de `docs/` (planos, architecture, decisions)
+- **`docs/` é escrita por todos:** qualquer instância adiciona seu status report em `docs/status/` e pode registrar aprendizados em `docs/aprendizado/`. Mudanças estruturais em `docs/plans/`, `docs/architecture/` e `docs/decisions/` ficam com o planejamento.
 - Arquivos da raiz (`CLAUDE.md`, `.gitignore`, `TODO.md`) podem ser editados por qualquer instância quando necessário
 
 ## Estrutura da pasta docs/
@@ -88,6 +91,7 @@ main (protegida — só via PR)
 - **Uma tarefa = uma branch nova** a partir de `develop`, nomeada `feature/<id-tarefa>-<slug>` (ex: `feature/fe-12-resumo-parametrizado`). Não reaproveitar branch guarda-chuva de outra tarefa.
 - **Precedência:** estas convenções prevalecem sobre qualquer plano de tarefa em `docs/plans/`. Um plano **não** deve sobrescrevê-las silenciosamente. Se uma tarefa exigir exceção (ex.: depende de código que só existe numa branch ainda não mergeada), o plano deve declarar `> EXCEÇÃO DE BRANCH:` com a justificativa — e o caminho preferido é mergear a dependência em `develop` antes de começar.
 - PR: branch → `develop` → revisão → merge → PR `develop → main` dispara o deploy
+- **Definição de pronto / pré-merge:** antes de pedir merge, passar pelos gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build, lint, testes, convenção de branch, território) e escrever o status report com frontmatter válido conforme `docs/status/_TEMPLATE.md`. `estado: concluido` só vale com todos os gates ok e zero pendência.
 - Back e front devem fazer merge de `develop` na feature branch regularmente para pegar atualizações de docs
 
 ## CI/CD

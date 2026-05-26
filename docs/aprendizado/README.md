@@ -43,6 +43,10 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 
 - [`git-reset-e-area-de-staging.md`](git-reset-e-area-de-staging.md) — index, modos de `git reset`, lock file
 
+### IA / engenharia de modelos
+
+- [`structured-outputs.md`](structured-outputs.md) — saídas estruturadas de LLM (schema mode, semântica vs. sintaxe), aplicação no parser do bot e no workflow de Claudes
+
 ### Segurança web
 
 - [`cookies-samesite.md`](cookies-samesite.md) — atributo SameSite e proteção CSRF
