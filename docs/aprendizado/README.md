@@ -42,6 +42,7 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 ### Ferramentas / fluxo
 
 - [`git-reset-e-area-de-staging.md`](git-reset-e-area-de-staging.md) — index, modos de `git reset`, lock file
+- [`git-line-endings-crlf-lf.md`](git-line-endings-crlf-lf.md) — CRLF vs LF, `.gitattributes`, renormalização; drift de `user_data` no Terraform
 
 ### IA / engenharia de modelos
 
