@@ -85,6 +85,8 @@ main (protegida — só via PR)
 
 - Back e front sempre criam branch a partir de `develop`
 - Padrão: `feature/descricao-curta`, `fix/descricao-curta`, `hotfix/descricao-curta`
+- **Uma tarefa = uma branch nova** a partir de `develop`, nomeada `feature/<id-tarefa>-<slug>` (ex: `feature/fe-12-resumo-parametrizado`). Não reaproveitar branch guarda-chuva de outra tarefa.
+- **Precedência:** estas convenções prevalecem sobre qualquer plano de tarefa em `docs/plans/`. Um plano **não** deve sobrescrevê-las silenciosamente. Se uma tarefa exigir exceção (ex.: depende de código que só existe numa branch ainda não mergeada), o plano deve declarar `> EXCEÇÃO DE BRANCH:` com a justificativa — e o caminho preferido é mergear a dependência em `develop` antes de começar.
 - PR: branch → `develop` → revisão → merge → PR `develop → main` dispara o deploy
 - Back e front devem fazer merge de `develop` na feature branch regularmente para pegar atualizações de docs
 

@@ -2,24 +2,16 @@
 
 **Objetivo:** validar o frontend consumindo o **backend real** (não mais o MSW), de ponta a ponta: auth por link mágico, listagem de pedidos, filtros, resumo, detalhe e comprovante.
 
-**Branches assumidas neste teste:**
-- Backend: `develop` (já contém o resumo da BE-16 — endpoint `/api/v1/resumo` aceita `mes`/`busca` e devolve `todos`).
-- Frontend: `feature/frontend-fase3-completa`.
+**Branches assumidas neste teste:** tudo em `develop` (back e front), já com **BE-16** e **FE-12** mergeadas. O `/api/v1/resumo` aceita `mes`/`busca` e devolve `todos`; o front consome esse contrato via `useResumo(mes, busca)`.
 
 ---
 
-## ⚠️ Leia antes de começar — o que este teste valida e o que NÃO valida
+## O que este teste valida
 
-Este roteiro valida o **encanamento de dados**: auth, cookie, CORS, listagem, detalhe, comprovante, header. Ele **não** valida os consertos da FE-12, porque a FE-12 ainda não foi conectada no front.
+Encanamento de dados de ponta a ponta (auth, cookie, CORS, listagem, detalhe, comprovante, header) **e** os consertos da FE-12:
 
-Consequência esperada (não é bug de integração):
-
-- **Bug A (contadores)** — ao alternar entre "Pendente"/"Pago", os contadores das pills ainda colapsam. Esperado: a correção vem na FE-12.
-- **Bug B (header travado no mês)** — trocar o mês no `SeletorMes` não muda o cabeçalho. Esperado: o front ainda chama `/api/v1/resumo` **sem** `mes`, então o backend devolve sempre o mês corrente.
-
-Por que o header ainda funciona mesmo com o contrato novo do backend: os campos `pendentes` e `pagos` são idênticos entre o contrato antigo e o da BE-16. O front lê só esses; o campo renomeado (`mesAtual` → `mes`) não é usado pelo `CabecalhoApp`, então não quebra.
-
-Se quiser testar os bugs **corrigidos**, é preciso primeiro aplicar/conectar a FE-12 — aí rodamos um segundo roteiro.
+- **Bug A (contadores):** os contadores das pills devem ficar **estáveis** ao alternar Pendente/Pago — não colapsam mais, porque vêm de `resumo.todos/pendentes/pagos`, não de filtro sobre a página atual.
+- **Bug B (header no mês):** trocar o mês no `SeletorMes` deve fazer o **header acompanhar**, porque o front agora passa `?mes=...` pro `/api/v1/resumo`.
 
 ---
 
@@ -145,10 +137,10 @@ curl -i -X POST http://localhost:8080/admin/api/v1/requisitantes/1/convite \
 | # | Passo | Resultado esperado |
 |---|---|---|
 | 3.1 | Clicar nas pills "Pendente" / "Pago" | A request `GET /api/v1/pedidos` repete com `status=...`; a **lista** filtra corretamente |
-| 3.2 | (Conhecido) Observar os contadores das pills | **Ainda colapsam** ao trocar de filtro — Bug A, esperado pré-FE-12 |
-| 3.3 | Digitar na busca (ex: "luz") | Após ~300ms (debounce), `GET /api/v1/pedidos?busca=luz` dispara; lista filtra por descrição |
-| 3.4 | Trocar o mês no `SeletorMes` | A **lista** muda pro mês selecionado (via `de`/`ate`), mas o **header não acompanha** — Bug B, esperado pré-FE-12 |
-| 3.5 | Recarregar a página com filtros aplicados | Filtros persistem (estão na URL via search params) |
+| 3.2 | **(Regressão Bug A)** Observar os contadores das pills ao alternar Pendente/Pago | Os contadores **permanecem estáveis** (ex: Tudo 3 · Pendente 2 · Pago 1) — não colapsam. Vêm do `/api/v1/resumo`, não da página atual |
+| 3.3 | Digitar na busca (ex: "luz") | Após ~300ms (debounce), dispara `GET /api/v1/pedidos?busca=luz` **e** `GET /api/v1/resumo?...&busca=luz`; lista e contadores refletem só os matches |
+| 3.4 | **(Regressão Bug B)** Trocar o mês no `SeletorMes` | A **lista** muda pro mês **e o header acompanha**. No Network, o `GET /api/v1/resumo` sai com `?mes=<mês selecionado>` — esta é a prova de que a FE-12 está conectada |
+| 3.5 | Recarregar a página com filtros aplicados | Filtros persistem (estão na URL via search params); header e contadores remontam coerentes com a URL |
 
 ---
 
@@ -211,4 +203,8 @@ curl -i -X POST http://localhost:8080/admin/api/v1/requisitantes/1/convite \
 
 ## Depois deste teste
 
-Se o encanamento estiver ok, os próximos passos são: conectar a **FE-12** (resgata os dois bugs), mergear front e back em `develop`, e seguir pros gates pré-deploy (chave `keystore_password` no Secrets Manager + rotação do token do Telegram) antes da Fase 3c.
+Com BE-16 e FE-12 já em `develop` e a integração validada, os próximos passos são os **gates pré-deploy** e a **Fase 3c**:
+
+1. Adicionar a chave `keystore_password` no segredo `finbot-prod-secrets` (AWS Secrets Manager) — **obrigatório antes do próximo deploy do backend**, senão ele não sobe (`application-prod.properties` lê `${keystore_password}`).
+2. Rotacionar o token do Telegram (prioridade alta — débito técnico registrado).
+3. Resolver o domínio (DEP-00) e seguir DEP-01 a DEP-06 (Route 53, ACM, S3+CloudFront, `api.<domínio>` na EC2, CORS/cookie de prod, GitHub Actions).
