@@ -1,0 +1,75 @@
+name: CI Gate (develop)
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches:
+      - 'feature/**'
+      - 'fix/**'
+      - 'hotfix/**'
+
+jobs:
+  # Detecta o que mudou pra rodar só o necessário
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'financas_bot_telegram/**'
+            frontend:
+              - 'frontend/**'
+
+  branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar convenção de branch
+        run: |
+          REF="${{ github.head_ref || github.ref_name }}"
+          echo "Branch: $REF"
+          if [[ ! "$REF" =~ ^(feature|fix|hotfix)/[a-z0-9]+(-[a-z0-9.]+)*$ ]]; then
+            echo "::error::Branch '$REF' fora da convenção (feature/<slug>, fix/<slug>, hotfix/<slug>)."
+            exit 1
+          fi
+
+  backend:
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Testes (back)
+        run: mvn test -f financas_bot_telegram/pom.xml
+      - name: Build JAR (back)
+        run: mvn package -DskipTests -f financas_bot_telegram/pom.xml
+
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
