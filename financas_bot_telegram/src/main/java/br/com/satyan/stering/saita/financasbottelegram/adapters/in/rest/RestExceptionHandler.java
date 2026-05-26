@@ -52,6 +52,12 @@ public class RestExceptionHandler {
                 .body(new ErroDTO("MES_INVALIDO", e.getMessage()));
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErroDTO> handleIllegalArgument(IllegalArgumentException e) {
+        return ResponseEntity.badRequest()
+                .body(new ErroDTO("PARAMETRO_INVALIDO", e.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErroDTO> handleValidacao(MethodArgumentNotValidException e) {
         String msg = e.getBindingResult().getFieldErrors().stream()
