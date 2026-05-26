@@ -33,6 +33,11 @@ resource "aws_instance" "finbot_app" {
   EOF
 
   tags = { Name = "finbot-${var.env}-ec2-app" }
+
+  # AMI atualizada pelo AWS após o provisionamento inicial — ignorar drift pra não recriar instância de prod.
+  lifecycle {
+    ignore_changes = [ami]
+  }
 }
 
 # Elastic IP — endereço fixo para configurar o webhook do Telegram

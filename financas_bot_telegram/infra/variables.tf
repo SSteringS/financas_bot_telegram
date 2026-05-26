@@ -24,3 +24,8 @@ variable "s3_images_bucket" {
   type        = string
   default     = "bot-financas-pagamentos-satyan"
 }
+
+variable "domain_name" {
+  description = "Domínio raiz registrado no Route 53 (ex: satyansaita.com)"
+  type        = string
+}
