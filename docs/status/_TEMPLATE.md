@@ -1,7 +1,7 @@
 ---
 # ─── Frontmatter (schema obrigatório — parseável por script) ───
 # Tipos e valores válidos estão em docs/runbooks/PRE-MERGE-CHECKLIST.md
-task: BE-05                       # ^(BE|FE|DEP|FIX|HOTFIX|EVO)-\d+[a-z]?$
+task: BE-05                       # ^(BE|FE|DEP|FIX|HOTFIX|EVO|CI)-\d+[a-z]?$
 titulo: "Listar pedidos com filtros"
 data: 2026-05-23                  # YYYY-MM-DD
 branch: feature/be-05-listar-pedidos

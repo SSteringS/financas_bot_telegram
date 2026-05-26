@@ -11,10 +11,12 @@ A regra geral é simples: **quem implementa lê daqui antes de codar; quem imple
 ```
 docs/
 ├── README.md                         (este arquivo)
+├── STATE.md                          (doc vivo: "onde estamos agora" — ler primeiro)
 ├── architecture/                     (fonte da verdade técnica)
 │   ├── especificacao-tecnica.md
 │   └── design-proposals/             (mockups visuais)
 ├── plans/                            (planos de execução por fase)
+│   ├── _TEMPLATE.md                  (modelo de plano de task — bloco de intake)
 │   └── FASE-X-NOME.md
 ├── runbooks/                         (roteiros de execução com instruções e prompts)
 │   └── ROTEIRO-FRONTEND.md
@@ -128,6 +130,7 @@ Se você é uma instância de Claude rodando no Claude Code do IntelliJ trabalha
 
 Use os arquivos `_TEMPLATE.md` em cada subpasta como ponto de partida. Eles têm a estrutura mínima esperada.
 
+- `plans/_TEMPLATE.md` — plano de task (contrato de entrada, com bloco de intake)
 - `status/_TEMPLATE.md` — relatório pós-tarefa
 - `decisions/_TEMPLATE.md` — ADR
 
