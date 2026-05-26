@@ -29,3 +29,9 @@ variable "domain_name" {
   description = "Domínio raiz registrado no Route 53 (ex: satyansaita.com)"
   type        = string
 }
+
+variable "frontend_bucket_name" {
+  description = "Nome global do bucket S3 do front compilado (precisa ser único na AWS)"
+  type        = string
+  default     = "finbot-frontend-prod-776658251579"
+}
