@@ -10,10 +10,15 @@
 
 ## Veredito
 
-**Reprovado — 2 bloqueantes.**
+**Aprovado** — bloqueantes resolvidos após ações humanas pós-revisão.
 
-1. `estado: concluido` inválido com `pendencias_humano: 1`.
-2. Terraform apply do `iam-github-oidc.tf` não executado → pipeline nunca testado end-to-end (critério de aceitação principal do plano não atendido).
+1. ✅ `terraform apply` executado pelo humano (2026-05-27) — role IAM `finbot-prod-gha-frontend-deploy` criada na conta.
+2. ✅ Pipeline `deploy-frontend.yml` rodou com sucesso (2026-05-27) — OIDC auth → build → S3 sync → CloudFront invalidation verde.
+3. ✅ E2E (DEP-06) confirmou front acessível em `https://satyansaita.com` com API funcionando.
+
+~~**Reprovado — 2 bloqueantes.**~~
+~~1. `estado: concluido` inválido com `pendencias_humano: 1`.~~
+~~2. Terraform apply do `iam-github-oidc.tf` não executado → pipeline nunca testado end-to-end.~~
 
 ---
 

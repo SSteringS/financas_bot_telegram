@@ -2,7 +2,7 @@
 
 > **Doc vivo de orientação.** Existe pra uma sessão que começa fria (planner, back, front ou reviewer) se situar em 1 minuto, sem re-derivar contexto. **Curto de propósito.** Detalhe mora nos planos (`docs/plans/`), status reports (`docs/status/`) e ADRs (`docs/decisions/`).
 >
-> **Última atualização:** 2026-05-26 (pelo planner).
+> **Última atualização:** 2026-05-27 (pelo reviewer — pós DEP-06 E2E).
 > **Fonte:** este resumo é derivado dos status reports em `docs/status/`. O **estado real de merge em `develop` é do humano** (ele é o integrador — ADR 0004). Quando um status diz "aguardando revisão / não mergeado", está marcado abaixo.
 
 ---
@@ -24,35 +24,34 @@ API REST completa: DTOs+OpenAPI (BE-04), listagem/detalhe/resumo (BE-05/06/09), 
 ### 3b — Front: **concluída** (conforme status reports)
 Fase 3b inteira (FE-03 a FE-11) na branch `feature/frontend-fase3-completa`. Em cima dela, **FE-12** corrigiu os dois bugs da revisão (contadores que colapsavam ao filtrar; header travado no mês corrente) ligando o front ao contrato `mes`/`busca`/`todos` da BE-16. **FE-12 estava como "aguardando revisão, não mergeado" no seu último status** — confirmar com o humano se já entrou em `develop`.
 
-### 3c — Deploy: **em andamento**
-- **DEP-00** (domínio): ✅ resolvido — domínio é **`satyansaita.com`**.
-- **DEP-01** (Route 53 + ACM): ✅ concluído.
-- **DEP-02** (S3 + CloudFront do front): ✅ concluído. Front no apex `satyansaita.com` (bucket `finbot-frontend-prod-776658251579`, distribuição `E1WG4Q8MG3V9HY`), HTTPS válido, SPA fallback ok.
-- **DEP-03** (subdomínio `api.satyansaita.com` → EC2 atrás de proxy reverso): ✅ implementado e validado (Caddy + Let's Encrypt no ar; `curl /api/v1/resumo` → 401 `SESSAO_AUSENTE` via `Server: Caddy`). **Aguardando revisão do Reviewer** antes do merge. Plano: `docs/plans/DEP-03-api-subdominio-proxy.md` · evidência: `docs/status/DEP-03.md`.
-- **DEP-04** (GitHub Actions: build + sync S3 + invalidate CloudFront, via OIDC): 📝 plano escrito (`docs/plans/DEP-04-pipeline-deploy-front.md`); pendente execução pelo back. Introduz OIDC (não havia). Consome `frontend_bucket_name` e `cloudfront_distribution_id` do DEP-02.
-- **DEP-05** (prod do back: CORS `allowed-origin` + cookie `Domain=satyansaita.com`): 📝 plano escrito (`docs/plans/DEP-05-cors-cookie-prod.md`); corrige o domínio errado no `application-prod.properties`. Pendente execução pelo back.
-- **DEP-06** (teste E2E em prod): runbook manual pronto (`docs/runbooks/RUNBOOK-dep06-e2e-prod.md`); é o passo final do humano, depois de tudo aplicado.
-- **Overnight de deploy:** `docs/plans/MASTER-PROMPT-overnight-deploy.md` — prompt pra rodar DEP-05/DEP-04/DEP-07 (code-only) numa sessão noturna do back.
-- **DEP-07** (codificar o provisionamento da EC2 — fim do snowflake): 📝 plano escrito (`docs/plans/DEP-07-codificar-provisionamento-ec2.md`); estratégia em ADR 0009. Captura Caddy/journald/`finbot.service`/keystore num `bootstrap.sh` versionado no `user_data`. Escopo: garantir recreate futuro (não reconcilia a instância atual).
-- **DEP-08** (webhook → Caddy/Let's Encrypt + aposentar keystore): 📝 plano escrito (`docs/plans/DEP-08-webhook-https-caddy.md`). Fase 1 (bot.satyansaita.com + re-apontar webhook) é baixo risco; Fase 2 (app HTTP no loopback, Caddy único TLS, fechar 8443, deletar keystore) **precisa de ADR de topologia TLS**. Fecha o débito self-signed e simplifica o DEP-07.
+### 3c — Deploy: **concluída** ✅ (2026-05-27)
+
+E2E completo validado em produção: link mágico → JWT → cookie → listagem de pedidos. Todos os serviços no ar.
+
+- **DEP-01** Route 53 + ACM: ✅
+- **DEP-02** S3 + CloudFront do front (`satyansaita.com`): ✅
+- **DEP-03** `api.satyansaita.com` via Caddy/Let's Encrypt: ✅
+- **DEP-04** Pipeline GitHub Actions (OIDC → S3 sync → CloudFront): ✅ pipeline rodou verde (2026-05-27)
+- **DEP-05** CORS + cookie `Domain=satyansaita.com` em prod: ✅ deployado (2026-05-27)
+- **DEP-06** E2E em produção: ✅ todos os cenários passaram (2026-05-27)
+- **DEP-07** Bootstrap idempotente EC2 (`bootstrap.sh` + `user_data`): PR #64 aberto — aguarda merge + `terraform apply`. Sem urgência (instância atual não afetada — ADR 0009).
+- **DEP-08** Webhook → Caddy/LE + aposentar keystore: 📝 plano escrito (`docs/plans/DEP-08-webhook-https-caddy.md`). Fase 2 precisa de ADR de topologia TLS. Item de 3d.
 
 ---
 
 ## Próximos passos prováveis
 
-1. Confirmar/efetuar merge das branches da Fase 3 em `develop` (back polish/EVO-07 e front, incluindo FE-12).
-2. Tocar o trilho de deploy restante: **DEP-03 → DEP-04 → DEP-05 → DEP-06**.
-3. Itens de workflow (ver abaixo).
+1. **DEP-07:** merge PR #64 + `terraform apply` (sem urgência, EC2 atual não afetada).
+2. **3d — Evolução pós-MVP:** ver backlog em `docs/plans/BACKLOG-evolucao-workflow.md`. Próximo item relevante: DEP-08 (aposentar keystore self-signed).
+3. **Ícones do PWA** ainda são placeholders — trocar antes de divulgar o app.
 
 ---
 
-## Pendências bloqueantes / ações manuais antes do deploy
+## Pendências abertas (não bloqueantes)
 
-- ⚠️ **Deploy do back BLOQUEADO — disco da EC2 cheio.** Volume raiz é só 2 GB e encheu (`No space left on device` no deploy). App segue de pé no JAR antigo (sem outage). Mitigação imediata: liberar espaço (rm `/tmp/app.jar`, vacuum do journal, `dnf clean all`). Fix durável planejado: `docs/plans/FIX-crescer-volume-ec2.md` (crescer pra 10 GB gp3 + capar journald). Pendente execução pelo back/humano.
-- ⚠️ **Secrets Manager:** adicionar a chave `keystore_password` (valor `finbot123`) no secret `finbot-prod-secrets`. Sem isso o app **não sobe em prod** (origem: `FIX-keystore-password-secret`).
-- **Ícones do PWA são placeholders** — trocar os PNGs (`icone-192/512`, `apple-touch-icon`) por arte real antes do deploy do front.
-- **Domínio errado no `application-prod.properties` (back)** — `app.cors.allowed-origin`, `app.cookie.domain` e `app.frontend.base-url` apontam pra `finbot.satyan.com.br` (resquício antigo); devem virar `https://satyansaita.com` / `satyansaita.com`. Como está, CORS bloqueia o front e o cookie de sessão não cola. **Escopo do DEP-05** (plano escrito) — bloqueador do front↔API.
-- ~~**Domínio errado no `frontend/.env.production` (front)**~~ — ✅ corrigido manualmente pelo humano (2026-05-27): `VITE_API_BASE_URL=https://api.satyansaita.com`.
+- **DEP-07:** PR #64 aberto, aguarda merge + `terraform apply` (in-place confirmado — sem risco à EC2 atual).
+- **DEP-08:** webhook via Caddy/LE — plano escrito, Fase 2 precisa de ADR de topologia TLS. `docs/PENDENCIAS-TECNICAS.md`.
+- **Ícones PWA:** placeholders em `frontend/public/` — trocar por arte real.
 - Demais débitos: `docs/PENDENCIAS-TECNICAS.md`.
 
 ---
@@ -61,9 +60,9 @@ Fase 3b inteira (FE-03 a FE-11) na branch `feature/frontend-fase3-completa`. Em 
 
 Backlog vivo em `docs/plans/BACKLOG-evolucao-workflow.md`. Estado dos itens em voo:
 
-- **FIX-gitattributes-eol:** ✅ feito (mata o drift CRLF/LF que aparecia no `terraform plan`). Falta só o PR pra `develop`.
-- **CI-01** (gate de CI no caminho pra `develop`): plano escrito. **Decidido (2026-05-26): PR→develop, com o CI rodando no PR.** Branch protection **adiada** (humano não vai ligar por ora) → o gate é **informativo, não bloqueante**. Pendente: execução do `ci.yml` pelo back. (Ligar branch protection no GitHub fica pra quando o humano quiser tornar o gate bloqueante.)
-- **Codegen do `tipos.ts`** (FE-13): plano escrito (`docs/plans/FE-13-codegen-tipos-openapi.md`). Pendente execução pelo front.
+- **FIX-gitattributes-eol:** ✅ mergeado.
+- **CI-01** (gate de CI no caminho pra `develop`): ✅ mergeado. Branch protection adiada (decisão do humano) — gate informativo, não bloqueante.
+- **Codegen do `tipos.ts`** (FE-13): ✅ mergeado.
 - **Script de métricas** dos status reports: ✅ `docs/scripts/metricas_status.py`. **Regex de task-id** aceita `CI-`: ✅.
 - **Reviewer:** **adotado pra toda task (2026-05-26)** — revisão independente em sessão separada antes do merge (ADR 0005). Já em uso.
 - **Governança:** ADR 0004 (taxonomia), ADR 0005 (sessões por papel). Retroativos: ADR 0006 (hostnames), ADR 0007 (reporting com gates), ADR 0008 (Terraform módulo único). ADR 0009 (provisionamento da EC2 codificado).
