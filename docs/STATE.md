@@ -34,6 +34,7 @@ Fase 3b inteira (FE-03 a FE-11) na branch `feature/frontend-fase3-completa`. Em 
 - **DEP-06** (teste E2E em prod): runbook manual pronto (`docs/runbooks/RUNBOOK-dep06-e2e-prod.md`); é o passo final do humano, depois de tudo aplicado.
 - **Overnight de deploy:** `docs/plans/MASTER-PROMPT-overnight-deploy.md` — prompt pra rodar DEP-05/DEP-04/DEP-07 (code-only) numa sessão noturna do back.
 - **DEP-07** (codificar o provisionamento da EC2 — fim do snowflake): 📝 plano escrito (`docs/plans/DEP-07-codificar-provisionamento-ec2.md`); estratégia em ADR 0009. Captura Caddy/journald/`finbot.service`/keystore num `bootstrap.sh` versionado no `user_data`. Escopo: garantir recreate futuro (não reconcilia a instância atual).
+- **DEP-08** (webhook → Caddy/Let's Encrypt + aposentar keystore): 📝 plano escrito (`docs/plans/DEP-08-webhook-https-caddy.md`). Fase 1 (bot.satyansaita.com + re-apontar webhook) é baixo risco; Fase 2 (app HTTP no loopback, Caddy único TLS, fechar 8443, deletar keystore) **precisa de ADR de topologia TLS**. Fecha o débito self-signed e simplifica o DEP-07.
 
 ---
 
@@ -51,7 +52,7 @@ Fase 3b inteira (FE-03 a FE-11) na branch `feature/frontend-fase3-completa`. Em 
 - ⚠️ **Secrets Manager:** adicionar a chave `keystore_password` (valor `finbot123`) no secret `finbot-prod-secrets`. Sem isso o app **não sobe em prod** (origem: `FIX-keystore-password-secret`).
 - **Ícones do PWA são placeholders** — trocar os PNGs (`icone-192/512`, `apple-touch-icon`) por arte real antes do deploy do front.
 - **Domínio errado no `application-prod.properties` (back)** — `app.cors.allowed-origin`, `app.cookie.domain` e `app.frontend.base-url` apontam pra `finbot.satyan.com.br` (resquício antigo); devem virar `https://satyansaita.com` / `satyansaita.com`. Como está, CORS bloqueia o front e o cookie de sessão não cola. **Escopo do DEP-05** (plano escrito) — bloqueador do front↔API.
-- **Domínio errado no `frontend/.env.production` (front)** — `VITE_API_BASE_URL=https://api.finbot.dom.br`; corrigir pra `https://api.satyansaita.com` antes do build de prod (ver DEP-04 §Coordenação).
+- ~~**Domínio errado no `frontend/.env.production` (front)**~~ — ✅ corrigido manualmente pelo humano (2026-05-27): `VITE_API_BASE_URL=https://api.satyansaita.com`.
 - Demais débitos: `docs/PENDENCIAS-TECNICAS.md`.
 
 ---
