@@ -92,6 +92,24 @@ resource "aws_security_group" "ec2_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # HTTPS da API (Caddy proxy → app) — api.satyansaita.com
+  ingress {
+    description = "HTTPS API"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # HTTP — Let's Encrypt HTTP-01 challenge + redirect pra 443
+  ingress {
+    description = "HTTP - Lets Encrypt challenge + redirect"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # Saída livre — para Telegram API, Secrets Manager, S3
   egress {
     from_port   = 0
