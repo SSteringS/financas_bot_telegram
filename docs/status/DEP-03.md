@@ -4,7 +4,7 @@ titulo: "Subdomínio api.satyansaita.com + proxy reverso Caddy"
 data: 2026-05-26
 branch: feature/dep-03-api-subdominio-proxy
 responsavel: claude-back
-estado: parcial
+estado: concluido
 gates:
   build: na
   lint: na
@@ -17,7 +17,7 @@ commits:
   - 46a7c74
 pr: null
 desvios: 0
-pendencias_humano: 1
+pendencias_humano: 0
 ---
 
 # DEP-03 — Subdomínio `api.satyansaita.com` + proxy reverso Caddy
@@ -41,6 +41,8 @@ Nenhum.
 ---
 
 ## Decisões pendentes (esperando humano)
+
+> ✅ **RESOLVIDO (2026-05-27):** Caddy instalado na EC2 e validado — ver seção "Validação" abaixo. Não há mais pendência de humano (`pendencias_humano: 0`, `estado: concluido`). O roteiro de instalação abaixo fica registrado por histórico/reprodutibilidade.
 
 **1 — Instalar Caddy na EC2 via SSH (parte manual obrigatória)**
 
@@ -123,10 +125,34 @@ Também confirmar que o webhook do Telegram segue funcionando (mandar mensagem p
 
 ---
 
+## Validação (2026-05-27)
+
+Parte manual (Caddy) instalada na EC2 e validada pelo humano. Cadeia **proxy → app → security** confirmada com `curl -i https://api.satyansaita.com/api/v1/resumo`:
+
+```
+HTTP/1.1 401 Unauthorized
+Server: Caddy
+Content-Type: application/json;charset=UTF-8
+{"codigo":"SESSAO_AUSENTE","mensagem":"Cookie de sessão ausente"}
+```
+
+O 401 com corpo do próprio app (`SESSAO_AUSENTE`, gerado pela security da BE-12), servido via `Server: Caddy` e **sem `-k`** no curl, prova: TLS válido (cert Let's Encrypt), Caddy terminando HTTPS, proxy alcançando o Spring na 8443, e a camada de auth processando. DEP-03 fechado de ponta a ponta.
+
+**Correção do smoke-test:** o plano original sugeria `/actuator/health` (→ 404: sem `spring-boot-starter-actuator` no `pom.xml`) e tentou-se `/v3/api-docs` (→ 404: `springdoc.api-docs.enabled=false`/`swagger-ui.enabled=false` em prod, por design). Os dois 404 são **esperados**, não falha de proxy — por isso a validação foi feita em `/api/v1/resumo`.
+
+**Para o Reviewer confirmar contra a realidade:**
+- `curl -i https://api.satyansaita.com/api/v1/resumo` → 401 `SESSAO_AUSENTE` (cadeia ok).
+- Cert é Let's Encrypt (curl sem `-k`; checar o issuer).
+- **Regressão do webhook do Telegram** na 8443 — a Opção A não tocou na 8443, mas confirmar mandando mensagem pro bot.
+- `terraform plan` limpo (DNS + SG aplicados; sem replace da EC2).
+
+> **Achado correlato (fora do escopo do DEP-03, mas bloqueia o front):** `application-prod.properties` tem `app.cors.allowed-origin`, `app.cookie.domain` e `app.frontend.base-url` apontando pra `finbot.satyan.com.br` em vez de `satyansaita.com`. É o escopo do **DEP-05**.
+
+---
+
 ## Próximos passos / observações pro próximo
 
-- Após o Caddy instalado e `curl https://api.satyansaita.com/actuator/health` passando, atualizar este status report: `estado: concluido`, `pendencias_humano: 0`, e adicionar evidência do `curl` aqui.
-- **DEP-05** (CORS + cookie `Domain=.satyansaita.com`) pode começar só depois deste DEP-03 estar completo — o hostname precisa estar no ar.
+- **DEP-05** (CORS + cookie `Domain=.satyansaita.com`) pode começar agora que o hostname está no ar — e tem o bug de domínio em `application-prod.properties` (acima) pra corrigir.
 - DEP-04 (pipeline do front) é independente e pode rodar em paralelo.
 - Renovação automática do cert é feita pelo Caddy (ACME interno) — não precisa de cron externo.
 

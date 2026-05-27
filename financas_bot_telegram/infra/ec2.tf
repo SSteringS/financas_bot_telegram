@@ -38,6 +38,11 @@ resource "aws_instance" "finbot_app" {
   lifecycle {
     ignore_changes = [ami]
   }
+
+  root_block_device {
+    volume_size = 10
+    volume_type = "gp3"
+  }
 }
 
 # Elastic IP — endereço fixo para configurar o webhook do Telegram
