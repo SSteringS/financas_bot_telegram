@@ -5,10 +5,11 @@ import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.Da
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.ComprovanteRepositoryPort;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.PedidoPagamentoRepositoryPort;
 import br.com.satyan.stering.saita.financasbottelegram.application.usecases.RegistrarComprovanteUsecase;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoArquivo;
+import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.PedidoNaoEncontradoException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.Comprovante;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
-import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
-import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.PedidoNaoEncontradoException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,7 @@ public class RegistrarComprovanteServiceImpl implements RegistrarComprovanteUsec
     }
 
     @Override
-    public Comprovante execute(Long pedidoId, String tipoPagamento, String fileIdTelegram, String imagemUrl, Long chatId) {
+    public Comprovante execute(Long pedidoId, String tipoPagamento, String fileIdTelegram, String imagemUrl, TipoArquivo tipoArquivo, Long chatId) {
         try {
             PedidoPagamento pedido = pedidoPagamentoRepository.findById(pedidoId)
                     .orElseThrow(() -> new PedidoNaoEncontradoException("Pedido com ID #" + pedidoId + " não encontrado.", chatId));
@@ -39,6 +40,7 @@ public class RegistrarComprovanteServiceImpl implements RegistrarComprovanteUsec
                     .tipoPagamento(tipoPagamento)
                     .fileIdTelegram(fileIdTelegram)
                     .imagemUrl(imagemUrl)
+                    .tipoArquivo(tipoArquivo != null ? tipoArquivo : TipoArquivo.IMAGEM)
                     .build();
 
             return comprovanteRepository.save(comprovante);

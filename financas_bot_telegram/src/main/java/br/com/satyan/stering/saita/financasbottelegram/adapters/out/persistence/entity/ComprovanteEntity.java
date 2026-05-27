@@ -1,5 +1,6 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.out.persistence.entity;
 
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoArquivo;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.Getter;
@@ -25,6 +26,10 @@ public class ComprovanteEntity {
 
     @Column(name = "imagem_url", columnDefinition = "TEXT")
     private String imagemUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_arquivo", nullable = false)
+    private TipoArquivo tipoArquivo;
 
     @Column(name = "tipo_pagamento")
     private String tipoPagamento;

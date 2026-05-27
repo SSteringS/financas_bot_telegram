@@ -1,74 +1,67 @@
-# [TASK-ID] — Título curto da tarefa
-
-> **Não edite este arquivo.** Copie pra `<TASK-ID>-titulo-curto.md` (ex: `BE-05-listar-pedidos.md`) e preencha lá.
-
+---
+# ─── Frontmatter (schema obrigatório — parseável por script) ───
+# Tipos e valores válidos estão em docs/runbooks/PRE-MERGE-CHECKLIST.md
+task: BE-05                       # ^(BE|FE|DEP|FIX|HOTFIX|EVO|CI)-\d+[a-z]?$
+titulo: "Listar pedidos com filtros"
+data: 2026-05-23                  # YYYY-MM-DD
+branch: feature/be-05-listar-pedidos
+responsavel: claude-back          # claude-back | claude-front | claude-plan | humano
+estado: concluido                 # concluido | parcial | bloqueado
+gates:
+  build: ok                       # ok | fail | na
+  lint: ok                        # ok | fail | na
+  testes: ok                      # ok | fail | na
+  testes_total: 67                # int — total de testes que rodaram
+  testes_novos: 12                # int — testes adicionados nesta tarefa
+  branch_convencao: ok            # ok | fail — bate com feature/<id>-<slug> a partir de develop
+  territorio: ok                  # ok | fail — tocou só na pasta do território da instância
+commits:
+  - 18b3f92
+pr: null                          # URL do PR ou null
+desvios: 0                        # int — quantidade de desvios do plano (detalhar na seção abaixo)
+pendencias_humano: 0              # int — decisões aguardando humano (detalhar na seção abaixo)
 ---
 
-**Data:** YYYY-MM-DD
-**Branch:** feature/...
-**Commit/PR:** abc1234 (ou link do PR)
-**Responsável (instância):** Claude Code (IntelliJ) / Claude Code (CLI) / humano
+# [TASK-ID] — Título curto da tarefa
+
+> **Não edite este arquivo.** Copie pra `<TASK-ID>-titulo-curto.md` (ex: `BE-05-listar-pedidos.md`), preencha o frontmatter acima e as seções abaixo.
+>
+> **Regra de "concluído":** `estado: concluido` só é válido se TODOS os gates relevantes estiverem `ok` (ou `na` quando não se aplica) e `pendencias_humano: 0`. Se algum gate falhar ou houver pendência, use `parcial` ou `bloqueado`. Ver `docs/runbooks/PRE-MERGE-CHECKLIST.md`.
 
 ---
 
 ## O que foi feito
 
-Descreva em prosa curta o que efetivamente entrou no commit. Não é pra repetir o critério de aceitação — é pra contar a realidade.
-
-Exemplo:
-- Criei a migration V2 conforme planejado, com o ajuste citado abaixo.
-- Validei `EXPLAIN` nos índices novos: ambos cobrindo.
-- Apliquei em dev sem erro.
+Prosa curta do que efetivamente entrou no commit. Não repita o critério de aceitação — conte a realidade.
 
 ---
 
 ## Desvios do plano
 
-Se você fez algo diferente do que estava em `plans/`, documente aqui. Cada desvio precisa de uma justificativa.
-
-Exemplo:
-- O plano pedia `data_pedido DATE NOT NULL DEFAULT (CURRENT_DATE)` mas o MySQL 8.0.13+ não aceita expressão como default em DATE — usei trigger ou backfill explícito.
-- A coluna `tipo` foi nomeada `tipo_pagamento` em vez de `tipo` porque já existia uma coluna `tipo` no schema legado.
-
-Se não houve desvio, escreva "Nenhum.".
+Cada desvio precisa de justificativa. O número aqui deve bater com `desvios:` no frontmatter. Se não houve, escreva "Nenhum." e mantenha `desvios: 0`.
 
 ---
 
 ## Decisões tomadas durante a execução
 
-Decisões locais (que não mereceriam um ADR, mas que vale registrar). Geralmente envolvem nome de variável, escolha de helper, organização de arquivo.
-
-Exemplo:
-- Coloquei o mapper `PedidoEntity ↔ Pedido` na pasta `infra/persistence/mapper/` em vez de junto da entity, pra ficar mais isolado.
-- Optei por `record` Java em vez de classe pra os DTOs — menos boilerplate.
+Decisões locais (nome de variável, escolha de helper, organização de arquivo) que não merecem ADR mas vale registrar.
 
 ---
 
 ## Decisões pendentes (esperando humano)
 
-Se você bateu em algo que precisa de decisão de produto e não tem como inferir do plano + architecture, registre aqui e **não prossiga**.
-
-Exemplo:
-- O endpoint `/api/v1/resumo` deveria considerar pedidos com `data_pedido` no mês atual ou pedidos com `data_pagamento` no mês atual? O plano não especifica. Aguardando confirmação.
-
-Se não há nada pendente, escreva "Nenhuma — tarefa fechada.".
+Se bateu em algo que precisa de decisão de produto e não dá pra inferir do plano + architecture, registre aqui e **não prossiga** (use `estado: bloqueado`). O número de itens deve bater com `pendencias_humano:`. Se não há nada, escreva "Nenhuma — tarefa fechada." e mantenha `pendencias_humano: 0`.
 
 ---
 
 ## Próximos passos / observações pro próximo
 
-Coisas que o próximo implementador (ou o planejador) precisa saber. Útil pra atalhos e gotchas que descobriu.
-
-Exemplo:
-- A tarefa BE-06 vai precisar do `requisitanteId` no contexto da request — já deixei o filter de auth preparado pra isso.
-- Notei que o teste de integração demora 30s pra subir Testcontainers — talvez vale otimizar reuso entre testes em uma tarefa futura.
+Gotchas e atalhos que o próximo implementador (ou o planejador) precisa saber.
 
 ---
 
 ## Arquivos criados/modificados
 
-Lista resumida (não precisa exaustiva — git diff já tem isso). Útil pra o planejador escanear rápido.
+Lista resumida (o git diff tem o exaustivo). Útil pro planejador escanear rápido.
 
-- `src/main/resources/db/migration/V2__add_requisitante_dates_categoria_auth.sql` (novo)
-- `domain/Pedido.java` (modificado: campos novos)
-- `infra/persistence/PedidoEntity.java` (modificado)
+- `caminho/do/arquivo.ext` (novo | modificado: motivo curto)

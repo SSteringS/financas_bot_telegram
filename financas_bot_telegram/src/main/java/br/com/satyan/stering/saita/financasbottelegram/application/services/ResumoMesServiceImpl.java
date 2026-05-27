@@ -9,6 +9,8 @@ import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -26,20 +28,30 @@ public class ResumoMesServiceImpl implements ResumoMesUseCase {
     }
 
     @Override
-    public ResumoMesDTO obter(Long requisitanteId) {
-        LocalDate hoje = LocalDate.now(clock);
-        LocalDate inicio = hoje.withDayOfMonth(1);
-        LocalDate fim = hoje.withDayOfMonth(hoje.lengthOfMonth());
+    public ResumoMesDTO obter(Long requisitanteId, YearMonth ym, String busca) {
+        YearMonth mes = ym != null ? ym : YearMonth.now(clock);
+        LocalDate inicio = mes.atDay(1);
+        LocalDate fim = mes.atEndOfMonth();
 
-        Map<StatusPedido, AgregadoStatus> porStatus = repo
-                .agregarPorStatusNoIntervalo(requisitanteId, inicio, fim).stream()
+        List<AgregadoStatus> agregados;
+        if (busca != null && !busca.isBlank()) {
+            String pattern = "%" + busca.toLowerCase() + "%";
+            agregados = repo.agregarPorStatusNoIntervaloComBusca(requisitanteId, inicio, fim, pattern);
+        } else {
+            agregados = repo.agregarPorStatusNoIntervalo(requisitanteId, inicio, fim);
+        }
+
+        Map<StatusPedido, AgregadoStatus> porStatus = agregados.stream()
                 .collect(Collectors.toMap(AgregadoStatus::status, Function.identity()));
 
         ResumoStatusDTO pendentes = toDTO(porStatus.get(StatusPedido.PENDENTE));
         ResumoStatusDTO pagos = toDTO(porStatus.get(StatusPedido.PAGO));
+        ResumoStatusDTO todos = new ResumoStatusDTO(
+                pendentes.quantidade() + pagos.quantidade(),
+                pendentes.total().add(pagos.total()));
 
-        String mesAtual = String.format("%04d-%02d", hoje.getYear(), hoje.getMonthValue());
-        return new ResumoMesDTO(mesAtual, pendentes, pagos);
+        String mesStr = String.format("%04d-%02d", mes.getYear(), mes.getMonthValue());
+        return new ResumoMesDTO(mesStr, todos, pendentes, pagos);
     }
 
     private ResumoStatusDTO toDTO(AgregadoStatus a) {

@@ -42,7 +42,7 @@ public class PedidoController {
     @GetMapping
     @Operation(summary = "Lista pedidos do requisitante autenticado, com filtros e paginação")
     public PaginaDTO<PedidoResumoDTO> listar(
-            @RequestParam(required = false) StatusPedido status,
+            @RequestParam(required = false) String status,
             @RequestParam(name = "tipo", required = false) List<TipoPagamento> tipos,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate de,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ate,
@@ -52,8 +52,19 @@ public class PedidoController {
             @RequisitanteId Long requisitanteId) {
 
         return listarUseCase.listar(
-                new ListarPedidosFiltro(status, tipos, de, ate, busca, page, tamanho),
+                new ListarPedidosFiltro(parseStatus(status), tipos, de, ate, busca, page, tamanho),
                 requisitanteId);
+    }
+
+    private StatusPedido parseStatus(String status) {
+        if (status == null || status.isBlank() || "todos".equalsIgnoreCase(status)) {
+            return null;
+        }
+        try {
+            return StatusPedido.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Status inválido: " + status);
+        }
     }
 
     @GetMapping("/{id}")
