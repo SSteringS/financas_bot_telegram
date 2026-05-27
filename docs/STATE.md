@@ -28,10 +28,13 @@ Fase 3b inteira (FE-03 a FE-11) na branch `feature/frontend-fase3-completa`. Em 
 - **DEP-00** (domínio): ✅ resolvido — domínio é **`satyansaita.com`**.
 - **DEP-01** (Route 53 + ACM): ✅ concluído.
 - **DEP-02** (S3 + CloudFront do front): ✅ concluído. Front no apex `satyansaita.com` (bucket `finbot-frontend-prod-776658251579`, distribuição `E1WG4Q8MG3V9HY`), HTTPS válido, SPA fallback ok.
-- **DEP-03** (subdomínio `api.satyansaita.com` → EC2 atrás de proxy reverso): ⏳ pendente.
-- **DEP-04** (GitHub Actions: build + sync S3 + invalidate CloudFront, via OIDC): ⏳ pendente. Consome `frontend_bucket_name` e `cloudfront_distribution_id` do DEP-02.
-- **DEP-05** (prod do back: CORS `allowed-origin` + cookie `Domain=.satyansaita.com`): ⏳ pendente.
-- **DEP-06** (teste E2E em prod): ⏳ pendente.
+- **DEP-03** (subdomínio `api.satyansaita.com` → EC2 atrás de proxy reverso): ✅ implementado e validado (Caddy + Let's Encrypt no ar; `curl /api/v1/resumo` → 401 `SESSAO_AUSENTE` via `Server: Caddy`). **Aguardando revisão do Reviewer** antes do merge. Plano: `docs/plans/DEP-03-api-subdominio-proxy.md` · evidência: `docs/status/DEP-03.md`.
+- **DEP-04** (GitHub Actions: build + sync S3 + invalidate CloudFront, via OIDC): 📝 plano escrito (`docs/plans/DEP-04-pipeline-deploy-front.md`); pendente execução pelo back. Introduz OIDC (não havia). Consome `frontend_bucket_name` e `cloudfront_distribution_id` do DEP-02.
+- **DEP-05** (prod do back: CORS `allowed-origin` + cookie `Domain=satyansaita.com`): 📝 plano escrito (`docs/plans/DEP-05-cors-cookie-prod.md`); corrige o domínio errado no `application-prod.properties`. Pendente execução pelo back.
+- **DEP-06** (teste E2E em prod): runbook manual pronto (`docs/runbooks/RUNBOOK-dep06-e2e-prod.md`); é o passo final do humano, depois de tudo aplicado.
+- **Overnight de deploy:** `docs/plans/MASTER-PROMPT-overnight-deploy.md` — prompt pra rodar DEP-05/DEP-04/DEP-07 (code-only) numa sessão noturna do back.
+- **DEP-07** (codificar o provisionamento da EC2 — fim do snowflake): 📝 plano escrito (`docs/plans/DEP-07-codificar-provisionamento-ec2.md`); estratégia em ADR 0009. Captura Caddy/journald/`finbot.service`/keystore num `bootstrap.sh` versionado no `user_data`. Escopo: garantir recreate futuro (não reconcilia a instância atual).
+- **DEP-08** (webhook → Caddy/Let's Encrypt + aposentar keystore): 📝 plano escrito (`docs/plans/DEP-08-webhook-https-caddy.md`). Fase 1 (bot.satyansaita.com + re-apontar webhook) é baixo risco; Fase 2 (app HTTP no loopback, Caddy único TLS, fechar 8443, deletar keystore) **precisa de ADR de topologia TLS**. Fecha o débito self-signed e simplifica o DEP-07.
 
 ---
 
@@ -45,8 +48,11 @@ Fase 3b inteira (FE-03 a FE-11) na branch `feature/frontend-fase3-completa`. Em 
 
 ## Pendências bloqueantes / ações manuais antes do deploy
 
+- ⚠️ **Deploy do back BLOQUEADO — disco da EC2 cheio.** Volume raiz é só 2 GB e encheu (`No space left on device` no deploy). App segue de pé no JAR antigo (sem outage). Mitigação imediata: liberar espaço (rm `/tmp/app.jar`, vacuum do journal, `dnf clean all`). Fix durável planejado: `docs/plans/FIX-crescer-volume-ec2.md` (crescer pra 10 GB gp3 + capar journald). Pendente execução pelo back/humano.
 - ⚠️ **Secrets Manager:** adicionar a chave `keystore_password` (valor `finbot123`) no secret `finbot-prod-secrets`. Sem isso o app **não sobe em prod** (origem: `FIX-keystore-password-secret`).
 - **Ícones do PWA são placeholders** — trocar os PNGs (`icone-192/512`, `apple-touch-icon`) por arte real antes do deploy do front.
+- **Domínio errado no `application-prod.properties` (back)** — `app.cors.allowed-origin`, `app.cookie.domain` e `app.frontend.base-url` apontam pra `finbot.satyan.com.br` (resquício antigo); devem virar `https://satyansaita.com` / `satyansaita.com`. Como está, CORS bloqueia o front e o cookie de sessão não cola. **Escopo do DEP-05** (plano escrito) — bloqueador do front↔API.
+- ~~**Domínio errado no `frontend/.env.production` (front)**~~ — ✅ corrigido manualmente pelo humano (2026-05-27): `VITE_API_BASE_URL=https://api.satyansaita.com`.
 - Demais débitos: `docs/PENDENCIAS-TECNICAS.md`.
 
 ---
@@ -60,7 +66,7 @@ Backlog vivo em `docs/plans/BACKLOG-evolucao-workflow.md`. Estado dos itens em v
 - **Codegen do `tipos.ts`** (FE-13): plano escrito (`docs/plans/FE-13-codegen-tipos-openapi.md`). Pendente execução pelo front.
 - **Script de métricas** dos status reports: ✅ `docs/scripts/metricas_status.py`. **Regex de task-id** aceita `CI-`: ✅.
 - **Reviewer:** **adotado pra toda task (2026-05-26)** — revisão independente em sessão separada antes do merge (ADR 0005). Já em uso.
-- **Governança:** ADR 0004 (taxonomia), ADR 0005 (sessões por papel). Retroativos: ADR 0006 (hostnames), ADR 0007 (reporting com gates), ADR 0008 (Terraform módulo único — `Accepted`).
+- **Governança:** ADR 0004 (taxonomia), ADR 0005 (sessões por papel). Retroativos: ADR 0006 (hostnames), ADR 0007 (reporting com gates), ADR 0008 (Terraform módulo único). ADR 0009 (provisionamento da EC2 codificado).
 
 ---
 
