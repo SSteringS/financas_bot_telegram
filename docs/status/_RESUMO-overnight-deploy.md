@@ -121,7 +121,7 @@ Ordem recomendada de revisão e merge:
 | # | Pendência | Task | Urgência |
 |---|---|---|---|
 | P1 | **Provider OIDC:** checar se já existe na conta antes do `terraform apply` do DEP-04 (importar se existir) | DEP-04 | Antes do apply |
-| P2 | **`frontend/.env.production`:** corrigir `VITE_API_BASE_URL` de `https://api.finbot.dom.br` para `https://api.satyansaita.com` — território do Claude do front | DEP-04/06 | Antes do build de prod |
+| P2 | ~~**`frontend/.env.production`:** corrigir `VITE_API_BASE_URL`~~ | DEP-04/06 | ✅ corrigido manualmente pelo humano (2026-05-27) |
 | P3 | **Secret `keystore_password`:** confirmar que `finbot-prod-secrets` tem a chave `keystore_password=finbot123` — sem isso o app não sobe | Estado.md | Antes do redeploy do back |
 | P4 | **Pós-recreate:** se a EC2 for recriada com o novo `user_data`, re-registrar o webhook do Telegram com o novo cert self-signed (`/opt/finbot/keystore.pem`) | DEP-07 | Após recreate |
 | P5 | **Disco EC2:** `growpart`/`xfs_growfs` se ainda não feito (deploy do back bloqueado enquanto cheio) | FIX-volume | Imediato |
