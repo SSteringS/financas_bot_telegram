@@ -4,7 +4,7 @@ titulo: "GitHub Actions: deploy do front (build + S3 sync + invalidate, via OIDC
 data: 2026-05-27
 branch: feature/dep-04-pipeline-deploy-front
 responsavel: claude-back
-estado: bloqueado
+estado: concluido
 gates:
   build: na
   lint: na
@@ -18,7 +18,7 @@ commits:
   - a466b9f
 pr: null
 desvios: 0
-pendencias_humano: 1
+pendencias_humano: 0
 ---
 
 # DEP-04 — GitHub Actions: deploy do front (build + S3 sync + invalidate, via OIDC)
