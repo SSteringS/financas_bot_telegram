@@ -1,0 +1,17 @@
+[Unit]
+Description=Finbot Spring Boot application
+After=network.target
+
+[Service]
+Type=simple
+User=finbot
+WorkingDirectory=/opt/finbot
+ExecStart=/usr/bin/java -jar /opt/finbot/app.jar --spring.profiles.active=prod
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=finbot
+
+[Install]
+WantedBy=multi-user.target
