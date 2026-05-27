@@ -1,24 +1,34 @@
 # Resumo overnight — deploy trilha 3c (DEP-05 / DEP-04 / DEP-07)
 
-> Gerado em 2026-05-27. Todas as branches aguardam revisão do Reviewer e merge pelo humano.
+> Atualizado em 2026-05-27 (sessão do Reviewer).
 
 ---
 
-## Tabela de tasks
+## Estado atual das tasks
 
-| Task | Branch | Commit principal | Checagens locais | Estado |
+| Task | PR | Reviewer | Estado | Pronto pra merge? |
 |---|---|---|---|---|
-| DEP-05 | `feature/dep-05-cors-cookie-prod` | `30dd0b1` | `mvn test`: 226/0 ✅ · `mvn package`: ✅ | concluido |
-| DEP-04 | `feature/dep-04-pipeline-deploy-front` | `1844507` | `terraform fmt -check`: ✅ · `terraform validate`: ✅ | concluido |
-| DEP-07 | `feature/dep-07-codificar-provisionamento-ec2` | `a185f94` | `terraform fmt -check`: ✅ · `terraform validate`: ✅ · shellcheck: ⚠️ ausente no env Windows (revisão manual) | concluido |
+| DEP-05 | [#65](https://github.com/SSteringS/financas_bot_telegram/pull/65) | ✅ Aprovado | concluido | **Sim** |
+| DEP-07 | [#64](https://github.com/SSteringS/financas_bot_telegram/pull/64) | ✅ Aprovado c/ obs. | concluido | **Sim** |
+| DEP-04 | sem PR ainda | ❌ Bloqueado | bloqueado | Não — aguarda ações humanas |
 
 ---
 
-## CHECKLIST MANUAL PRA MANHÃ
+## O que o reviewer já fez nesta sessão
 
-### 0. Antes de tudo — disco da EC2 (bloqueador de deploy)
+- ✅ DEP-05 revisado e aprovado — PR #65 aberto
+- ✅ DEP-07 revisado, `shellcheck` limpo (SC2154 falso positivo), `terraform plan` confirmado **in-place** (`~`) duas vezes — PR #64 aberto
+- ✅ `frontend/.env.production` corrigido para `https://api.satyansaita.com` (commit `a466b9f` na branch DEP-04)
+- ✅ DEP-04 status atualizado para `estado: bloqueado` (reviewer bloqueou: terraform apply não executado, pipeline não testado)
+- ✅ Avaliações escritas em `docs/avaliacoes/`: DEP-04, DEP-05, DEP-07
 
-O disco raiz (agora 10 GB gp3 — já no `ec2.tf` de produção) precisou de `growpart`/`xfs_growfs` manual. Se ainda não foi feito, rodar via SSH antes de qualquer deploy do back:
+---
+
+## PENDÊNCIAS QUE PRECISAM DE VOCÊ
+
+### P1 — Disco da EC2 (bloqueador imediato do deploy do back)
+
+Se `growpart`/`xfs_growfs` ainda não foi feito:
 
 ```bash
 sudo growpart /dev/nvme0n1 1
@@ -26,103 +36,97 @@ sudo xfs_growfs /
 df -h /   # deve mostrar ~10 GB
 ```
 
-Também capar o journald se ainda não feito:
+Capar o journald se ainda não feito:
 ```bash
-sudo cp /etc/systemd/journald.conf.d/finbot.conf /tmp/ 2>/dev/null || \
-  echo -e '[Journal]\nSystemMaxUse=200M' | sudo tee /etc/systemd/journald.conf.d/finbot.conf
+sudo mkdir -p /etc/systemd/journald.conf.d
+echo -e '[Journal]\nSystemMaxUse=200M' | sudo tee /etc/systemd/journald.conf.d/finbot.conf
 sudo systemctl restart systemd-journald
 ```
 
 ---
 
-### 1. DEP-05 — revisar diff e fazer deploy do back (após disco liberado)
+### P2 — Secret `keystore_password` no Secrets Manager
 
-1. **Revisar diff** da branch `feature/dep-05-cors-cookie-prod` — 3 linhas no `application-prod.properties`.
-2. **Reviewer** revisa o PR antes do merge em `develop` (ADR 0005).
-3. Merge em `develop` → PR para `main` → pipeline `deploy.yml` redeploya o back com CORS e cookie corrigidos.
-4. Verificar pós-deploy: `curl -i https://api.satyansaita.com/api/v1/resumo` → 401 com `Server: Caddy` (Caddy e app de pé).
+Confirmar que `finbot-prod-secrets` tem a chave `keystore_password=finbot123`. Sem isso o app **não sobe** após redeploy.
 
----
-
-### 2. DEP-04 — criar/confirmar provider OIDC + terraform apply + pipeline
-
-1. **Checar se o provider OIDC já existe na conta:**
-   ```bash
-   aws iam list-open-id-connect-providers
-   ```
-   - Se existir para `token.actions.githubusercontent.com`, **importar** antes do apply:
-     ```bash
-     cd financas_bot_telegram/infra
-     terraform import aws_iam_openid_connect_provider.github \
-       arn:aws:iam::776658251579:oidc-provider/token.actions.githubusercontent.com
-     ```
-   - Se não existir, o `apply` cria normalmente.
-
-2. **Revisar diff** da branch `feature/dep-04-pipeline-deploy-front`:
-   - `iam-github-oidc.tf` — confirmar que o `sub` tem o slug correto (`SSteringS/financas_bot_telegram`).
-   - `.github/workflows/deploy-frontend.yml` — confirmar trigger em `frontend/**` apenas.
-
-3. **Reviewer** revisa o PR (toca IAM e pipeline de prod).
-
-4. `terraform plan` → confirmar que **não há replace** de recurso existente → `terraform apply` do `iam-github-oidc.tf`.
-
-5. Merge em `develop` → PR para `main` → o workflow dispara automaticamente no próximo push com `frontend/**`.
+```bash
+aws secretsmanager get-secret-value --secret-id finbot-prod-secrets --query SecretString --output text
+```
 
 ---
 
-### 3. DEP-07 — revisar diff + confirmar terraform plan in-place antes de qualquer apply
+### P3 — Merge DEP-05 → deploy do back
 
-1. **Revisar diff** da branch `feature/dep-07-codificar-provisionamento-ec2`:
-   - `infra/provision/bootstrap.sh` — revisar linha a linha; em especial as guards de idempotência e o passo do keystore.
-   - `infra/ec2.tf` — `user_data` agora usa `templatefile()` em vez do heredoc antigo.
+DEP-05 está **aprovado e com PR aberto (#65)**. Passos:
 
-2. **⚠️ Gate obrigatório — terraform plan:**
-   ```bash
-   cd financas_bot_telegram/infra
-   terraform plan -var-file=prod.tfvars
-   ```
-   - Deve mostrar `~` (update in-place) para `aws_instance.finbot_app`.
-   - **Se aparecer `-/+` (replace), PARAR imediatamente.** Isso destruiria a EC2 de produção.
+1. Merge PR #65 em `develop`
+2. Abrir PR `develop → main`
+3. Pipeline `deploy.yml` redeploya o back automaticamente
+4. Verificar: `curl -i https://api.satyansaita.com/api/v1/resumo` → 401 com `Access-Control-Allow-Origin: https://satyansaita.com`
 
-3. **Reviewer** revisa o PR (toca provisionamento de prod, risco alto).
-
-4. `terraform apply` — pode ser feito a qualquer momento, inclusive depois de um recreate planejado futuro. O script **não roda na instância atual** (ADR 0009).
-
-5. **shellcheck:** rodar quando disponível (instalar localmente ou deixar o CI rodar):
-   ```bash
-   shellcheck financas_bot_telegram/infra/provision/bootstrap.sh
-   ```
+> Depende de P1 (disco liberado) para o deploy não falhar.
 
 ---
 
-### 4. Pós-deploy — DEP-06: teste E2E em produção
+### P4 — DEP-04: OIDC + terraform apply + pipeline (3 passos)
 
-Depois que DEP-05 e os dois lados do domínio estiverem no ar (`application-prod.properties` corrigido no back + `VITE_API_BASE_URL` corrigido no front), executar o runbook:
+DEP-04 está **bloqueado** — o código está pronto mas precisa de validação em AWS.
+
+**4a.** Checar se o provider OIDC já existe:
+```bash
+aws iam list-open-id-connect-providers
+```
+- Se existir para `token.actions.githubusercontent.com` → importar:
+  ```bash
+  cd financas_bot_telegram/infra
+  terraform import aws_iam_openid_connect_provider.github \
+    arn:aws:iam::776658251579:oidc-provider/token.actions.githubusercontent.com
+  ```
+- Se não existir → `apply` cria normalmente.
+
+**4b.** `terraform plan` (confirmar que não há replace):
+```bash
+cd financas_bot_telegram/infra
+git checkout feature/dep-04-pipeline-deploy-front
+terraform plan -var-file=prod.tfvars
+```
+
+**4c.** `terraform apply`
+
+**4d.** Quando a role IAM existir na conta, abrir PR da branch `feature/dep-04-pipeline-deploy-front` e mergear. O workflow dispara no próximo push em `frontend/**` na `main`.
+
+**4e.** Fazer um push de teste (qualquer mudança em `frontend/`) e confirmar run verde no GitHub Actions.
+
+Quando tudo verde: atualizar `docs/status/DEP-04.md` → `estado: concluido`, `pendencias_humano: 0`.
+
+---
+
+### P5 — Merge DEP-07 → apply (opcional, sem urgência)
+
+DEP-07 está **aprovado e com PR aberto (#64)**. O `terraform apply` **não recria a EC2** (plan confirmado in-place). Pode mergear quando quiser — o bootstrap só entra em ação num recreate futuro.
+
+1. Merge PR #64 em `develop`
+2. `terraform apply -var-file=prod.tfvars` (atualiza o `user_data` do recurso no state)
+
+---
+
+### P6 — DEP-06: E2E em produção (último passo)
+
+Só executar depois que DEP-05 estiver deployado (back com CORS correto) e DEP-04 tiver o front buildando via pipeline:
 
 ```
 docs/runbooks/RUNBOOK-dep06-e2e-prod.md
 ```
 
-O E2E confirma: link mágico, exchange JWT → cookie `Domain=satyansaita.com`, chamadas autenticadas, CORS sem erro no browser.
+Confirma: link mágico, exchange JWT → cookie `Domain=satyansaita.com`, chamadas autenticadas, CORS sem erro no browser.
 
 ---
 
-### 5. Reviewer — revisar cada PR antes do merge
+## Ordem sugerida
 
-Ordem recomendada de revisão e merge:
-1. DEP-05 (menor risco, desbloqueia o back)
-2. DEP-04 (IAM + pipeline — alto risco, revisar com cuidado)
-3. DEP-07 (provisionamento EC2 — alto risco, confirmar plan in-place)
-
----
-
-## Pendências / decisões que precisam de você
-
-| # | Pendência | Task | Urgência |
-|---|---|---|---|
-| P1 | **Provider OIDC:** checar se já existe na conta antes do `terraform apply` do DEP-04 (importar se existir) | DEP-04 | Antes do apply |
-| P2 | ~~**`frontend/.env.production`:** corrigir `VITE_API_BASE_URL`~~ | DEP-04/06 | ✅ corrigido manualmente pelo humano (2026-05-27) |
-| P3 | **Secret `keystore_password`:** confirmar que `finbot-prod-secrets` tem a chave `keystore_password=finbot123` — sem isso o app não sobe | Estado.md | Antes do redeploy do back |
-| P4 | **Pós-recreate:** se a EC2 for recriada com o novo `user_data`, re-registrar o webhook do Telegram com o novo cert self-signed (`/opt/finbot/keystore.pem`) | DEP-07 | Após recreate |
-| P5 | **Disco EC2:** `growpart`/`xfs_growfs` se ainda não feito (deploy do back bloqueado enquanto cheio) | FIX-volume | Imediato |
-| P6 | **shellcheck** do `bootstrap.sh` — não disponível no env Windows; rodar localmente ou no CI antes de confiar o script num recreate real | DEP-07 | Antes do recreate |
+```
+P1 (disco)  →  P2 (secret)  →  P3 (DEP-05 merge + deploy)
+                             →  P4 (DEP-04 OIDC + apply + merge)
+                             →  P5 (DEP-07 merge + apply)
+                             →  P6 (E2E)
+```

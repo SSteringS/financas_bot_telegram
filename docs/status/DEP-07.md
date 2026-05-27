@@ -15,7 +15,7 @@ gates:
   territorio: ok
 commits:
   - a185f94
-pr: null
+pr: 64
 desvios: 0
 pendencias_humano: 0
 ---
