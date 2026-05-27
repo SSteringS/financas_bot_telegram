@@ -4,7 +4,7 @@ titulo: "GitHub Actions: deploy do front (build + S3 sync + invalidate, via OIDC
 data: 2026-05-27
 branch: feature/dep-04-pipeline-deploy-front
 responsavel: claude-back
-estado: concluido
+estado: bloqueado
 gates:
   build: na
   lint: na
@@ -15,6 +15,7 @@ gates:
   territorio: ok
 commits:
   - 1844507
+  - a466b9f
 pr: null
 desvios: 0
 pendencias_humano: 1
@@ -75,7 +76,7 @@ Se não existir, o `apply` cria normalmente.
 
 ## Próximos passos / observações pro próximo
 
-- **`frontend/.env.production`** ainda tem `VITE_API_BASE_URL=https://api.finbot.dom.br` (domínio antigo). Deve virar `https://api.satyansaita.com` antes do primeiro build de prod valer (território do Claude do front).
+- ~~**`frontend/.env.production`**~~ ✅ corrigido (commit `a466b9f`): `VITE_API_BASE_URL=https://api.satyansaita.com`.
 - Antes do primeiro disparo real do workflow: confirmar que o `terraform apply` do `iam-github-oidc.tf` foi aplicado e a role existe na conta.
 - O `deploy.yml` do back dispara em qualquer push para `main` sem filtro de path — um push de front vai redisparar o deploy do back à toa. Adicionar `paths` ao `deploy.yml` é um follow-up fora desta task.
 
