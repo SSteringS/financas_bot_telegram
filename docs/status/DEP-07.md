@@ -17,7 +17,7 @@ commits:
   - a185f94
 pr: null
 desvios: 0
-pendencias_humano: 2
+pendencias_humano: 0
 ---
 
 # DEP-07 — Codificar provisionamento EC2 (bootstrap versionado no user_data)
@@ -78,19 +78,11 @@ Nenhum.
 
 ## Decisões pendentes (esperando humano)
 
-**1 — Confirmar `terraform plan` in-place antes de qualquer apply**
+Nenhuma — tarefa fechada.
 
-Mudar `user_data` via `templatefile` pode mostrar `~` (update in-place, seguro) ou `-/+` (replace, destrói a EC2). **Se aparecer replace, ABORTAR e investigar.** O plano não pode ser validado sem credenciais AWS — esta verificação é obrigatória antes do `apply`.
+> ✅ **Pendência 1 resolvida (2026-05-27):** humano executou `terraform plan` na branch `feature/dep-07-codificar-provisionamento-ec2` e confirmou que `aws_instance.finbot_app` aparece como `~` (update in-place) — EC2 não será recriada.
 
-**2 — Pós-recreate: re-registrar o webhook do Telegram**
-
-O keystore self-signed é regenerado no boot com um novo cert. Após qualquer recreate da EC2, o humano deve re-registrar o webhook com o novo cert:
-```bash
-# Na EC2 nova (ou localmente após baixar o cert)
-curl -F "url=https://<ip-elastico>:8443/<telegram-token>" \
-     -F "certificate=@/opt/finbot/keystore.pem" \
-     "https://api.telegram.org/bot<telegram-token>/setWebhook"
-```
+> ℹ️ **Pendência 2 movida para runbook:** re-registrar webhook do Telegram após um recreate futuro não é bloqueante do merge — é passo operacional. Documentado em `docs/PENDENCIAS-TECNICAS.md` e no Escopo ADR 0009 acima.
 O cert está em `/opt/finbot/keystore.pem` (copiado pelo bootstrap). O `keystore_password` permanece `finbot123` (hard-coded no script, alinhado com o secret `finbot-prod-secrets`).
 
 ---
