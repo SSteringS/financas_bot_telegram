@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- ── Console appender (sempre ativo: dev, journalctl em prod) ── -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--
+        ── File appender com layout JSON (ativo só no profile prod) ──
+        Escreve em /var/log/finbot/app.log, que o CW agent coleta.
+        O diretório deve existir na instância (criado pelo bootstrap ou SSH manual).
+        Layout JSON simples (sem logstash-logback-encoder) para manter o pom inalterado;
+        CloudWatch Logs Insights processa o formato com filtros de texto e JSON básico.
+    -->
+    <springProfile name="prod">
+        <appender name="FILE_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>/var/log/finbot/app.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <!-- Rotação diária; manter 7 dias locais (o CW agent coleta antes da rotação) -->
+                <fileNamePattern>/var/log/finbot/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>7</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <!-- JSON inline: cada linha é um objeto JSON válido para CloudWatch Insights -->
+                <pattern>{"timestamp":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}","level":"%level","logger":"%logger{40}","thread":"%thread","message":"%replace(%msg){'\"','\\\\\"'}","exception":"%replace(%ex{short}){'\"','\\\\\"'}"}%n</pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE_JSON"/>
+        </root>
+    </springProfile>
+
+    <!-- ── Profiles não-prod: só console ── -->
+    <springProfile name="!prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+</configuration>

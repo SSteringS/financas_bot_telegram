@@ -23,14 +23,9 @@ resource "aws_instance" "finbot_app" {
   key_name               = var.key_pair_name
   iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
-  user_data = <<-EOF
-    #!/bin/bash
-    dnf update -y
-    dnf install -y java-21-amazon-corretto-headless
-    mkdir -p /opt/finbot
-    useradd -r -s /bin/false finbot
-    chown finbot:finbot /opt/finbot
-  EOF
+  user_data = templatefile("${path.module}/provision/bootstrap.sh", {
+    domain_name = var.domain_name
+  })
 
   tags = { Name = "finbot-${var.env}-ec2-app" }
 
