@@ -14,10 +14,11 @@ gates:
   branch_convencao: ok
   territorio: ok
 commits:
-  - pendente
+  - c1d7704
+  - eaf4dd9
 pr: null
 desvios: 1
-pendencias_humano: 3
+pendencias_humano: 0
 ---
 
 # DEP-09 — Observability infra (CloudWatch + logback JSON)
