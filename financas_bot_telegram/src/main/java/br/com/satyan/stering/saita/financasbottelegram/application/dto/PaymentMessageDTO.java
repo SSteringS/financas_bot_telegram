@@ -1,6 +1,7 @@
 package br.com.satyan.stering.saita.financasbottelegram.application.dto;
 
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoArquivo;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.Canal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentMessageDTO {
-    /** ID externo da mensagem (message_id do Telegram; wamid do WhatsApp) — base para idempotência futura. */
+    /** Canal de origem — preenchido pelo mapper de cada canal. */
+    private Canal canal;
+
+    /** ID externo da mensagem (message_id do Telegram; wamid do WhatsApp) — base para idempotência. */
     private String externalId;
 
     /** Destino para envio de respostas. Long = chatId Telegram. Para WhatsApp, este campo será repensado em BE-18. */

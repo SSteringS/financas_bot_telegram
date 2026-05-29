@@ -28,6 +28,7 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 - [`exception-handlers-scope.md`](exception-handlers-scope.md) — `@RestControllerAdvice` e `basePackages`
 - [`jjwt-3-artefatos.md`](jjwt-3-artefatos.md) — por que a lib JWT tem 3 dependências
 - [`argument-resolver-vs-requestparam.md`](argument-resolver-vs-requestparam.md) — por que `@RequisitanteId` ignora query param do mesmo nome
+- [`eventos-in-process-spring.md`](eventos-in-process-spring.md) — `ApplicationEvents`, `@TransactionalEventListener(AFTER_COMMIT)`, `@Async`, trade-off de durabilidade; base do ADR 0014 (EVO-02)
 
 ### React / TypeScript fundamentos
 
@@ -60,6 +61,10 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 - [`cors-vs-samesite.md`](cors-vs-samesite.md) — diferença entre CORS e SameSite
 - [`jwt-secret-vs-api-key.md`](jwt-secret-vs-api-key.md) — por que ter dois secrets diferentes
 - [`admin-vs-requisitante.md`](admin-vs-requisitante.md) — dois papéis distintos de auth no sistema
+- [`tls-self-signed-vs-ca.md`](tls-self-signed-vs-ca.md) — self-signed vs CA (Let's Encrypt) difere só na autenticação, não na encriptação; pinning (webhook Telegram) vs trust store (browser)
+- [`observability-logs-externalizar.md`](observability-logs-externalizar.md) — externalizar logs (CloudWatch vs SaaS); custo desprezível no nosso volume → decidir por simplicidade; CloudWatch já tem IAM e vira casa de alarmes
+- [`cloudwatch-metric-dimensions.md`](cloudwatch-metric-dimensions.md) — identidade de métrica = `(namespace, nome, conjunto_de_dimensões)` exato; `append_dimensions` no agent + alarme com subconjunto = `INSUFFICIENT_DATA` silencioso
+- [`whatsapp-restricoes-pais-business-nao-verificada.md`](whatsapp-restricoes-pais-business-nao-verificada.md) — erro 130497: Business não-verificada não pode mandar mensagem **business-initiated** pra BR; só user-initiated (24h) flui; EVO-02 depende de Business Verification (MEI/CNPJ); Test number também sofre
 
 ## Como adicionar
 

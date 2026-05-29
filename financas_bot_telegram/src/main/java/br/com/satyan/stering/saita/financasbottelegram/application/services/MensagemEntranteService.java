@@ -8,6 +8,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 // NOTA ARQUITETURAL: InvalidMessageFormatException está em adapters/in/telegram/exception/.
 // Importá-la aqui é uma violação hexagonal conhecida — será resolvida quando essa exceção
@@ -26,13 +27,23 @@ public class MensagemEntranteService implements MensagemEntrantePortIn {
 
     private static final Logger logger = LoggerFactory.getLogger(MensagemEntranteService.class);
     private final List<MensagemProcessingStrategy> strategies;
+    private final MensagemProcessadaService mensagemProcessadaService;
 
-    public MensagemEntranteService(List<MensagemProcessingStrategy> strategies) {
+    public MensagemEntranteService(List<MensagemProcessingStrategy> strategies,
+        MensagemProcessadaService mensagemProcessadaService) {
         this.strategies = strategies;
+        this.mensagemProcessadaService = mensagemProcessadaService;
     }
 
+    @Transactional
     @Override
     public void processar(PaymentMessageDTO dto) {
+        if (!mensagemProcessadaService.tentarClaim(dto.getCanal(), dto.getExternalId())) {
+            logger.info("Mensagem {} (canal={}) já processada — descartando (idempotência).",
+                dto.getExternalId(), dto.getCanal());
+            return;
+        }
+
         strategies.stream()
             .filter(strategy -> strategy.supports(dto))
             .findFirst()

@@ -5,6 +5,7 @@ import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exce
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service.TelegramFileDownloaderService;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.PaymentMessageDTO;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoArquivo;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.Canal;
 import java.util.Comparator;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Document;
@@ -39,6 +40,7 @@ public class TelegramMessageMapper {
 
         // Mensagem texto-puro (sem anexo)
         return PaymentMessageDTO.builder()
+            .canal(Canal.TELEGRAM)
             .externalId(message.getMessageId().toString())
             .chatId(chatId)
             .fromId(message.getFrom().getId().toString())
@@ -55,6 +57,7 @@ public class TelegramMessageMapper {
         byte[] bytes = telegramFileDownloaderService.downloadImageByFileId(fileId);
 
         return PaymentMessageDTO.builder()
+            .canal(Canal.TELEGRAM)
             .externalId(message.getMessageId().toString())
             .chatId(chatId)
             .fromId(message.getFrom().getId().toString())
@@ -91,6 +94,7 @@ public class TelegramMessageMapper {
         byte[] bytes = telegramFileDownloaderService.downloadImageByFileId(fileId);
 
         return PaymentMessageDTO.builder()
+            .canal(Canal.TELEGRAM)
             .externalId(message.getMessageId().toString())
             .chatId(chatId)
             .fromId(message.getFrom().getId().toString())
