@@ -108,7 +108,6 @@ Se o usuário enviar foto de comprovante com legenda `123 pix` (esquecendo o `#`
 
 ---
 
-
 ### Reavaliar fluxo de idempotência do webhook conforme a tabela cresce
 
 **Contexto:** o adapter WhatsApp (e, após o refactor agnóstico, o Telegram) deduplica mensagens entrantes via tabela `mensagem_processada` no MySQL, com claim-then-process na mesma transação — ver `docs/architecture/adapter-whatsapp-cloud-api.md` §4.3. É uma **consulta/escrita SQL a mais por mensagem entrante**, não um cache. Decisão consciente: SQL resolve pro começo, mas é dívida a monitorar.
@@ -206,82 +205,6 @@ Resultado: a API expõe um campo que **mente** (`null` quando deveria ter dado).
 - Testes — ajustar mappers e DTOs; testar a derivação.
 
 **Esforço:** baixo-médio. **Prioridade:** **média.** Não bloqueia nada hoje (front aceita `null`), mas vira **alta** se o front começar a depender de "data de pagamento confiável" (ex.: agrupar por mês de pagamento, filtros).
-
----
-
-### Reavaliar fluxo de idempotência do webhook conforme a tabela cresce
-
-**Contexto:** o adapter WhatsApp (e, após o refactor agnóstico, o Telegram) deduplica mensagens entrantes via tabela `mensagem_processada` no MySQL, com claim-then-process na mesma transação — ver `docs/architecture/adapter-whatsapp-cloud-api.md` §4.3. É uma **consulta/escrita SQL a mais por mensagem entrante**, não um cache. Decisão consciente: SQL resolve pro começo, mas é dívida a monitorar.
-
-**Por que não tratar agora:** no volume atual (família, milhares de mensagens/ano) o custo é irrelevante e a unique key mantém o lookup eficiente. Otimizar agora seria especulação.
-
-**Fix sugerido (quando virar problema, guiado por métricas — ver item abaixo):**
-- Cache em memória (ex.: Caffeine com TTL curto) na frente do SQL pra absorver redeliveries quentes, mantendo o SQL como fonte persistente;
-- Índice dedicado / revisão do plano de query se o `EXPLAIN` acusar;
-- Limpeza/retenção agressiva de linhas antigas (job agendado);
-- Particionamento por data, em último caso.
-
-**Esforço:** baixo a médio, dependendo da abordagem.
-
-**Prioridade:** baixa. Revisitar **com base nas métricas de latência de banco**, não por suposição.
-
----
-
-### Instrumentar latência de consultas ao banco e de chamadas externas (métricas)
-
-**Contexto:** a frente de observability da Sprint 02 prevê logs + alarmes, mas falta **medir tempo**. Com a idempotência adicionando query por mensagem, e o adapter WhatsApp fazendo chamadas externas (Graph API: envio + 2 passos de download de mídia; S3: upload), precisamos de visibilidade de latência pra (a) decidir o refactor de idempotência por dado e (b) enxergar lentidão/erro nos pontos fora do nosso controle. Ver `docs/architecture/adapter-whatsapp-cloud-api.md` §8.1.
-
-**Fix sugerido:**
-- Métricas de **tempo por consulta ao banco** (claim de idempotência + escritas de pedido/comprovante).
-- Métricas de **tempo e taxa de erro de chamadas externas** (Graph API, S3).
-- Métrica de **tempo de processamento fim-a-fim da mensagem entrante, segmentado por tipo** (`PEDIDO` vs `COMPROVANTE`), com dimensões `canal` e `resultado` (sucesso/falha). Os dois tipos carregam mídia (foto/PDF), então o custo bruto é parecido; segmentar é útil porque os caminhos são diferentes (strategies/usecases distintos, comprovante faz lookup do pedido pai), os modos de falha diferem, e deixa visível se uma regressão atinge um tipo mais que o outro. É a métrica de experiência real do usuário.
-- Forma idiomática: **Micrometer** (já vem no Spring Boot) → export pro **CloudWatch** (IAM `CloudWatchAgentServerPolicy` já está na EC2). Calibrar pra não virar ruído.
-
-**Esforço:** médio.
-
-**Prioridade:** média. Casa com a frente de observability da Sprint 02 — o planner deve incorporar na task de observability, que a própria sprint sugere fazer **cedo** (rede de segurança pra debugar a migração de canal).
-
----
-
-### Padronizar criação do `RestClient` via Builder (uniformizar Telegram com BE-18)
-
-**Contexto:** o BE-18 (envio de mensagens HTTP) introduziu o sender com `RestClient.Builder` auto-configurado pelo Spring Boot, em vez do padrão atual do projeto (`AppConfig` expõe um `RestClient` singleton). A justificativa registrada no próprio status do BE-18 foi viabilizar `@RestClientTest` (slice de teste que amarra o Builder a um `MockRestServiceServer`). O próprio implementador classificou isso como "leve inconsistência" entre os adapters.
-
-A análise do Arquiteto (2026-05-27) mostrou que **dá pra ter os dois lados**: manter o padrão "singleton no `AppConfig`" e **ainda** ganhar `@RestClientTest`, desde que o singleton seja **construído a partir do `RestClient.Builder` auto-configurado** (em vez de `RestClient.create()` direto). A slice intercepta o Builder; como o singleton vem dele, o mock vale pro singleton inteiro.
-
-**Fix sugerido:**
-
-1. No `AppConfig` do Telegram, trocar a criação direta pelo padrão de fábrica via Builder:
-
-   ```java
-   // de:
-   @Bean
-   RestClient telegramRestClient() {
-       return RestClient.create(/* ... */);
-   }
-
-   // para:
-   @Bean
-   RestClient telegramRestClient(RestClient.Builder builder) {
-       return builder
-           .baseUrl(/* ... */)
-           .defaultHeader(/* ... */)
-           .build();
-   }
-   ```
-
-2. Documentar a convenção no `AppConfig` com um comentário curto, pra adapters futuros (WhatsApp/Discord) seguirem o mesmo padrão de fábrica: **singleton, construído a partir do Builder auto-configurado**.
-
-3. (Verificar) Segundo o status do BE-18, "os adapters Telegram não têm testes" — então provavelmente não há testes pra reescrever. Se houver, migrar pra `@RestClientTest` + `MockRestServiceServer`.
-
-**Esforço:** baixo (~15–30 min).
-
-**Prioridade:** baixa-média. Não bloqueia o WhatsApp; é alinhamento de convenção **antes que o segundo adapter consolide a divergência**. Bom candidato a **FIX rápido** (`FIX-padronizar-restclient-builder.md` ou similar), idealmente entrando junto ou antes do refactor da porta agnóstica (BE-XX) da Sprint 02.
-
-**Referências:**
-- Status BE-18 (justificativa original do `RestClient.Builder`)
-- `docs/architecture/adapter-whatsapp-cloud-api.md` §5 (convenção registrada)
-- Discussão Arquiteto ↔ humano, 2026-05-27
 
 ---
 
