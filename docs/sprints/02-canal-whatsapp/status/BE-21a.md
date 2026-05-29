@@ -1,24 +1,37 @@
 ---
-tarefa: BE-21a
-titulo: Eventos in-process + NotificadorPortOut + canalPreferido + Telegram impl
-branch: feature/be-21a-eventos-notificador-canalpreferido
-estado: concluido
+task: BE-21a
+titulo: "Eventos in-process + NotificadorPortOut + canalPreferido + Telegram impl"
 data: 2026-05-29
-testes_total: 229
-testes_novos: 3
-desvios: 2
+branch: feature/be-21a-eventos-notificador-canalpreferido
+responsavel: claude-back
+estado: concluido
+gates:
+  build: ok
+  lint: na
+  testes: ok
+  testes_total: 229
+  testes_novos: 3
+  branch_convencao: ok
+  territorio: ok
+commits:
+  - c270f62
+  - 95b1742
+  - 6b28829
+pr: null
+desvios: 1
+pendencias_humano: 0
 ---
+
+# BE-21a — Eventos in-process + NotificadorPortOut + canalPreferido + Telegram impl
 
 ## O que foi feito
 
-### Migração (V4)
-- `V4__add_canal_preferido_requisitante.sql`: `ALTER TABLE requisitante ADD COLUMN canal_preferido VARCHAR(20) NOT NULL DEFAULT 'TELEGRAM'`.
+### Migração (V5)
+- `V5__add_canal_preferido_requisitante.sql`: `ALTER TABLE requisitante ADD COLUMN canal_preferido VARCHAR(20) NOT NULL DEFAULT 'TELEGRAM'`.
 - Default `'TELEGRAM'` garante backfill silencioso dos registros existentes (Pedro).
-- **NOTA DE CONFLITO:** este arquivo usa V4 pois é o próximo número disponível em `develop`. Se BE-19a mergear antes desta task, renumerar para V5 durante a resolução de conflito.
 
 ### Domínio
-- `domain/model/Canal.java`: enum `TELEGRAM | WHATSAPP` — enum unificado.
-  - **Decisão de unificação com BE-19a:** BE-19a cria `CanalMensagem` em `domain/model/`. Quando BE-19a mergear em `develop`, substituir `CanalMensagem` por `Canal` (este enum) para evitar duplicação. Documentado no PR de BE-19a.
+- `domain/model/Canal.java`: enum `TELEGRAM | WHATSAPP` — enum unificado. BE-19a cria o mesmo arquivo com conteúdo idêntico; conflito no merge será no-op.
 - `domain/event/ComprovanteRegistradoEvent.java`: record `(Long comprovanteId, Long pedidoId, Long requisitanteId, String chatId)`. Campo `chatId` transporta o identificador de canal do destinatário (chatId Telegram; wa_id para WhatsApp futuro).
 - `domain/model/Requisitante.java`: adicionado campo `Canal canalPreferido` com `@Builder.Default = Canal.TELEGRAM`.
 
@@ -60,30 +73,53 @@ desvios: 2
   - `rollback_listenerNaoDispara` — TransactionTemplate + setRollbackOnly; verifica que listener NÃO dispara com `Thread.sleep(500)`.
   - `falhaNoListener_naoAfetaTransacaoDoUsecase` — mock do sender lança exceção; verifica que comprovante foi salvo e listener tentou (best-effort).
 
-## Decisões documentadas
+---
 
-### Mecanismo do `Map<Canal, NotificadorPortOut>`
-Construído via `List<NotificadorPortOut>` injetada no construtor do listener + `.collect(Collectors.toMap(NotificadorPortOut::getCanal, Function.identity()))`. Evita dependência de bean names como chave. Adicionar novo canal = só criar novo bean que implemente `getCanal()`.
+## Desvios do plano
 
-### `@Transactional` em `RegistrarComprovanteServiceImpl.execute()`
-Necessário para que `@TransactionalEventListener(AFTER_COMMIT)` dispare. Sem transação ativa, eventos de domínio são descartados (fallbackExecution = false por padrão). Adicionado nesta task.
+**`Canal.java` com conflito trivial com BE-19a:** esta task cria `domain/model/Canal.java`. BE-19a cria o mesmo arquivo com conteúdo idêntico. No merge de BE-21a em `develop` (após BE-19a já estar mergeado), o conflito em `Canal.java` será no-op — resolver mantendo qualquer das duas versões.
 
-### Default TELEGRAM do canalPreferido
-Tanto na migração SQL (`DEFAULT 'TELEGRAM'`) quanto no `RequisitanteEntity` e `Requisitante.builder().canalPreferido(Canal.TELEGRAM)`. Pedro existente é automaticamente mapeado para TELEGRAM sem UPDATE.
+(Desvio de numeração V4→V5 já resolvido em `6b28829` — migration renomeada proativamente. Nenhuma ação necessária no merge.)
 
-## TODOs para BE-22
+---
 
+## Decisões tomadas durante a execução
+
+**`Map<Canal, NotificadorPortOut>`:** construído via `List<NotificadorPortOut>` injetada no construtor + `Collectors.toMap(NotificadorPortOut::getCanal, ...)`. Evita dependência de bean names como chave. Adicionar novo canal = só criar novo bean que implemente `getCanal()`.
+
+**`@Transactional` em `RegistrarComprovanteServiceImpl.execute()`:** sem transação ativa, `@TransactionalEventListener(AFTER_COMMIT)` descarta eventos (fallbackExecution = false por padrão).
+
+**Default TELEGRAM do canalPreferido:** tanto na migração SQL (`DEFAULT 'TELEGRAM'`) quanto em `RequisitanteEntity` e `Requisitante.builder()`. Pedro existente é automaticamente mapeado para TELEGRAM sem UPDATE.
+
+---
+
+## Decisões pendentes (esperando humano)
+
+Nenhuma — tarefa fechada.
+
+---
+
+## Próximos passos / observações pro próximo
+
+**BE-22 — counters de falha do listener:**
 - `NotificacaoComprovanteListener`: `// TODO BE-22: incrementar counter de falha do listener (metric)`
-- BE-22 deve adicionar: (a) Micrometer `Counter` de falhas do listener por canal, (b) `Timer` de latência do envio segmentado por canal/resultado.
+- BE-22 deve adicionar: (a) Micrometer `Counter` de falhas por canal, (b) `Timer` de latência por canal/resultado.
 
-## Desvios documentados
+---
 
-1. **V4 em vez de V5:** plan esperava V5 (pós-BE-19a). Usado V4 por ser o próximo disponível em develop. Renumerar se BE-19a mergear antes.
-2. **`Canal` em vez de `CanalMensagem` do BE-19a:** esta task cria `Canal` unificado; BE-19a cria `CanalMensagem` separado na mesma pasta. Unificar para `Canal` durante o merge de uma das branches.
+## Arquivos criados/modificados
 
-## Gates
-
-- [x] `mvn test`: 207 unit tests passando, 22 erros (todos `integration` — Docker indisponível, pré-existente)
-- [x] `mvn package -DskipTests`: BUILD SUCCESS
-- [x] Território: apenas `financas_bot_telegram/` — nenhum toque em `frontend/`, infra
-- [x] Status report escrito
+- `src/main/resources/db/migration/V5__add_canal_preferido_requisitante.sql` (novo)
+- `domain/model/Canal.java` (novo)
+- `domain/event/ComprovanteRegistradoEvent.java` (novo)
+- `domain/model/Requisitante.java` (modificado: campo `canalPreferido`)
+- `adapters/out/persistence/entity/RequisitanteEntity.java` (modificado: campo `canalPreferido`)
+- `adapters/out/persistence/mapper/RequisitanteMapper.java` (modificado: mapeamento `canalPreferido`)
+- `application/port/out/NotificadorPortOut.java` (novo)
+- `application/port/out/NotificacaoDTO.java` (novo)
+- `application/config/AsyncConfig.java` (novo)
+- `application/event/NotificacaoComprovanteListener.java` (novo)
+- `adapters/out/telegram/notificador/TelegramNotificadorImpl.java` (novo)
+- `application/services/RegistrarComprovanteServiceImpl.java` (modificado: publisher + @Transactional)
+- `RegistrarComprovanteServiceImplTest.java` (modificado: @Mock eventPublisher)
+- `NotificacaoComprovanteListenerIntegrationTest.java` (novo)
