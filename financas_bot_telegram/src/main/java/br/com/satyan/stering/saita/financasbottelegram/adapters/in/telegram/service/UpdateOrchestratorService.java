@@ -4,7 +4,7 @@ package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.ser
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.strategy.UpdateProcessingStrategy;
 import br.com.satyan.stering.saita.financasbottelegram.application.services.MensagemProcessadaService;
-import br.com.satyan.stering.saita.financasbottelegram.domain.model.CanalMensagem;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.Canal;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,7 @@ public class UpdateOrchestratorService {
   @Transactional
   public void process(Update update) {
     String idExterno = update.getUpdateId() != null ? update.getUpdateId().toString() : "";
-    if (!mensagemProcessadaService.tentarClaim(CanalMensagem.TELEGRAM, idExterno)) {
+    if (!mensagemProcessadaService.tentarClaim(Canal.TELEGRAM, idExterno)) {
       logger.info("Update {} já processado anteriormente — descartando (idempotência).", idExterno);
       return;
     }

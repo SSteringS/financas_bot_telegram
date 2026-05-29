@@ -1,6 +1,6 @@
 package br.com.satyan.stering.saita.financasbottelegram.application.services;
 
-import br.com.satyan.stering.saita.financasbottelegram.domain.model.CanalMensagem;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.Canal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
@@ -23,7 +23,7 @@ public class MensagemProcessadaService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public boolean tentarClaim(CanalMensagem canal, String idExterno) {
+    public boolean tentarClaim(Canal canal, String idExterno) {
         try {
             jdbcTemplate.update(
                 "INSERT INTO mensagem_processada (canal, id_externo) VALUES (?, ?)",

@@ -3,7 +3,7 @@ package br.com.satyan.stering.saita.financasbottelegram.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.satyan.stering.saita.financasbottelegram.application.services.MensagemProcessadaService;
-import br.com.satyan.stering.saita.financasbottelegram.domain.model.CanalMensagem;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.Canal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,21 +25,21 @@ class MensagemProcessadaIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void primeiraClaim_retornaTrue() {
-        boolean resultado = mensagemProcessadaService.tentarClaim(CanalMensagem.WHATSAPP, "wamid.PRIMEIRO");
+        boolean resultado = mensagemProcessadaService.tentarClaim(Canal.WHATSAPP, "wamid.PRIMEIRO");
         assertThat(resultado).isTrue();
     }
 
     @Test
     void claimDuplicada_retornaFalse() {
-        mensagemProcessadaService.tentarClaim(CanalMensagem.WHATSAPP, "wamid.DUP");
-        boolean segundo = mensagemProcessadaService.tentarClaim(CanalMensagem.WHATSAPP, "wamid.DUP");
+        mensagemProcessadaService.tentarClaim(Canal.WHATSAPP, "wamid.DUP");
+        boolean segundo = mensagemProcessadaService.tentarClaim(Canal.WHATSAPP, "wamid.DUP");
         assertThat(segundo).isFalse();
     }
 
     @Test
     void canaisDiferentes_ambosRetornamTrue() {
-        boolean resultadoWa = mensagemProcessadaService.tentarClaim(CanalMensagem.WHATSAPP, "wamid.SHARED");
-        boolean resultadoTg = mensagemProcessadaService.tentarClaim(CanalMensagem.TELEGRAM, "wamid.SHARED");
+        boolean resultadoWa = mensagemProcessadaService.tentarClaim(Canal.WHATSAPP, "wamid.SHARED");
+        boolean resultadoTg = mensagemProcessadaService.tentarClaim(Canal.TELEGRAM, "wamid.SHARED");
         assertThat(resultadoWa).isTrue();
         assertThat(resultadoTg).isTrue();
     }
@@ -49,13 +49,13 @@ class MensagemProcessadaIntegrationTest extends AbstractIntegrationTest {
         TransactionTemplate txTemplate = new TransactionTemplate(transactionManager);
 
         txTemplate.execute(status -> {
-            mensagemProcessadaService.tentarClaim(CanalMensagem.TELEGRAM, "rollback-id");
+            mensagemProcessadaService.tentarClaim(Canal.TELEGRAM, "rollback-id");
             status.setRollbackOnly();
             return null;
         });
 
         // Após rollback o claim não foi persistido — nova tentativa deve ter sucesso
-        boolean aposRollback = mensagemProcessadaService.tentarClaim(CanalMensagem.TELEGRAM, "rollback-id");
+        boolean aposRollback = mensagemProcessadaService.tentarClaim(Canal.TELEGRAM, "rollback-id");
         assertThat(aposRollback).isTrue();
     }
 }

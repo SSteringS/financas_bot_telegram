@@ -1,6 +1,6 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.out.persistence.entity;
 
-import br.com.satyan.stering.saita.financasbottelegram.domain.model.CanalMensagem;
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.Canal;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -32,7 +32,7 @@ public class MensagemProcessadaEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "canal", nullable = false, length = 20)
-    private CanalMensagem canal;
+    private Canal canal;
 
     @Column(name = "id_externo", nullable = false)
     private String idExterno;
@@ -40,7 +40,7 @@ public class MensagemProcessadaEntity {
     @Column(name = "processado_em", nullable = false)
     private LocalDateTime processadoEm;
 
-    public MensagemProcessadaEntity(CanalMensagem canal, String idExterno) {
+    public MensagemProcessadaEntity(Canal canal, String idExterno) {
         this.canal = canal;
         this.idExterno = idExterno;
         this.processadoEm = LocalDateTime.now();
