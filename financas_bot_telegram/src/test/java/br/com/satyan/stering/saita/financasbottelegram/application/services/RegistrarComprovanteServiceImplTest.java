@@ -3,6 +3,7 @@ package br.com.satyan.stering.saita.financasbottelegram.application.services;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -23,12 +24,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class RegistrarComprovanteServiceImplTest {
 
     @Mock private ComprovanteRepositoryPort comprovanteRepository;
     @Mock private PedidoPagamentoRepositoryPort pedidoPagamentoRepository;
+    @Mock private ApplicationEventPublisher eventPublisher;
     @InjectMocks private RegistrarComprovanteServiceImpl service;
 
     private PedidoPagamento pedidoPendente(Long id) {
