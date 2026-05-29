@@ -1,5 +1,6 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.out.telegram.service;
 
+import br.com.satyan.stering.saita.financasbottelegram.application.port.out.CanalNotificadorPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 @Service
-public class TelegramMessageSenderService {
+public class TelegramMessageSenderService implements CanalNotificadorPort {
 
   private static final Logger logger = LoggerFactory.getLogger(TelegramMessageSenderService.class);
 
@@ -21,6 +22,11 @@ public class TelegramMessageSenderService {
     this.restClient = restClient;
     this.botToken = botToken;
     this.telegramApiUrl = telegramApiUrl;
+  }
+
+  @Override
+  public void enviar(Long chatId, String mensagem) {
+    sendMessage(chatId, mensagem);
   }
 
   public void sendMessage(Long chatId, String text) {

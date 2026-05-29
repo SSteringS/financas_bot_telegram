@@ -4,11 +4,11 @@ Roteiro **manual** pro humano validar o fluxo completo do site em produção, co
 
 ## Pré-requisitos (conferir antes de começar)
 
-- [ ] **FIX-volume** aplicado — disco da EC2 com espaço, deploy do back funcionando.
-- [ ] **`keystore_password`** adicionado no Secrets Manager (`finbot-prod-secrets`) — senão a app não sobe.
-- [ ] **Back deployado** com as mudanças do **DEP-05** (CORS/cookie apontando pra `satyansaita.com`).
-- [ ] **Front deployado** (DEP-04) com `VITE_API_BASE_URL=https://api.satyansaita.com` (corrigido).
-- [ ] **DEP-03** no ar: `curl -i https://api.satyansaita.com/api/v1/resumo` → 401 `SESSAO_AUSENTE`. ✅ (já validado)
+- [x] **FIX-volume** aplicado — disco da EC2 com espaço, deploy do back funcionando.
+- [x] **`keystore_password`** adicionado no Secrets Manager (`finbot-prod-secrets`) — senão a app não sobe.
+- [x] **Back deployado** com as mudanças do **DEP-05** (CORS/cookie apontando pra `satyansaita.com`).
+- [x] **Front deployado** (DEP-04) com `VITE_API_BASE_URL=https://api.satyansaita.com` (corrigido).
+- [x] **DEP-03** no ar: `curl -i https://api.satyansaita.com/api/v1/resumo` → 401 `SESSAO_AUSENTE`. ✅ (já validado)
 
 ## Passo 1 — Gerar o link mágico (token de convite)
 
@@ -25,25 +25,25 @@ curl -i -X POST https://api.satyansaita.com/admin/api/v1/requisitantes/1/convite
 
 ## Passo 2 — Abrir no celular (como o Pedro)
 
-- [ ] Abrir a `url` do passo 1 no navegador do **celular**.
-- [ ] A `/entrar?t=...` faz o exchange e **redireciona pra Home** (`/`).
-- [ ] A Home **lista os pedidos reais** (vindos da API, não mock).
-- [ ] O cabeçalho mostra o nome do requisitante + o resumo do mês.
+- [x] Abrir a `url` do passo 1 no navegador do **celular**.
+- [x] A `/entrar?t=...` faz o exchange e **redireciona pra Home** (`/`).
+- [x] A Home **lista os pedidos reais** (vindos da API, não mock).
+- [x] O cabeçalho mostra o nome do requisitante + o resumo do mês.
 
 ## Passo 3 — Comprovante
 
-- [ ] Tocar em "Ver comprovante" num pedido **PAGO** → o modal abre com a imagem/PDF carregando (via pre-signed URL do S3).
-- [ ] O botão de download abre o arquivo.
+- [x] Tocar em "Ver comprovante" num pedido **PAGO** → o modal abre com a imagem/PDF carregando (via pre-signed URL do S3).
+- [x] O botão de download abre o arquivo.
 
 ## Passo 4 — PWA (instalável)
 
-- [ ] "Adicionar à tela inicial" aparece / funciona no Chrome do Android.
-- [ ] Aberto pela tela inicial, abre **fullscreen** (sem barra do navegador).
+- [x] "Adicionar à tela inicial" aparece / funciona no Chrome do Android.
+- [x] Aberto pela tela inicial, abre **fullscreen** (sem barra do navegador).
 
 ## Passo 5 — Persistência da sessão
 
-- [ ] Fechar e reabrir o app → **continua autenticado** (cookie de 180 dias persistiu).
-- [ ] (Opcional) Confirmar no DevTools que o cookie `finbot_session` tem `Domain=satyansaita.com; Secure; HttpOnly; SameSite=Lax`.
+- [x] Fechar e reabrir o app → **continua autenticado** (cookie de 180 dias persistiu).
+- [x] (Opcional) Confirmar no DevTools que o cookie `finbot_session` tem `Domain=satyansaita.com; Secure; HttpOnly; SameSite=Lax`.
 
 ## Critério de conclusão (DEP-06)
 
