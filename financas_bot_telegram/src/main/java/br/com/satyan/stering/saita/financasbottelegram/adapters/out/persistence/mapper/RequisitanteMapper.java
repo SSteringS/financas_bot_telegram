@@ -16,6 +16,7 @@ public class RequisitanteMapper {
                 .email(entity.getEmail())
                 .ativo(entity.isAtivo())
                 .criadoEm(entity.getCriadoEm())
+                .canalPreferido(entity.getCanalPreferido())
                 .build();
     }
 
@@ -28,6 +29,7 @@ public class RequisitanteMapper {
         entity.setEmail(domain.getEmail());
         entity.setAtivo(domain.isAtivo());
         entity.setCriadoEm(domain.getCriadoEm());
+        entity.setCanalPreferido(domain.getCanalPreferido());
         return entity;
     }
 }
