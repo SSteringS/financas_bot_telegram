@@ -2,7 +2,7 @@
 
 > **Status:** esboço de arquitetura (Arquiteto, 2026-05-27). Pressupõe o **ADR 0012** homologado (provider = Cloud API oficial da Meta). É o "como" técnico que os planos de task (EVO-01/EVO-02) vão referenciar — **não é código**, e o planner quebra em tasks. Onde discordar, me corrige.
 
-Referências de base: `docs/architecture/estado-atual.md` §3/§5/§6 · `docs/decisions/0003-controller-webhook-nunca-retorna-5xx.md` · `docs/decisions/0012-provider-whatsapp-cloud-api-oficial.md` · `docs/aprendizado/whatsapp-modelo-mensagens.md`.
+Referências de base: `docs/architecture/estado-atual.md` §3/§5/§6 · `docs/decisions/0003-controller-webhook-nunca-retorna-5xx.md` · `docs/decisions/0012-provider-whatsapp-cloud-api-oficial.md` · `docs/decisions/0013-estrategia-multi-canal-adapters.md` · `docs/decisions/0014-notificacoes-via-eventos-in-process.md` · `docs/aprendizado/whatsapp-modelo-mensagens.md` · `docs/aprendizado/eventos-in-process-spring.md`.
 
 ---
 
@@ -10,8 +10,9 @@ Referências de base: `docs/architecture/estado-atual.md` §3/§5/§6 · `docs/d
 
 Adicionar o **canal WhatsApp** ao bot, reaproveitando o núcleo de aplicação (usecases) sem alterá-lo. A hexagonal já isola o canal de entrada num adapter (`adapters/in/telegram`); este documento descreve o adapter equivalente pra WhatsApp Cloud API e a generalização da porta de entrada pra ficar **agnóstica de canal**.
 
-**No escopo:** adapter de entrada (webhook), adapter de saída (envio + download de mídia), porta de entrada agnóstica, mapeamento pros usecases atuais.
-**Fora do escopo (decisão de produto/PO):** migrar (desligar Telegram) vs. adicionar (rodar os dois). A arquitetura suporta ambos; ver §7.
+**No escopo:** adapter de entrada (webhook), adapter de saída (envio + download de mídia), porta de entrada agnóstica, mapeamento pros usecases atuais, eventos in-process pra reações ao registro de comprovante.
+
+**Decidido (ADR 0013):** o Telegram **permanece** e o WhatsApp é **adicionado** (não é migração). Discord é evolução futura.
 
 ---
 
@@ -236,6 +237,24 @@ Dois passos (substitui `TelegramFileDownloaderService`):
 
 A partir daí o fluxo é idêntico ao atual: bytes → `S3ImageUploadService` (inalterado).
 
+### 5.3 Convenção de criação do `RestClient`
+
+Ambos os serviços de saída do WhatsApp (e o equivalente do Telegram pós-alinhamento) usam um `RestClient` injetado. **Convenção do projeto:** o `RestClient` é registrado como **singleton no `AppConfig`** e **construído a partir do `RestClient.Builder` auto-configurado** pelo Spring Boot:
+
+```java
+@Bean
+RestClient whatsappRestClient(RestClient.Builder builder) {
+    return builder
+        .baseUrl("https://graph.facebook.com/{version}/")
+        .defaultHeader("Authorization", "Bearer " + accessToken)
+        .build();
+}
+```
+
+**Por que essa forma combina o melhor dos dois mundos:** mantém um ponto único de configuração (interceptors, timeouts, observability — convenção arquitetural do projeto), **e** permite usar a slice `@RestClientTest` nos testes — porque a slice amarra um `MockRestServiceServer` ao Builder auto-configurado, e como o singleton **vem dele**, o mock vale automaticamente pro singleton inteiro. Sem essa forma (ex.: `RestClient.create()` direto), perde-se a slice e fica-se entre mockar a API fluente do RestClient na unha ou recorrer a WireMock — funciona, mas é mais incômodo.
+
+O Telegram **hoje** não segue essa forma (usa `RestClient.create()` direto); está catalogado em `PENDENCIAS-TECNICAS.md` como FIX rápido de alinhamento, pra os adapters convergirem antes do segundo (WhatsApp) consolidar a divergência.
+
 ---
 
 ## 6. Impacto na EVO-02 (notificação automática)
@@ -334,4 +353,4 @@ Pendências de infra/segurança a mapear:
 4. Adapter de entrada (`WhatsAppWebhookController` GET+POST, `MetaSignatureValidator`, mapper, orchestrator) + idempotência.
 5. Fim-a-fim do canal (EVO-01): registrar pedido/comprovante via WhatsApp.
 6. EVO-02: template de utilidade aprovado + `NotificadorPortOut` por template + **publicação do `ComprovanteRegistradoEvent`** no usecase + **`NotificacaoComprovanteListener`** (AFTER_COMMIT + @Async) com roteamento por canal preferido — ADR 0014.
-7. (PO) Desligar Telegram, se a decisão for migrar.
+7. (PO) Desligar Telegram, se a decisão for migrar.  *(Não se aplica — ADR 0013 manteve Telegram. Item mantido apenas por completude do fluxo lógico original.)*

@@ -29,6 +29,7 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 - [`jjwt-3-artefatos.md`](jjwt-3-artefatos.md) — por que a lib JWT tem 3 dependências
 - [`argument-resolver-vs-requestparam.md`](argument-resolver-vs-requestparam.md) — por que `@RequisitanteId` ignora query param do mesmo nome
 - [`eventos-in-process-spring.md`](eventos-in-process-spring.md) — `ApplicationEvents`, `@TransactionalEventListener(AFTER_COMMIT)`, `@Async`, trade-off de durabilidade; base do ADR 0014 (EVO-02)
+- [`eventos-in-process-spring.md`](eventos-in-process-spring.md) — `ApplicationEvents`, `@TransactionalEventListener(AFTER_COMMIT)`, `@Async`, trade-off de durabilidade; base do ADR 0014 (EVO-02)
 
 ### React / TypeScript fundamentos
 
@@ -54,6 +55,10 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 - [`hospedagem-spa-s3-cloudfront.md`](hospedagem-spa-s3-cloudfront.md) — SPA estática em S3+CloudFront: OAC, cert us-east-1, alias no apex, SPA fallback 403/404 (DEP-02)
 - [`front-api-hostnames-separados.md`](front-api-hostnames-separados.md) — por que front (apex) e API (subdomínio) ficam separados: cache oposto, cross-origin vs same-site, tradeoff do single-origin
 - [`cloudfront-functions-e-security-headers.md`](cloudfront-functions-e-security-headers.md) — edge compute (CloudFront Functions vs Lambda@Edge), redirect www→apex, Response Headers Policy (HSTS/CSP)
+
+### Integrações / mensageria
+
+- [`whatsapp-modelo-mensagens.md`](whatsapp-modelo-mensagens.md) — janela de 24h, categorias de template (serviço/utilidade/autenticação/marketing), oficial vs não-oficial; base do ADR 0012 (EVO-01) e do design da EVO-02
 
 ### Segurança web
 

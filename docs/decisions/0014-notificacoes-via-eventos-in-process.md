@@ -4,7 +4,7 @@
 **Status:** `Proposed`
 **Decisores:** humano (PO) — proposto pelo Arquiteto
 
-> Decisão direcionada pelo humano em 2026-05-27 após comparativo de alternativas (síncrono / Spring events / outbox / broker). Mantido `Proposed` por disciplina de papel (ADR 0011).
+> Decisão direcionada pelo humano em 2026-05-27 após comparativo de alternativas (síncrono / Spring events / outbox / broker). Mantido `Proposed` por disciplina de papel.
 
 ---
 

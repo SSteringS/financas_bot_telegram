@@ -4,7 +4,7 @@
 **Status:** `Proposed`
 **Decisores:** humano (PO) — proposto pelo Arquiteto
 
-> Reflete direção dada explicitamente pelo humano em 2026-05-27 ("manter o Telegram; só adicionar adapters; Discord como evolução futura"). Mantido como `Proposed` por disciplina de papel (o Arquiteto não homologa a própria proposta — ADR 0011); pronto pra homologação junto do ADR 0012.
+> Reflete direção dada explicitamente pelo humano em 2026-05-27 ("manter o Telegram; só adicionar adapters; Discord como evolução futura"). Mantido como `Proposed` por disciplina de papel (o Arquiteto não homologa a própria proposta); pronto pra homologação junto do ADR 0012.
 
 ---
 
@@ -68,6 +68,6 @@ O **Discord** fica **registrado como ideia de evolução futura** — candidato 
 ## Referências
 
 - `docs/decisions/0012-provider-whatsapp-cloud-api-oficial.md` — provider do WhatsApp (Cloud API oficial)
-- `docs/architecture/adapter-whatsapp-cloud-api.md` §3, §6, §7 — porta agnóstica, EVO-02, migrar vs. adicionar
+- `docs/architecture/adapter-whatsapp-cloud-api.md` §3, §6, §7 — porta agnóstica, EVO-02, multi-canal
 - `docs/sprints/02-canal-whatsapp/README.md` — enquadramento original "migrar (ou adicionar)"
 - Direção dada pelo humano (PO) em 2026-05-27

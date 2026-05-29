@@ -4,7 +4,7 @@
 **Status:** `Proposed`
 **Decisores:** humano (PO) — proposto pelo Arquiteto
 
-> ADR proposto. Só vira `Accepted` por homologação do humano (papel do Arquiteto, ADR 0011 §"NÃO faz": não homologa a própria decisão).
+> ADR proposto. Só vira `Accepted` por homologação do humano (papel do Arquiteto: não homologa a própria decisão).
 
 ---
 
@@ -40,25 +40,9 @@ Por que a oficial e **não** as alternativas, nos quatro eixos pedidos:
 
 **Risco de ToS — decisivo aqui.** Z-API e Evolution-via-Baileys **violam explicitamente** os Termos de Serviço do WhatsApp; a Meta detecta padrões não-humanos e **bane contas**. Pro caso típico, banimento = perda de vendas. **Pro nosso caso é pior**: o número é o WhatsApp **real da família**, então um ban significa perder a conta pessoal, não um canal comercial descartável. Para uma utilidade doméstica que deve durar anos, aceitar um canal que "vive 2–8 semanas até o próximo ciclo de detecção" é risco desproporcional ao que se economiza (que, como visto, é negativo). A Cloud API é o caminho **sancionado** pela Meta — sem esse risco por construção.
 
-**Esforço — a oficial tem mais atrito de setup, porém one-time, e o adapter é igual nos três.** Os três providers são **webhook-in / REST-out**, então o formato do adapter hexagonal é parecido em todos (ver §Encaixe). A diferença de esforço está nas pontas: a oficial exige **setup inicial** (verificação no Meta Business, número dedicado, registro do webhook, **aprovação de template** pra notificação da EVO-02) — atrito de uma vez. Z-API encurta o setup mas adiciona **dependência de um SaaS terceiro** no caminho crítico. Evolution elimina o terceiro mas adiciona **carga operacional permanente** na EC2 t4g.micro (mais um processo Node + Baileys pra manter vivo e atualizado), competindo por recursos com o backend Java.
+**Esforço — a oficial tem mais atrito de setup, porém one-time, e o adapter é igual nos três.** Os três providers são **webhook-in / REST-out**, então o formato do adapter hexagonal é parecido em todos. A diferença de esforço está nas pontas: a oficial exige **setup inicial** (verificação no Meta Business, número dedicado, registro do webhook, **aprovação de template** pra notificação da EVO-02) — atrito de uma vez. Z-API encurta o setup mas adiciona **dependência de um SaaS terceiro** no caminho crítico. Evolution elimina o terceiro mas adiciona **carga operacional permanente** na EC2 t4g.micro (mais um processo Node + Baileys pra manter vivo e atualizado), competindo por recursos com o backend Java.
 
 **Encaixe hexagonal — a oficial dá o contrato mais estável.** Como todos são webhook+REST, todos encaixam. Mas o contrato da Cloud API é **versionado e estável** (Graph API), enquanto Baileys (Z-API/Evolution) é engenharia reversa do WhatsApp Web que **quebra quando a Meta muda o protocolo**. Um adapter sobre um contrato estável é menos manutenção ao longo do tempo — exatamente o que a hexagonal quer proteger atrás da porta.
-
----
-
-## Encaixe na arquitetura hexagonal
-
-A estrutura atual do Telegram (`estado-atual.md` §3) tem um espelho direto no WhatsApp Cloud API:
-
-| Hoje (Telegram) | Equivalente WhatsApp Cloud API |
-|---|---|
-| `adapters/in/telegram/controller/TelegramWebhookController` (`POST /webhook`, retorna 200 — ADR 0003) | `adapters/in/whatsapp/controller/WhatsAppWebhookController`. A Meta **também retenta em não-2xx** → ADR 0003 se aplica igual. Adiciona **GET /webhook** pro *verify challenge* (`hub.challenge`) e validação da assinatura `X-Hub-Signature-256`. |
-| `UpdateOrchestratorService` + strategies (`PaymentRequestStrategy`, `PaymentProofStrategy`, regex na legenda) | Mesmas strategies reaproveitáveis — muda só o **parsing do envelope** (payload de `messages` da Meta) pro `PaymentMessageDTO`. A lógica de regex de valor/descrição não muda. |
-| `adapters/out/telegram/service/*` (sender, file downloader) | `adapters/out/whatsapp/service/*`: envio via Graph API `POST /{phone-id}/messages`; download de mídia em duas etapas (GET media URL → GET binário com bearer token). Análogo ao `TelegramFileDownloaderService`. |
-| `application/port/in/TelegramPortIn` | Generalizar pra `MensagemEntrantePortIn` (ou criar `WhatsAppPortIn` paralelo). Oportunidade de **renomear a porta pra algo agnóstico de canal**, já que o objetivo é justamente desacoplar do Telegram. |
-| usecases (`SalvarPedido...`, `RegistrarComprovante...`) | **Inalterados.** É o ganho da hexagonal: o core não sabe qual canal o alimenta. |
-
-Decisão de produto a cargo do PO (não do arquiteto): **migrar** (desligar Telegram) ou **adicionar** (rodar os dois canais). A arquitetura suporta ambos — se rodar os dois, a porta de entrada agnóstica e usecases compartilhados tornam isso barato.
 
 ---
 
