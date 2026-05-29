@@ -2,11 +2,15 @@ package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.con
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidUpdateException;
-import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.service.UpdateOrchestratorService;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.mapper.TelegramMessageMapper;
+import br.com.satyan.stering.saita.financasbottelegram.application.dto.PaymentMessageDTO;
 import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.UnauthorizedUserException;
+import br.com.satyan.stering.saita.financasbottelegram.application.port.in.MensagemEntrantePortIn;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,10 +27,11 @@ import org.telegram.telegrambots.meta.api.objects.User;
 @ExtendWith(MockitoExtension.class)
 class TelegramWebhookControllerTest {
 
-    @Mock private UpdateOrchestratorService orchestratorService;
+    @Mock private TelegramMessageMapper telegramMessageMapper;
+    @Mock private MensagemEntrantePortIn mensagemEntrantePortIn;
 
     private TelegramWebhookController controller(String... allowedIds) {
-        return new TelegramWebhookController(orchestratorService, List.of(allowedIds));
+        return new TelegramWebhookController(telegramMessageMapper, mensagemEntrantePortIn, List.of(allowedIds));
     }
 
     private Update updateValido(Long chatId, Long userId) {
@@ -49,12 +54,15 @@ class TelegramWebhookControllerTest {
     @Test
     void deveRetornar200ParaUsuarioAutorizado() {
         Update update = updateValido(100L, 123L);
-        TelegramWebhookController ctrl = controller("123");
+        PaymentMessageDTO dto = PaymentMessageDTO.builder().chatId(100L).build();
+        when(telegramMessageMapper.toPaymentMessageDTO(update)).thenReturn(dto);
 
+        TelegramWebhookController ctrl = controller("123");
         ResponseEntity<Void> response = ctrl.receberMensagem(update, new MockHttpServletRequest());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        verify(orchestratorService).process(update);
+        verify(telegramMessageMapper).toPaymentMessageDTO(update);
+        verify(mensagemEntrantePortIn).processar(dto);
     }
 
     @Test
