@@ -1,13 +1,28 @@
 ---
-tarefa: BE-19a
-titulo: Idempotência — tabela mensagem_processada + claim-then-process
-branch: feature/be-19a-idempotencia-mensagem-processada
-estado: concluido
+task: BE-19a
+titulo: "Idempotência — tabela mensagem_processada + claim-then-process"
 data: 2026-05-29
-testes_total: 231
-testes_novos: 5
-desvios: 1
+branch: feature/be-19a-idempotencia-mensagem-processada
+responsavel: claude-back
+estado: concluido
+gates:
+  build: ok
+  lint: na
+  testes: ok
+  testes_total: 237
+  testes_novos: 5
+  branch_convencao: ok
+  territorio: ok
+commits:
+  - d1fa9d8
+  - 3131283
+  - adc0848
+pr: null
+desvios: 0
+pendencias_humano: 0
 ---
+
+# BE-19a — Idempotência: tabela mensagem_processada + claim-then-process
 
 ## O que foi feito
 
@@ -15,41 +30,74 @@ desvios: 1
 - `V4__criar_mensagem_processada.sql`: tabela `mensagem_processada` com colunas `id`, `canal`, `id_externo`, `processado_em` e `UNIQUE KEY uk_msg_canal_idexterno (canal, id_externo)`.
 
 ### Domínio
-- `domain/model/CanalMensagem.java`: enum `TELEGRAM | WHATSAPP` — representa o canal de origem da mensagem.
+- `domain/model/Canal.java`: enum `TELEGRAM | WHATSAPP` — representa o canal de origem da mensagem. Unificado com BE-21a (substituiu `CanalMensagem` inicial).
+
+### DTO
+- `application/dto/PaymentMessageDTO.java`: adicionado campo `Canal canal` — preenchido pelo mapper de cada canal. Permite que `MensagemEntranteService` faça o claim sem conhecer o protocolo do canal.
 
 ### Persistência
 - `adapters/out/persistence/entity/MensagemProcessadaEntity.java`: entidade JPA com `@UniqueConstraint`.
 - `adapters/out/persistence/MensagemProcessadaJpaRepository.java`: repositório JPA (sem queries customizadas — inserção via `JdbcTemplate`).
 
 ### Serviço de claim
-- `application/services/MensagemProcessadaService.java`: método `tentarClaim(CanalMensagem, String)` com `@Transactional(REQUIRED)`.
+- `application/services/MensagemProcessadaService.java`: método `tentarClaim(Canal, String)` com `@Transactional(REQUIRED)`.
   - Usa `JdbcTemplate` (não JPA) para o INSERT — evita invalidação de sessão Hibernate ao capturar `DuplicateKeyException`.
   - Retorna `true` (insert ok) ou `false` (duplicate key = já processado).
   - Participa da transação do chamador (REQUIRED) — rollback do negócio reverte o claim, permitindo retentativa.
 
-### Integração no orquestrador
-- `UpdateOrchestratorService.process()`: `@Transactional` + claim no início do processamento.
+### Integração no ponto canal-agnóstico
+- `MensagemEntranteService.processar(PaymentMessageDTO dto)`: `@Transactional` + claim no início do processamento (após merge de BE-17 via adc0848).
   - Se `tentarClaim` retornar `false`: log de descarte + `return` (sem processar, sem erro).
-  - `idExterno = update.getUpdateId().toString()`.
+  - `idExterno = dto.getExternalId()` (messageId do canal); `canal = dto.getCanal()`.
+- `adapters/in/telegram/mapper/TelegramMessageMapper.java`: seta `canal = Canal.TELEGRAM` nos três builders.
 
 ### Testes
-- `UpdateOrchestratorServiceTest`: adicionado `deveSaltarProcessamentoQuandoClaimFalhar` — verifica que strategies nunca são invocadas quando claim retorna `false`.
+- `MensagemEntranteServiceTest`: adicionado `deveSaltarProcessamentoQuandoClaimFalhar` — verifica que strategies nunca são invocadas quando claim retorna `false`. Testes existentes adaptados para usar `canal` + `externalId` no builder do DTO.
 - `MensagemProcessadaIntegrationTest`: 4 testes Testcontainers (falham neste ambiente por ausência de Docker — pré-existente).
   - `primeiraClaim_retornaTrue`
   - `claimDuplicada_retornaFalse`
   - `canaisDiferentes_ambosRetornamTrue`
   - `rollback_removeClaim_permitindoRetentativa`
 
-## Desvio documentado
+---
 
-**Ponto de integração em `UpdateOrchestratorService` em vez de `MensagemEntranteService`**
+## Desvios do plano
 
-O plano especificava a integração em `MensagemEntranteService` (introduzido pelo BE-17). Porém BE-17 ainda não foi mergeado em `develop` — a branch `feature/be-19a-idempotencia-mensagem-processada` foi criada a partir de `develop` sem BE-17. O ponto de integração foi adaptado para `UpdateOrchestratorService.process()`, que é o orquestrador equivalente no código da `develop` atual.
+Nenhum.
 
-**Ação necessária no merge de BE-17:** durante a resolução de conflito, mover o claim de `UpdateOrchestratorService` para `MensagemEntranteService`, que será o ponto correto após a refatoração BE-17.
+(O desvio original — claim em `UpdateOrchestratorService` em vez de `MensagemEntranteService` — foi resolvido no commit `adc0848`, após merge de `develop` com BE-17. O ponto de integração correto está em `MensagemEntranteService.processar()`.)
 
-## Gates
+---
 
-- [x] `mvn test`: 208 unit tests passando, 23 erros (todos no pacote `integration` — Docker indisponível, pré-existente)
-- [x] `mvn package -DskipTests`: BUILD SUCCESS
-- [x] Status report escrito
+## Decisões tomadas durante a execução
+
+- `JdbcTemplate` no lugar de JPA para o INSERT de claim: evita invalidação de sessão Hibernate ao capturar `DuplicateKeyException` dentro de uma transação ativa.
+- `Canal` como campo do DTO em vez de parâmetro avulso: mantém `MensagemEntranteService` agnóstico ao protocolo — cada mapper de canal preenche o campo antes de chamar `processar()`.
+
+---
+
+## Decisões pendentes (esperando humano)
+
+Nenhuma — tarefa fechada.
+
+---
+
+## Próximos passos / observações pro próximo
+
+- BE-21a cria `Canal.java` com conteúdo idêntico. No merge de BE-21a em develop (após BE-19a), o conflito em `domain/model/Canal.java` é no-op — manter qualquer uma das versões.
+- V5 da migration é da BE-21a (`canal_preferido`). V4 é desta task.
+
+---
+
+## Arquivos criados/modificados
+
+- `src/main/resources/db/migration/V4__criar_mensagem_processada.sql` (novo)
+- `domain/model/Canal.java` (novo)
+- `adapters/out/persistence/entity/MensagemProcessadaEntity.java` (novo)
+- `adapters/out/persistence/MensagemProcessadaJpaRepository.java` (novo)
+- `application/services/MensagemProcessadaService.java` (novo)
+- `application/dto/PaymentMessageDTO.java` (modificado: campo `Canal canal`)
+- `adapters/in/telegram/mapper/TelegramMessageMapper.java` (modificado: seta `Canal.TELEGRAM`)
+- `application/services/MensagemEntranteService.java` (modificado: claim + `@Transactional`)
+- `application/services/MensagemEntranteServiceTest.java` (modificado: 1 teste novo + 4 adaptados)
+- `integration/MensagemProcessadaIntegrationTest.java` (novo)
