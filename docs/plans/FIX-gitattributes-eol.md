@@ -88,5 +88,5 @@ terraform plan -var-file=prod.tfvars
 ## Coordenação
 
 - Território: arquivo de raiz (`.gitattributes`) + renormalização repo-wide (exceção declarada acima). Pode ser executado pelo humano direto (são poucos comandos git) ou por uma instância designada — mas o git roda **no PowerShell**, nunca pelo sandbox.
-- Status report em `docs/status/FIX-gitattributes-eol.md` (frontmatter: `gates.build/lint/testes = na`; registrar o resultado do `terraform plan` como evidência do gate).
+- Status report em `docs/sprints/01-mvp/status/FIX-gitattributes-eol.md` (frontmatter: `gates.build/lint/testes = na`; registrar o resultado do `terraform plan` como evidência do gate).
 - Relacionado: `docs/aprendizado/git-line-endings-crlf-lf.md`.

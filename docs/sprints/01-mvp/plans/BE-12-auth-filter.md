@@ -221,7 +221,7 @@ public ResponseEntity<AuthMeResponse> me(
 
 ## Status report
 
-`docs/status/BE-12-auth-filter.md`. Cobrir:
+`docs/sprints/01-mvp/status/BE-12-auth-filter.md`. Cobrir:
 
 - Sumário do `mvn test`
 - Cenários testados via curl: sem cookie, cookie inválido, cookie válido (chamando `/auth/me`)

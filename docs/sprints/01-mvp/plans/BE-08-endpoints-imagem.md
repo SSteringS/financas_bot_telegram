@@ -167,4 +167,4 @@ Criar as duas exceções em `domain/exceptions/` se ainda não existirem.
 
 ## Status report
 
-`docs/status/BE-08-endpoints-imagem.md`. Curl pros 2 endpoints + verificação que redirect funciona end-to-end (curl segue redirect e baixa). Próximo: BE-09.
+`docs/sprints/01-mvp/status/BE-08-endpoints-imagem.md`. Curl pros 2 endpoints + verificação que redirect funciona end-to-end (curl segue redirect e baixa). Próximo: BE-09.

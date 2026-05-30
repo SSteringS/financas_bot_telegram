@@ -3,7 +3,7 @@
 **Data:** 2026-05-26  
 **Reviewer:** claude-reviewer (sessão independente — ADR 0005)  
 **Branch revisada:** `feature/ci-01-gate-pr-develop`  
-**Status report:** `docs/status/CI-01.md`  
+**Status report:** `docs/sprints/01-mvp/status/CI-01.md`  
 **Plano:** `docs/plans/CI-01-gate-pr-develop.md`
 
 ---
@@ -24,7 +24,7 @@
 | `lint` | `na` | Back não tem linter configurado | ✓ |
 | `testes` | `ok` | `mvn test` local: 207 unitários verdes, 19 erros de integração por Docker ausente localmente. Docker não está rodando nesta máquina — confirmado por `Could not find a valid Docker environment`. CI run `26470912614` é a evidência autoritativa: todos os 4 jobs verdes. | ✓ |
 | `branch_convencao` | `ok` | `git rev-parse --abbrev-ref HEAD` → `feature/ci-01-gate-pr-develop`. `git merge-base --is-ancestor origin/develop HEAD` → saiu de develop. PRE-MERGE-CHECKLIST regex `^feature/(be\|fe\|dep\|fix\|hotfix\|evo\|ci)-\d+[a-z]?-` → bate. | ✓ |
-| `territorio` | `ok` | `git diff --name-only origin/develop...HEAD` → `.github/workflows/ci.yml` (back territory ✓), `financas_bot_telegram/src/test/...` (back territory ✓), `docs/status/CI-01.md` (shared ✓). `deploy.yml` não tocado (confirmado via `git diff`). | ✓ |
+| `territorio` | `ok` | `git diff --name-only origin/develop...HEAD` → `.github/workflows/ci.yml` (back territory ✓), `financas_bot_telegram/src/test/...` (back territory ✓), `docs/sprints/01-mvp/status/CI-01.md` (shared ✓). `deploy.yml` não tocado (confirmado via `git diff`). | ✓ |
 
 ### Diff vs. plano
 

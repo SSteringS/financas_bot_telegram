@@ -297,7 +297,7 @@ Importante: `basePackages = "...rest"` isola esse handler dos endpoints REST e n
 
 ## Status report
 
-`docs/status/BE-11-auth-exchange-jwt.md`. Cobrir:
+`docs/sprints/01-mvp/status/BE-11-auth-exchange-jwt.md`. Cobrir:
 
 - Sumário do `mvn test`
 - Exemplo de fluxo curl: `curl -X POST http://localhost:8080/api/v1/auth/exchange -H "Content-Type: application/json" -d '{"token":"<o-token-da-be-10>"}'` mostrando response com cookie no header

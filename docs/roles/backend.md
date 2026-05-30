@@ -25,8 +25,8 @@ Implementar o backend (API REST, domínio, banco, infra) seguindo o plano da tas
 - [ ] `mvn test` verde · `mvn package` ok.
 - [ ] Cobertura: lógica não-trivial testada.
 - [ ] Território respeitado (gate `territorio`).
-- [ ] Status report em `docs/status/<TASK>.md` com frontmatter (gates preenchidos).
+- [ ] Status report em `docs/sprints/<NN>/status/<TASK>.md` com frontmatter (gates preenchidos).
 - [ ] Passou pelo `PRE-MERGE-CHECKLIST.md`.
 
 ## Ler sempre
-`CLAUDE.md` · o plano da task em `docs/plans/` · `docs/runbooks/PRE-MERGE-CHECKLIST.md` · `docs/status/_TEMPLATE.md`
+`CLAUDE.md` · o plano da task em `docs/plans/` · `docs/runbooks/PRE-MERGE-CHECKLIST.md` · `docs/templates/_TEMPLATE-status.md`

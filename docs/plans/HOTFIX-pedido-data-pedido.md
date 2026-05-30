@@ -188,7 +188,7 @@ pedido.setTipo(extrairTipoDaLegenda(text));  // ou TipoPagamento.OUTRO se não d
 
 ## Reportar status
 
-Criar `docs/status/HOTFIX-pedido-data-pedido.md` seguindo `docs/status/_TEMPLATE.md`. Cobrir:
+Criar `docs/sprints/01-mvp/status/HOTFIX-pedido-data-pedido.md` seguindo `docs/templates/_TEMPLATE-status.md`. Cobrir:
 
 - Cenário aplicado: "merge direto" ou "patch na feature branch + merge"
 - Output do smoke test em dev (IDs do pedido + comprovante criados, com print do `SELECT * FROM pedidos_pagamento ORDER BY id DESC LIMIT 1;`)

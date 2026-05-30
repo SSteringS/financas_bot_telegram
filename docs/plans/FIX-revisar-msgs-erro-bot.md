@@ -143,7 +143,7 @@ Lista todos os pontos que mandam mensagem pro usuário. Revisar caso a caso pra 
 
 ## Status report
 
-`docs/status/FIX-revisar-msgs-erro-bot.md`. Cobrir:
+`docs/sprints/01-mvp/status/FIX-revisar-msgs-erro-bot.md`. Cobrir:
 - Lista de strings encontradas e mudanças aplicadas em cada
 - Output de `./mvnw test` (após atualizar testes antigos)
 - Confirmação de smoke test manual no Telegram

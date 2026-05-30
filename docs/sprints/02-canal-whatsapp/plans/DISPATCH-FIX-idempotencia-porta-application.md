@@ -61,7 +61,7 @@ Anotar a decisão + justificativa breve no status report.
 
 ## STATUS REPORT
 
-Escrever em `docs/sprints/02-canal-whatsapp/status/FIX-idempotencia-porta-application.md` seguindo `docs/status/_TEMPLATE.md`. Frontmatter válido. Anotar:
+Escrever em `docs/sprints/02-canal-whatsapp/status/FIX-idempotencia-porta-application.md` seguindo `docs/templates/_TEMPLATE-status.md`. Frontmatter válido. Anotar:
 - A decisão sobre o MensagemProcessadaService (mantido ou absorvido).
 - Resultado do grep de validação.
 - testes_total e testes_novos.

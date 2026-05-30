@@ -1,9 +1,9 @@
 # STATE — onde o projeto está agora
 
-> **Doc vivo de orientação.** Existe pra uma sessão que começa fria (planner, back, front ou reviewer) se situar em 1 minuto, sem re-derivar contexto. **Curto de propósito.** Detalhe mora nos planos (`docs/plans/`), status reports (`docs/status/`) e ADRs (`docs/decisions/`).
+> **Doc vivo de orientação.** Existe pra uma sessão que começa fria (planner, back, front ou reviewer) se situar em 1 minuto, sem re-derivar contexto. **Curto de propósito.** Detalhe mora nos planos (`docs/plans/`), status reports (`docs/sprints/<NN>/status/`) e ADRs (`docs/decisions/`).
 >
 > **Última atualização:** 2026-05-30 (sprint 02 fechada com FE-14 mergeado PR #80; RETRO-02 publicada; **sprint 02b kaizen aberta** com WF-01..WF-03 refinadas).
-> **Fonte:** este resumo é derivado dos status reports em `docs/status/` e `docs/sprints/02-canal-whatsapp/status/`. O **estado real de merge em `develop` é do humano** (ele é o integrador — ADR 0004). Quando um status diz "aguardando revisão / não mergeado", está marcado abaixo.
+> **Fonte:** este resumo é derivado dos status reports em `docs/sprints/<NN>/status/` e `docs/sprints/02-canal-whatsapp/status/`. O **estado real de merge em `develop` é do humano** (ele é o integrador — ADR 0004). Quando um status diz "aguardando revisão / não mergeado", está marcado abaixo.
 
 ---
 
@@ -92,7 +92,7 @@ Backlog vivo em `docs/plans/BACKLOG-evolucao-workflow.md`. Estado dos itens em v
 | Preciso de… | Vou em… |
 |---|---|
 | O que construir (spec de task) | `docs/plans/` |
-| O que foi feito (execução) | `docs/status/` |
+| O que foi feito (execução) | `docs/sprints/<NN>/status/` |
 | Decisão arquitetural canônica | `docs/decisions/` (ADRs) |
 | Regra que o agente obedece | `CLAUDE.md` |
 | Conceito pra revisitar | `docs/aprendizado/` |

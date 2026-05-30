@@ -119,4 +119,4 @@ Cuidado com a `PedidoNaoEncontradoException` existente — ela já tem o constru
 
 ## Status report
 
-`docs/status/BE-06-detalhe-pedido.md`. Cobrir resultado dos testes e curl dos 3 cenários (200, 404, 403). Próximo: BE-07.
+`docs/sprints/01-mvp/status/BE-06-detalhe-pedido.md`. Cobrir resultado dos testes e curl dos 3 cenários (200, 404, 403). Próximo: BE-07.

@@ -24,7 +24,7 @@ Você é o Claude do back deste projeto. Leia, nesta ordem:
 1. CODE-ONLY. NÃO rode `terraform apply`. NÃO faça SSH. NÃO mexa no console/CLI da AWS. NÃO faça `git push` pra `develop` nem merge. NÃO rode testes em produção.
 2. Validação permitida é LOCAL: `terraform fmt -check`, `terraform validate`, `mvn test`, `mvn package -DskipTests`.
 3. UMA BRANCH POR TASK, criada **a partir de `develop`** — NUNCA a partir de outra feature branch (incidente FE-12). Pra cada task: `git checkout develop && git pull && git checkout -b feature/<id>-<slug>`. UM commit por task no padrão `feat(<ID>): ...`.
-4. Ao terminar CADA task: escreva o status report em `docs/sprints/02-canal-whatsapp/status/<ID>.md` com frontmatter válido (modelo em `docs/status/_TEMPLATE.md`), e PARE — não mergeie. Reviewer + apply são humanos.
+4. Ao terminar CADA task: escreva o status report em `docs/sprints/02-canal-whatsapp/status/<ID>.md` com frontmatter válido (modelo em `docs/templates/_TEMPLATE-status.md`), e PARE — não mergeie. Reviewer + apply são humanos.
 5. Território: só `financas_bot_telegram/`, `infra/`. NÃO toque em `frontend/`.
 6. Se bater numa decisão de produto ou ambiguidade que o plano não cobre, NÃO invente: registra como pendência no status report daquela task (estado: bloqueado) e segue pra próxima.
 

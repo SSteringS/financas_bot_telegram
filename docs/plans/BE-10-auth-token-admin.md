@@ -303,7 +303,7 @@ Criar `GerarConviteResponse.java` como record em `application/dto/` com um únic
 
 ## Status report
 
-`docs/status/BE-10-auth-token-admin.md` seguindo `_TEMPLATE.md`. Cobrir:
+`docs/sprints/01-mvp/status/BE-10-auth-token-admin.md` seguindo `_TEMPLATE.md`. Cobrir:
 
 - Sumário do `mvn test`
 - Output de `curl -X POST http://localhost:8080/admin/api/v1/requisitantes/1/convite -H "X-Admin-Key: $CHAVE"` mostrando a URL gerada

@@ -6,7 +6,7 @@ Arquivos de instrução por papel. Cada um especializa uma sessão Claude — re
 
 Ao abrir uma sessão nova, mande ler o global + o papel + o doc da task:
 
-> "Leia `CLAUDE.md` e `docs/roles/reviewer.md`. Você atuará como Reviewer. Revise a task X (`docs/plans/...` + `docs/status/...`)."
+> "Leia `CLAUDE.md` e `docs/roles/reviewer.md`. Você atuará como Reviewer. Revise a task X (`docs/plans/...` + `docs/sprints/<NN>/status/...`)."
 
 ## Regra de ouro destes arquivos
 

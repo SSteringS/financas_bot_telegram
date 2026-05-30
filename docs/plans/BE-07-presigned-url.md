@@ -143,4 +143,4 @@ public class S3Config {
 
 ## Status report
 
-`docs/status/BE-07-presigned-url.md`. Output dos testes + URL gerada de exemplo + confirmação de teste manual (curl no link gerado retornou 200 com bytes). Próximo: BE-08.
+`docs/sprints/01-mvp/status/BE-07-presigned-url.md`. Output dos testes + URL gerada de exemplo + confirmação de teste manual (curl no link gerado retornou 200 com bytes). Próximo: BE-08.

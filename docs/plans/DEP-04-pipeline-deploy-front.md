@@ -89,7 +89,7 @@ jobs:
 - [ ] Após o deploy, `https://satyansaita.com` serve o build novo (e some o `index.html` de smoke-test do DEP-02).
 - [ ] Em ~5 min a mudança está em produção.
 - [ ] A role NÃO tem permissão além do necessário (revisar a policy).
-- [ ] Status report em `docs/status/DEP-04.md` com frontmatter válido (incluir o slug do repo usado no `sub` do OIDC e o ARN da role).
+- [ ] Status report em `docs/sprints/01-mvp/status/DEP-04.md` com frontmatter válido (incluir o slug do repo usado no `sub` do OIDC e o ARN da role).
 
 ## Coordenação
 
@@ -102,12 +102,12 @@ jobs:
 
 ## Definição de pronto
 
-Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build/lint/testes = `na` se não houver código de produto; `terraform plan` limpo + run verde do workflow são a evidência), status report em `docs/status/DEP-04.md` com frontmatter válido, e **revisão independente pelo Reviewer** antes do merge — toca em IAM e pipeline de produção (alto risco). Abrir PR pra `develop`; não mergear sozinho.
+Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build/lint/testes = `na` se não houver código de produto; `terraform plan` limpo + run verde do workflow são a evidência), status report em `docs/sprints/01-mvp/status/DEP-04.md` com frontmatter válido, e **revisão independente pelo Reviewer** antes do merge — toca em IAM e pipeline de produção (alto risco). Abrir PR pra `develop`; não mergear sozinho.
 
 ## Referências
 
 - `docs/plans/BACKLOG-produto.md` (DEP-04 original)
-- `docs/status/DEP-02.md` (bucket `finbot-frontend-prod-776658251579`, distribuição `E1WG4Q8MG3V9HY`, conta `776658251579`)
+- `docs/sprints/01-mvp/status/DEP-02.md` (bucket `finbot-frontend-prod-776658251579`, distribuição `E1WG4Q8MG3V9HY`, conta `776658251579`)
 - `docs/plans/DEP-03-api-subdominio-proxy.md` (o hostname da API que o `.env.production` deve apontar)
 - `.github/workflows/deploy.yml` (deploy do back via SSH — contraste; candidato a migrar pra OIDC depois)
 - Docs: `aws-actions/configure-aws-credentials` (OIDC) e GitHub OIDC `sub` claims.

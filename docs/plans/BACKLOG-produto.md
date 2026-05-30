@@ -184,7 +184,7 @@ Fase 3d — Evolução pós-MVP (não fazer agora)
 
 ## BE-04 — DTOs da API REST + anotações OpenAPI (springdoc)
 
-**Status:** ✅ **Concluída** — commits `18b3f92 fix(BE-04): completar config springdoc e remover PaymentCategory` + merge PR #49 (`187addf`). Houve um commit complementar pra fechar três gaps que faltaram no merge original. 67 testes verdes (55 anteriores + 12 novos de serialização/validação dos DTOs). Status report em `docs/status/BE-04-dtos-openapi.md`. Plano original em `docs/plans/BE-04-dtos-openapi.md`.
+**Status:** ✅ **Concluída** — commits `18b3f92 fix(BE-04): completar config springdoc e remover PaymentCategory` + merge PR #49 (`187addf`). Houve um commit complementar pra fechar três gaps que faltaram no merge original. 67 testes verdes (55 anteriores + 12 novos de serialização/validação dos DTOs). Status report em `docs/sprints/01-mvp/status/BE-04-dtos-openapi.md`. Plano original em `docs/plans/BE-04-dtos-openapi.md`.
 
 **Mudança de abordagem em relação ao escopo original:** o `pom.xml` já tem `springdoc-openapi-starter-webmvc-ui` 2.5.0, que **gera o contrato OpenAPI automaticamente a partir das anotações nas classes Java**. Não vamos escrever YAML manual — em vez disso, anotamos os DTOs e controllers com `@Schema`, `@Operation`, `@Parameter`, e o springdoc serve o OpenAPI em `/v3/api-docs` + Swagger UI em `/swagger-ui.html`. Vantagem: contrato e código nunca saem de sincronia.
 

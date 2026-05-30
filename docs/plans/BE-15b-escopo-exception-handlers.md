@@ -114,7 +114,7 @@ Subir app em dev. Acessar `/v3/api-docs` (ou outro endpoint REST que dispare uma
 
 ## Status report
 
-`docs/status/BE-15b-escopo-exception-handlers.md` seguindo `_TEMPLATE.md`. Cobrir:
+`docs/sprints/01-mvp/status/BE-15b-escopo-exception-handlers.md` seguindo `_TEMPLATE.md`. Cobrir:
 
 - Output de `mvn test`
 - Smoke test: requisição pra `/v3/api-docs` (ou similar) **não** aparece nos logs do `GlobalTelegramExceptionHandler`

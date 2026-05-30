@@ -60,7 +60,7 @@ Pra DEP-07, recomendo **(a)** (regenerar no boot + nota de re-registrar o webhoo
 - [ ] `ec2.tf` usa `templatefile()` pro `user_data`; `terraform plan` mostra **update in-place** (`~`), **sem** replace da instância. (Gate de segurança — se vier replace, abortar.)
 - [ ] Verificação real (forte, recomendada): subir uma **instância descartável** com esse `user_data` (ou um `terraform plan`/`apply` num workspace de teste) e confirmar que ela boota com Caddy ativo, `finbot.service` instalado e journald capado — **sem SSH manual**. Se não for viável, no mínimo revisão linha a linha + shellcheck.
 - [ ] Documentado no status report que a **instância atual não foi reconciliada** (escopo ADR 0009) e o que um recreate exigiria de manual residual (ex.: re-registrar webhook se keystore regenerado; primeiro deploy pra colocar o JAR).
-- [ ] Status report em `docs/status/DEP-07.md` com frontmatter válido.
+- [ ] Status report em `docs/sprints/01-mvp/status/DEP-07.md` com frontmatter válido.
 
 ## Coordenação
 

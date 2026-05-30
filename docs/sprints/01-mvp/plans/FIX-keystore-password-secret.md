@@ -53,7 +53,7 @@ Isso é tarefa manual do humano via console AWS. O implementador não tem acesso
 
 ## Status report
 
-`docs/status/FIX-keystore-password-secret.md`. Cobrir:
+`docs/sprints/01-mvp/status/FIX-keystore-password-secret.md`. Cobrir:
 - Confirmação da mudança no properties
 - **Alerta destacado** sobre a ação manual do humano no Secrets Manager
 - Sugestão pro humano: trocar o valor atual `finbot123` por algo random (`openssl rand -base64 24`) já que vai ser oportunidade de rotacionar a senha do keystore. Mas isso obriga regerar/reassinar o keystore. Pode ser feito junto, ou ficar pra evolução de Let's Encrypt depois.

@@ -4,7 +4,7 @@ Retros de fim de ciclo/etapa — estilo Scrum. Olham pra **trás** (o que entreg
 
 Não confundir com:
 - `docs/avaliacoes/` — revisão de **uma entrega** (pelo Reviewer).
-- `docs/status/` — relatório de **uma task**.
+- `docs/sprints/<NN>/status/` — relatório de **uma task**.
 - `docs/PENDENCIAS-TECNICAS.md` — débito técnico.
 
 Aqui é o **olhar agregado do ciclo**: workflow, aprendizados, e as **ações** que carregamos adiante.

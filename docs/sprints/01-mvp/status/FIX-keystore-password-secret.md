@@ -52,4 +52,4 @@ Quando migrar para Let's Encrypt + domínio real, este item (`keystore_password`
 ## Arquivos criados/modificados
 
 - `financas_bot_telegram/src/main/resources/application-prod.properties` (modificado: 1 linha)
-- `docs/status/FIX-keystore-password-secret.md` (novo)
+- `docs/sprints/01-mvp/status/FIX-keystore-password-secret.md` (novo)

@@ -32,7 +32,7 @@ Você é o Claude do back deste projeto. Leia, nesta ordem:
 3. UMA BRANCH POR TASK, criada **a partir de `develop`** — NUNCA a partir de outra feature branch (incidente FE-12). Pra cada task:
    `git checkout develop && git pull && git checkout -b feature/<id>-<slug>`.
    UM commit por task no padrão `feat(<ID>): ...`.
-4. Ao terminar CADA task: escreva o status report em `docs/sprints/02-canal-whatsapp/status/<ID>.md` com frontmatter válido (modelo em `docs/status/_TEMPLATE.md`), e PARE — não mergeie.
+4. Ao terminar CADA task: escreva o status report em `docs/sprints/02-canal-whatsapp/status/<ID>.md` com frontmatter válido (modelo em `docs/templates/_TEMPLATE-status.md`), e PARE — não mergeie.
 5. Território: só `financas_bot_telegram/`. NÃO toque em `frontend/`, infra, ou docs estruturais.
 6. Se bater numa decisão de produto ou ambiguidade que o plano não cobre, NÃO invente: registra como pendência no status report daquela task (`estado: bloqueado`) e segue pra próxima.
 

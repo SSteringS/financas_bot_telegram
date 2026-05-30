@@ -71,7 +71,7 @@ Ambiente dev rodando (`mvn spring-boot:run -Dspring-boot.run.profiles=dev`). Par
 
 ## Cobertura automatizada (referência — não precisa validar manual)
 
-Conforme relatório `docs/status/BE-16.md`: 226 testes, `BUILD SUCCESS`. Cobrem:
+Conforme relatório `docs/sprints/01-mvp/status/BE-16.md`: 226 testes, `BUILD SUCCESS`. Cobrem:
 - `ResumoMesServiceImplTest` (9 casos: com/sem mês, com/sem busca, zeros)
 - `ResumoControllerTest` (6 casos: validação 400, passagem de params)
 - `S3ImageUploadServiceTest` (7 casos: prefixos corretos, chaves únicas, erro S3)

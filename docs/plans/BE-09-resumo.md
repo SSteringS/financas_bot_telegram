@@ -148,4 +148,4 @@ public class ResumoController {
 
 ## Status report
 
-`docs/status/BE-09-resumo.md`. Output dos testes + curl real mostrando JSON do resumo. **Marco**: depois desta tarefa, **toda a superfície da API REST de leitura está pronta**. Próximo: BE-03.
+`docs/sprints/01-mvp/status/BE-09-resumo.md`. Output dos testes + curl real mostrando JSON do resumo. **Marco**: depois desta tarefa, **toda a superfície da API REST de leitura está pronta**. Próximo: BE-03.

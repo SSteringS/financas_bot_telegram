@@ -1,6 +1,6 @@
 # Checklist de pré-merge (gates verificáveis)
 
-Define a **definição de pronto** de qualquer tarefa BE/FE/DEP antes de mergear em `develop`. Cada gate é **machine-checkable**: tem um comando e uma condição de passagem. Os gates aqui mapeiam 1:1 com o bloco `gates:` do frontmatter do status report (`docs/status/_TEMPLATE.md`).
+Define a **definição de pronto** de qualquer tarefa BE/FE/DEP antes de mergear em `develop`. Cada gate é **machine-checkable**: tem um comando e uma condição de passagem. Os gates aqui mapeiam 1:1 com o bloco `gates:` do frontmatter do status report (`docs/templates/_TEMPLATE-status.md`).
 
 Conceito: o status report é um *output schema* (forma garantida, parseável). Este checklist é a *validação* desse output — porque schema válido não garante verdade (um report pode dizer `testes: ok` sem que seja). O Claude de planejamento (ou um script) confere os gates contra a realidade antes do merge.
 
@@ -39,17 +39,17 @@ O gate `territorio` falha quando uma instância altera **código fora** do seu t
 - [ ] Todo componente/classe com lógica não-trivial tem ao menos 1 teste (regra do CLAUDE.md)
 - [ ] `branch_convencao` ok (nome correto + saiu de develop)
 - [ ] `territorio` ok (não vazou pra fora da pasta da instância)
-- [ ] Status report criado em `docs/status/<TASK-ID>-*.md` com frontmatter válido
+- [ ] Status report criado em `docs/sprints/<NN>/status/<TASK-ID>-*.md` com frontmatter válido
 - [ ] `desvios` e `pendencias_humano` no frontmatter batem com as seções em prosa
 - [ ] `estado` coerente com os gates (só `concluido` se tudo ok e sem pendência)
 - [ ] **Não** fez push pra `develop` — parou pra revisão (salvo instrução explícita)
 
 ## Agregação (o ganho de ter schema)
 
-Como o frontmatter é YAML parseável, dá pra montar um painel do projeto sem esforço — um script lê todos os `docs/status/*.md`, extrai o frontmatter e responde coisas como: quais tarefas estão `bloqueado`, quantos `desvios` abertos por área, soma de `testes_total`, quais branches fogem da convenção. Não precisa existir agora; o schema só deixa a porta aberta pra isso.
+Como o frontmatter é YAML parseável, dá pra montar um painel do projeto sem esforço — um script lê todos os `docs/sprints/<NN>/status/*.md`, extrai o frontmatter e responde coisas como: quais tarefas estão `bloqueado`, quantos `desvios` abertos por área, soma de `testes_total`, quais branches fogem da convenção. Não precisa existir agora; o schema só deixa a porta aberta pra isso.
 
 ## Relação com outros docs
 
-- Schema do status report: `docs/status/_TEMPLATE.md`
+- Schema do status report: `docs/templates/_TEMPLATE-status.md`
 - Convenção de branch e territórios: `CLAUDE.md` (seção "Fluxo de branches" e "Regra de ouro")
 - Por que validar mesmo com schema válido: `docs/aprendizado/structured-outputs.md` (sintaxe ≠ semântica)

@@ -257,7 +257,7 @@ Em prod, repetir o smoke test do cenário "document" (que era o que estava quebr
 
 ## Reportar status
 
-`docs/status/HOTFIX-document-vs-photo.md` seguindo `_TEMPLATE.md`. Cobrir:
+`docs/sprints/01-mvp/status/HOTFIX-document-vs-photo.md` seguindo `_TEMPLATE.md`. Cobrir:
 
 - Resultado de `./mvnw test`
 - Smoke test em dev: 3 cenários (foto, document, ausência) com confirmação do comportamento

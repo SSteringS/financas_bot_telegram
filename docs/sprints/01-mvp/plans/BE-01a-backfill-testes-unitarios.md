@@ -413,7 +413,7 @@ testes próprios como critério de aceitação.
 
 ## Reportar status
 
-Ao terminar, criar `docs/status/BE-01a-backfill-testes-unitarios.md` seguindo `docs/status/_TEMPLATE.md`. Cobrir:
+Ao terminar, criar `docs/sprints/01-mvp/status/BE-01a-backfill-testes-unitarios.md` seguindo `docs/templates/_TEMPLATE-status.md`. Cobrir:
 
 - Confirmação de cada item do critério de aceitação
 - Resultado de `./mvnw clean test` (cole o sumário final: `Tests run: X, Failures: Y, Errors: Z, Skipped: W`)

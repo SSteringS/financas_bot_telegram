@@ -3,7 +3,7 @@
 **Data:** 2026-05-26  
 **Reviewer:** claude-reviewer (sessão independente — ADR 0005)  
 **Branch revisada:** `feature/fe-13-codegen-tipos-openapi`  
-**Status report:** `docs/status/FE-13-codegen-tipos-openapi.md`  
+**Status report:** `docs/sprints/01-mvp/status/FE-13-codegen-tipos-openapi.md`  
 **Plano:** `docs/plans/FE-13-codegen-tipos-openapi.md`
 
 ---
@@ -27,7 +27,7 @@ O único bloqueante é a origem da branch. O código em si está correto e os cr
 | `testes` | `ok` | `npm test -- --run` → 43 passed (10 test files), 0 failures | ✓ |
 | `testes_total: 43` | `43` | Confirmado: exatamente 43 testes passando | ✓ |
 | `testes_novos: 0` | `0` | Nenhum teste novo adicionado — correto | ✓ |
-| `territorio` | `ok` | `git diff --name-only origin/develop...HEAD` → `frontend/`, `docs/status/` — território correto do front | ✓ |
+| `territorio` | `ok` | `git diff --name-only origin/develop...HEAD` → `frontend/`, `docs/sprints/01-mvp/status/` — território correto do front | ✓ |
 | `branch_convencao` | `ok` | **FALHOU — ver abaixo** | ✗ |
 
 ### Drift check (critério de aceitação)

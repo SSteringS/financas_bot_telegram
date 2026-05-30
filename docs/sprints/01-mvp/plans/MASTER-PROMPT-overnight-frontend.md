@@ -51,7 +51,7 @@ Você é o **Claude do front-end**. Vai trabalhar overnight executando uma sequ�
    ```
    Esses dois também devem passar antes de commit. Lint pega problemas de estilo/typing; build confirma que o código compila pra produção.
 
-7. **Escreva o status report** em `docs/status/FE-XX-<slug>.md` seguindo `docs/status/_TEMPLATE.md`. Cobrir:
+7. **Escreva o status report** em `docs/status/FE-XX-<slug>.md` seguindo `docs/templates/_TEMPLATE-status.md`. Cobrir:
    - O que foi feito (arquivos modificados/criados)
    - Desvios do plano (se houver)
    - Decisões tomadas durante a execução
@@ -65,7 +65,7 @@ Você é o **Claude do front-end**. Vai trabalhar overnight executando uma sequ�
 
 **Pontos pra PARAR e me esperar:**
 
-Cria `docs/status/FE-XX-PARADO.md` explicando o motivo se:
+Cria `docs/sprints/01-mvp/status/FE-XX-PARADO.md` explicando o motivo se:
 
 - `npm test` falha em testes antigos e não é óbvio o porquê
 - `npm run build` falha por erro de TypeScript que parece estrutural
@@ -117,7 +117,7 @@ E aí ter o backend rodando em `localhost:8080`. Pra explorar a API: `http://loc
 
 **Status final:**
 
-Quando terminar todas as 9 ou parar em alguma, deixa um resumo final em `docs/status/_RESUMO-overnight-front.md` listando:
+Quando terminar todas as 9 ou parar em alguma, deixa um resumo final em `docs/sprints/01-mvp/status/_RESUMO-overnight-front.md` listando:
 
 - O que foi feito (FEs concluídas)
 - O que ficou parado e por quê
@@ -140,7 +140,7 @@ Se tudo correr bem, ao acordar você terá:
 
 - 9 commits novos na branch `feature/frontend-fase3-completa`
 - 9 status reports em `docs/status/FE-03-*.md` até `FE-11-*.md`
-- 1 arquivo `docs/status/_RESUMO-overnight-front.md`
+- 1 arquivo `docs/sprints/01-mvp/status/_RESUMO-overnight-front.md`
 - (Eventualmente) novos itens em `docs/PENDENCIAS-TECNICAS.md` se o Claude do front descobriu pendência
 
 **Antes de mergear em develop, eu sugiro:**
@@ -160,7 +160,7 @@ Se tudo correr bem, ao acordar você terá:
 ## Em caso de problemas overnight
 
 Se você acordar e o Claude do front tiver parado em alguma tarefa:
-- Leia `docs/status/FE-XX-PARADO.md` (ou o último status report)
+- Leia `docs/sprints/01-mvp/status/FE-XX-PARADO.md` (ou o último status report)
 - Decida: deixa o problema pra mim resolver (planejador), ou corrige direto
 - Se for ajustar e re-executar, basta dar continue: "Voltei. Resolve o problema da FE-XX e continua a sequência."
                                                                                                                                                                      

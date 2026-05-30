@@ -198,7 +198,7 @@ class IsolamentoRequisitanteIntegrationTest extends AbstractIntegrationTest {
 
 ## Status report
 
-`docs/status/BE-14-testes-integracao.md`. Cobrir:
+`docs/sprints/01-mvp/status/BE-14-testes-integracao.md`. Cobrir:
 
 - Output completo de `./mvnw test` mostrando passos do Testcontainers + total
 - Lista das 6 classes de integration test criadas com contagem de métodos

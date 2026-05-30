@@ -58,7 +58,7 @@ Só adicionar o bloco `static {...}` antes do `@Bean`. Mais nada muda.
 
 ## Status report
 
-`docs/status/FIX-hide-requisitanteid-swagger.md`. Cobrir:
+`docs/sprints/01-mvp/status/FIX-hide-requisitanteid-swagger.md`. Cobrir:
 - Confirmação visual: print/cópia do "Parameters" do endpoint listar antes e depois (pode ser textual "antes tinha campo requisitanteId, depois tem só status/tipo/de/ate/busca/page/tamanho")
 - Output de `./mvnw test`
 

@@ -57,4 +57,4 @@ Correto. Nenhuma alteração necessária.
 ## Arquivos criados/modificados
 
 - `adapters/in/telegram/exceptionhandler/GlobalTelegramExceptionHandler.java` (modificado: `@ControllerAdvice` → `@RestControllerAdvice(basePackages = ...)`)
-- `docs/status/BE-15b-escopo-exception-handlers.md` (novo)
+- `docs/sprints/01-mvp/status/BE-15b-escopo-exception-handlers.md` (novo)

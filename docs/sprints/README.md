@@ -18,7 +18,7 @@ docs/sprints/<NN-nome>/
 - O `README.md` da sprint declara **o objetivo/entrega** (substitui a timebox) e indexa as tasks.
 - Task-id (`BE-05`, `DEP-03`…) é **global e sequencial** — a pasta agrupa, não renumera.
 - Fica **fora** daqui (global): templates (`_TEMPLATE.md`), backlog de workflow, planos parqueados/futuros, ADRs, aprendizado, arquitetura, runbooks, retrospectivas, PENDENCIAS.
-- `metricas_status.py` varre `docs/status/` **e** `docs/sprints/*/status/`.
+- `metricas_status.py` varre `docs/sprints/<NN>/status/` **e** `docs/sprints/*/status/`.
 
 ## Sprints
 

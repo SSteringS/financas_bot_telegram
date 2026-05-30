@@ -22,13 +22,13 @@ Princípio que governa tudo: **structured output garante a SINTAXE, não a SEMÂ
 Os artefatos do nosso fluxo são todos "saídas de agente" consumidas por outro agente — e quase todos são texto livre hoje:
 
 - **Planos** (`docs/plans/`): eu produzo, o implementador consome → *input contract*.
-- **Status reports** (`docs/status/`): o implementador produz, eu/humano consumimos → *output contract*.
+- **Status reports** (`docs/sprints/<NN>/status/`): o implementador produz, eu/humano consumimos → *output contract*.
 - **Avaliações** (`docs/avaliacoes/`): eu produzo revisando o trabalho.
 - **Branch/commit**: já têm convenção = já são um "schema".
 
 Onde structured output se aplica:
 
-**1. Status report como output schema.** Definir frontmatter obrigatório (`tarefa, branch, testes_passando(int), build(ok/fail), lint(ok/fail), veredito, desvios[]`) + corpo livre. Ganhos: (a) vira **agregável** — um script lê todos os `docs/status/*.md` e monta um painel; (b) o schema vira **checklist que força** o implementador a reportar o essencial — campo faltando = violação visível.
+**1. Status report como output schema.** Definir frontmatter obrigatório (`tarefa, branch, testes_passando(int), build(ok/fail), lint(ok/fail), veredito, desvios[]`) + corpo livre. Ganhos: (a) vira **agregável** — um script lê todos os `docs/sprints/<NN>/status/*.md` e monta um painel; (b) o schema vira **checklist que força** o implementador a reportar o essencial — campo faltando = violação visível.
 
 **2. O plano é o schema de entrada.** Quanto mais especificado, menor a variância do implementador — igual a um JSON schema reduzir a variância do LLM. O **incidente da FE-12** (branch errada) foi um campo mal-especificado no schema (seção Branch contradizia a convenção): input ambíguo → saída errada. A correção (regra de precedência no CLAUDE.md) foi desambiguar o schema.
 

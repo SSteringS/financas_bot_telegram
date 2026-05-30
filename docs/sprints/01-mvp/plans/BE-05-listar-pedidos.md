@@ -251,7 +251,7 @@ public class PedidoController {
 
 ## Status report
 
-`docs/status/BE-05-listar-pedidos.md`. Cobrir:
+`docs/sprints/01-mvp/status/BE-05-listar-pedidos.md`. Cobrir:
 
 - Sumário do `mvn test`
 - Exemplos de curl testados (sem filtros, com cada filtro, paginado)

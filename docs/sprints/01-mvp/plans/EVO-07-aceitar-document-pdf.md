@@ -222,7 +222,7 @@ private TipoArquivo tipoArquivo;
 
 ## Status report
 
-`docs/status/EVO-07-aceitar-document-pdf.md`. Cobrir:
+`docs/sprints/01-mvp/status/EVO-07-aceitar-document-pdf.md`. Cobrir:
 - Lista detalhada das mudanças
 - Output de `./mvnw test` (especial atenção: testes de strategy devem ter ~4 novos cenários cada)
 - Smoke test manual no Telegram: cenários acima testados, IDs dos comprovantes criados

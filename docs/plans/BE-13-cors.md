@@ -96,7 +96,7 @@ CORS NÃO se aplica a `/webhook` (Telegram não usa browser) nem a `/admin/**` (
 
 ## Status report
 
-`docs/status/BE-13-cors.md`. Cobrir:
+`docs/sprints/01-mvp/status/BE-13-cors.md`. Cobrir:
 
 - Output do preflight OPTIONS testado com curl: `curl -I -X OPTIONS http://localhost:8080/api/v1/pedidos -H "Origin: http://localhost:5173" -H "Access-Control-Request-Method: GET"`
 - Confirmação de que origin diferente não retorna o ACAO header

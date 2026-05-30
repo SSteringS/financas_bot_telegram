@@ -5,7 +5,7 @@ projeto — não são código de produto (back/front).
 
 ## `metricas_status.py`
 
-Lê o frontmatter dos `docs/status/*.md` e agrega métricas que mudam comportamento
+Lê o frontmatter dos `docs/sprints/<NN>/status/*.md` e agrega métricas que mudam comportamento
 (estado das tasks, gate-fails, desvios/pendências, soma de testes) + cobertura do
 schema canônico. Materializa a ideia do ADR 0007: o status report é um *output
 contract* parseável, então dá pra montar um painel sem esforço.
@@ -22,7 +22,7 @@ a CRLF e a reports antigos sem frontmatter.
 ### Leitura do resultado
 
 `cobertura do schema` mostra quantos reports seguem o schema canônico (`estado` +
-bloco `gates`). Hoje a maioria é anterior ao `docs/status/_TEMPLATE.md` / ADR 0007,
+bloco `gates`). Hoje a maioria é anterior ao `docs/templates/_TEMPLATE-status.md` / ADR 0007,
 então aparece como `frontmatter não-canônico` (convenção antiga, ex.: `status:` em
 vez de `estado:`) ou `sem frontmatter (legado)`. **Não é dívida a corrigir
 retroativamente** — o schema vale dos reports novos pra frente. O número serve pra

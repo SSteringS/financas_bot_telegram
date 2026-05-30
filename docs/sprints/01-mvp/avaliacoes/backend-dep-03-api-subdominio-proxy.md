@@ -3,7 +3,7 @@
 **Data:** 2026-05-27  
 **Reviewer:** claude-reviewer (sessão independente — ADR 0005)  
 **Branch revisada:** `feature/dep-03-api-subdominio-proxy`  
-**Status report:** `docs/status/DEP-03.md`  
+**Status report:** `docs/sprints/01-mvp/status/DEP-03.md`  
 **Plano:** `docs/plans/DEP-03-api-subdominio-proxy.md`
 
 ---
@@ -20,7 +20,7 @@
 |---|---|---|---|
 | `build/lint/testes` | `na` | Task infra-only (Terraform + config manual EC2) — sem código Java/JS alterado. `na` correto | ✓ |
 | `branch_convencao` | `ok` | `git merge-base --is-ancestor origin/develop HEAD` → exit 0 ✓ | ✓ |
-| `territorio` | `ok` | `git diff --name-only origin/develop...HEAD` → `financas_bot_telegram/infra/` (back ✓) + `docs/status/` (shared ✓) | ✓ |
+| `territorio` | `ok` | `git diff --name-only origin/develop...HEAD` → `financas_bot_telegram/infra/` (back ✓) + `docs/sprints/01-mvp/status/` (shared ✓) | ✓ |
 | `desvios: 0` | `0` | Sem desvios do plano. Opção A foi a recomendação explícita do plano — não é desvio, é execução da opção recomendada. `0` correto | ✓ |
 | `pendencias_humano: 0` | `0` | Caddy instalado e validado em 2026-05-27. Seção "RESOLVIDO" no status report. `0` correto | ✓ |
 
@@ -93,7 +93,7 @@ A verificação requer envio de mensagem no Telegram — não é possível via t
 
 ## Observação menor — nome do arquivo de status
 
-O status report está em `docs/status/DEP-03.md` (sem slug após o ID). A convenção do template é `<TASK-ID>-titulo-curto.md`. Não bloqueante — outras tarefas usam o mesmo padrão curto — mas vale adotar o slug nas próximas para consistência.
+O status report está em `docs/sprints/01-mvp/status/DEP-03.md` (sem slug após o ID). A convenção do template é `<TASK-ID>-titulo-curto.md`. Não bloqueante — outras tarefas usam o mesmo padrão curto — mas vale adotar o slug nas próximas para consistência.
 
 ---
 

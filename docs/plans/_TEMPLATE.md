@@ -45,7 +45,7 @@ Com quem essa task conversa (outra instância, outra task em paralelo, decisão 
 
 ## Definição de pronto
 
-Passar pelos gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build, lint, testes, convenção de branch, território) e escrever o status report em `docs/status/<TASK-ID>-*.md` com frontmatter válido (`docs/status/_TEMPLATE.md`). `estado: concluido` só com todos os gates `ok`/`na` e `pendencias_humano: 0`. **Não** mergear sozinho — abrir PR pra `develop` e parar pra revisão (salvo instrução explícita).
+Passar pelos gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build, lint, testes, convenção de branch, território) e escrever o status report em `docs/sprints/<NN>/status/<TASK-ID>-*.md` com frontmatter válido (`docs/templates/_TEMPLATE-status.md`). `estado: concluido` só com todos os gates `ok`/`na` e `pendencias_humano: 0`. **Não** mergear sozinho — abrir PR pra `develop` e parar pra revisão (salvo instrução explícita).
 
 ## Referências
 

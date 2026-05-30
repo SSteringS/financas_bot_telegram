@@ -12,7 +12,7 @@ A API roda em hostname separado (`api.satyansaita.com`, DEP-03) — por isso o C
 
 ## Definição de pronto
 
-Seguir `docs/runbooks/PRE-MERGE-CHECKLIST.md`. Status report com frontmatter válido em `docs/status/DEP-02.md`. Como é infra (sem build/lint/testes de código), os gates `build`/`lint`/`testes` são `na`; os gates de `terraform` (plan limpo, apply ok, idempotência) estão nos critérios abaixo.
+Seguir `docs/runbooks/PRE-MERGE-CHECKLIST.md`. Status report com frontmatter válido em `docs/sprints/01-mvp/status/DEP-02.md`. Como é infra (sem build/lint/testes de código), os gates `build`/`lint`/`testes` são `na`; os gates de `terraform` (plan limpo, apply ok, idempotência) estão nos critérios abaixo.
 
 ## Dependências
 
@@ -208,4 +208,4 @@ output "cloudfront_domain_name" {
 
 - Executado pelo Claude do **back** (infra).
 - Outputs `frontend_bucket_name`, `cloudfront_distribution_id` são o contrato pro DEP-04 — não renomear sem alinhar.
-- Ao terminar, status report em `docs/status/DEP-02.md` e **parar pra revisão** antes de seguir pro DEP-03/04.
+- Ao terminar, status report em `docs/sprints/01-mvp/status/DEP-02.md` e **parar pra revisão** antes de seguir pro DEP-03/04.

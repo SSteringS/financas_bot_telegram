@@ -24,7 +24,7 @@ Por isso o trigger cobre os dois cenários (PR e push de feature).
 ## Escopo
 
 **Fase 1 (esta task):** build + lint + testes (back e front) + checagem de nome de branch.
-**Fase 2 (follow-up, fora desta task):** validar que o PR adiciona/altera um `docs/status/<TASK>.md` com frontmatter válido (gates) — exige script próprio.
+**Fase 2 (follow-up, fora desta task):** validar que o PR adiciona/altera um `docs/sprints/<NN>/status/<TASK>.md` com frontmatter válido (gates) — exige script próprio.
 
 ## Arquivo: `.github/workflows/ci.yml` (criar)
 
@@ -143,4 +143,4 @@ Ações:
 
 - Executado pelo Claude do **back** (`.github/workflows/` é território dele).
 - **Atenção:** este workflow roda `mvn`/`npm` em CI mas **não faz deploy** — não tocar no `deploy.yml`.
-- Status report em `docs/status/CI-01.md` com frontmatter válido (gates de código = `na` pro próprio workflow; a evidência é o print/descrição do run verde). **Não** mergear — parar pra revisão.
+- Status report em `docs/sprints/01-mvp/status/CI-01.md` com frontmatter válido (gates de código = `na` pro próprio workflow; a evidência é o print/descrição do run verde). **Não** mergear — parar pra revisão.

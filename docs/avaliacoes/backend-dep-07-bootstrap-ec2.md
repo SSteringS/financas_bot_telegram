@@ -3,7 +3,7 @@
 **Data:** 2026-05-27  
 **Reviewer:** claude-reviewer (sessão independente — ADR 0005)  
 **Branch revisada:** `feature/dep-07-codificar-provisionamento-ec2`  
-**Status report:** `docs/status/DEP-07.md`  
+**Status report:** `docs/sprints/01-mvp/status/DEP-07.md`  
 **Plano:** `docs/plans/DEP-07-codificar-provisionamento-ec2.md`
 
 ---
@@ -24,7 +24,7 @@
 |---|---|---|---|
 | `build/lint/testes` | `na` | Infra-only — correto | ✓ |
 | `branch_convencao` | `ok` | `git merge-base --is-ancestor origin/develop HEAD` → exit 0 ✓ | ✓ |
-| `territorio` | `ok` | `financas_bot_telegram/infra/` (back ✓) + `docs/status/` (shared ✓). Nota: `docs/status/_RESUMO-overnight-deploy.md` é arquivo de status/docs — shared territory ✓ | ✓ |
+| `territorio` | `ok` | `financas_bot_telegram/infra/` (back ✓) + `docs/sprints/01-mvp/status/` (shared ✓). Nota: `docs/sprints/01-mvp/status/_RESUMO-overnight-deploy.md` é arquivo de status/docs — shared territory ✓ | ✓ |
 | `estado: concluido` | declarado | **INVÁLIDO** com `pendencias_humano: 2` | ✗ |
 
 ---

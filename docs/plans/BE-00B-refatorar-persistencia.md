@@ -535,7 +535,7 @@ grep -rl "jakarta.persistence" src/main/java/ | grep -v "adapters/out/persistenc
 
 ## Reportar status
 
-Ao terminar, criar `docs/status/BE-00B-refatorar-persistencia.md` seguindo `docs/status/_TEMPLATE.md`. Cobrir:
+Ao terminar, criar `docs/sprints/01-mvp/status/BE-00B-refatorar-persistencia.md` seguindo `docs/templates/_TEMPLATE-status.md`. Cobrir:
 
 - Confirmação de cada item do critério de aceitação
 - Lista exata de arquivos modificados (com Find Usages)

@@ -58,6 +58,6 @@ Promover a child modules quando **qualquer** destes aparecer: (a) um segundo amb
 ## Referências
 
 - `financas_bot_telegram/infra/*.tf` (a topologia atual)
-- `docs/aprendizado/git-line-endings-crlf-lf.md` e `docs/status/FIX-gitattributes-eol.md` (estado limpo do `plan`, relacionado ao raio de explosão do state único)
+- `docs/aprendizado/git-line-endings-crlf-lf.md` e `docs/sprints/01-mvp/status/FIX-gitattributes-eol.md` (estado limpo do `plan`, relacionado ao raio de explosão do state único)
 - ADR 0004 (taxonomia: por que isto é ADR e não aprendizado/CLAUDE.md)
 </content>

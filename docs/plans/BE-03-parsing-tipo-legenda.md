@@ -139,4 +139,4 @@ private PedidoPagamento parsePedido(Message message) {
 
 ## Status report
 
-`docs/status/BE-03-parsing-tipo-legenda.md`. Tabela com 8+ cenários de teste, output do smoke test no banco mostrando registros novos com tipo correto. Próximo: BE-15.
+`docs/sprints/01-mvp/status/BE-03-parsing-tipo-legenda.md`. Tabela com 8+ cenários de teste, output do smoke test no banco mostrando registros novos com tipo correto. Próximo: BE-15.

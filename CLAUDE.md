@@ -20,7 +20,7 @@ O isolamento vale pra **código**. `docs/` é área **compartilhada** — todas 
 - **Claude do back:** código apenas em `financas_bot_telegram/`, `infra/`, `finbot.service`, `.github/workflows/`
 - **Claude do front:** código apenas em `frontend/`
 - **Claude de planejamento:** commita direto em `develop` e é o **mantenedor** da estrutura de `docs/` (planos, architecture, decisions)
-- **`docs/` é escrita por todos:** qualquer instância adiciona seu status report em `docs/status/` e pode registrar aprendizados em `docs/aprendizado/`. Mudanças estruturais em `docs/plans/`, `docs/architecture/` e `docs/decisions/` ficam com o planejamento.
+- **`docs/` é escrita por todos:** qualquer instância adiciona seu status report em `docs/sprints/<NN>/status/` e pode registrar aprendizados em `docs/aprendizado/`. Mudanças estruturais em `docs/plans/`, `docs/architecture/` e `docs/decisions/` ficam com o planejamento.
 - Arquivos da raiz (`CLAUDE.md`, `.gitignore`, `TODO.md`) podem ser editados por qualquer instância quando necessário
 
 ## Estrutura da pasta docs/
@@ -44,8 +44,12 @@ docs/
     ROTEIRO-TESTES-BACKEND.md      ← roteiro de testes em camadas
   decisions/
     _TEMPLATE.md                   ← template para registrar decisões (ADRs)
-  status/
-    _TEMPLATE.md                   ← template para status de features
+  sprints/
+    <NN>-<slug>/plans/             ← planos da sprint (ADR 0010)
+    <NN>-<slug>/status/            ← status reports da sprint
+    <NN>-<slug>/avaliacoes/        ← relatórios do Reviewer da sprint
+  templates/
+    _TEMPLATE-status.md            ← template canônico de status report (schema ADR 0007)
   aprendizado/                     ← biblioteca pessoal de conceitos discutidos
     README.md                      ← índice + convenções
     <topico>.md                    ← um arquivo por tópico, kebab-case
@@ -143,7 +147,7 @@ main (protegida — só via PR)
 - **Uma tarefa = uma branch nova** a partir de `develop`, nomeada com o padrão acima. Não reaproveitar branch guarda-chuva de outra tarefa.
 - **Precedência:** estas convenções prevalecem sobre qualquer plano de tarefa em `docs/plans/`. Um plano **não** deve sobrescrevê-las silenciosamente. Se uma tarefa exigir exceção (ex.: depende de código que só existe numa branch ainda não mergeada), o plano deve declarar `> EXCEÇÃO DE BRANCH:` com a justificativa — e o caminho preferido é mergear a dependência em `develop` antes de começar.
 - **PR no caminho pra `develop` (decisão 2026-05-26):** feature branches entram em `develop` via **Pull Request**. O CI (CI-01) roda no PR e mostra verde/vermelho. **Branch protection NÃO está ligada por ora** (decisão do humano de adiar) — ou seja, o gate é **informativo, não bloqueante**: nada impede tecnicamente o merge com CI vermelho; a disciplina é manual até ligar a proteção. PR `develop → main` dispara o deploy. Ver `docs/plans/CI-01-gate-pr-develop.md` e ADR 0004 §5. Quando a branch protection for ligada, o gate passa a travar o merge (e o commit direto de docs do planner em `develop` também passará a exigir PR).
-- **Definição de pronto / pré-merge:** antes de mergear, (1) passar pelos gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build, lint, testes, convenção de branch, território); (2) escrever o status report com frontmatter válido conforme `docs/status/_TEMPLATE.md`; (3) **revisão independente pelo Reviewer** — sessão separada (ADR 0005), obrigatória pra toda task antes do merge (decisão 2026-05-26). `estado: concluido` só vale com todos os gates ok e zero pendência.
+- **Definição de pronto / pré-merge:** antes de mergear, (1) passar pelos gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build, lint, testes, convenção de branch, território); (2) escrever o status report com frontmatter válido conforme `docs/templates/_TEMPLATE-status.md`; (3) **revisão independente pelo Reviewer** — sessão separada (ADR 0005), obrigatória pra toda task antes do merge (decisão 2026-05-26). `estado: concluido` só vale com todos os gates ok e zero pendência.
 - Back e front devem fazer merge de `develop` na feature branch regularmente para pegar atualizações de docs
 
 ## CI/CD

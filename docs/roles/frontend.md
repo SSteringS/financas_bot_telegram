@@ -27,8 +27,8 @@ Implementar o frontend (UI, componentes, hooks, chamadas à API) seguindo o plan
 - [ ] `npm test` verde · `npm run lint` limpo · `npm run build` sem erro TS.
 - [ ] Componentes/hooks com lógica não-trivial testados.
 - [ ] Mobile conferido (viewport ~390px).
-- [ ] Status report em `docs/status/<TASK>.md` com frontmatter (gates preenchidos).
+- [ ] Status report em `docs/sprints/<NN>/status/<TASK>.md` com frontmatter (gates preenchidos).
 - [ ] Passou pelo `PRE-MERGE-CHECKLIST.md`.
 
 ## Ler sempre
-`CLAUDE.md` · o plano da task em `docs/plans/` · `docs/runbooks/PRE-MERGE-CHECKLIST.md` · `docs/status/_TEMPLATE.md`
+`CLAUDE.md` · o plano da task em `docs/plans/` · `docs/runbooks/PRE-MERGE-CHECKLIST.md` · `docs/templates/_TEMPLATE-status.md`

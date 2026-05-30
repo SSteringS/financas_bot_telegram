@@ -52,7 +52,7 @@ Notas:
 - [ ] `grep` confirma que nenhum host está hardcoded no Java (tudo vem das properties).
 - [ ] `mvn test` e `mvn package` verdes (não deve haver impacto em teste, mas rodar).
 - [ ] **Verificação real (pós-deploy, no DEP-06 / pelo Reviewer):** preflight `OPTIONS` de `https://satyansaita.com` → `Access-Control-Allow-Origin: https://satyansaita.com` + `Access-Control-Allow-Credentials: true`; e o `Set-Cookie` do `/api/v1/auth/exchange` traz `Domain=satyansaita.com; Secure; HttpOnly; SameSite=Lax`.
-- [ ] Status report em `docs/status/DEP-05.md` com frontmatter válido.
+- [ ] Status report em `docs/sprints/01-mvp/status/DEP-05.md` com frontmatter válido.
 
 ## Coordenação
 
@@ -66,6 +66,6 @@ Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build/lint/testes verdes; mudan
 ## Referências
 
 - ADR 0006 (`docs/decisions/0006-front-e-api-em-hostnames-separados.md`) e `docs/aprendizado/front-api-hostnames-separados.md`, `cors-vs-samesite.md`, `cookies-samesite.md`.
-- `docs/status/DEP-03.md` (onde o bug de domínio foi flagrado).
+- `docs/sprints/01-mvp/status/DEP-03.md` (onde o bug de domínio foi flagrado).
 - `docs/plans/BACKLOG-produto.md` (DEP-05 original).
 </content>

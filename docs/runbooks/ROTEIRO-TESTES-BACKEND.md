@@ -468,7 +468,7 @@ Antes de aprovar PR `feature/* → develop`:
 - [ ] Camada 4: smoke test manual cobriu auth + listar + detalhe + resumo + imagem + isolamento entre requisitantes
 - [ ] Camada 5: pelo menos um pedido + comprovante reais via Telegram funcionaram, bot não travou em mensagem mal formada
 - [ ] Segredos pendentes (`admin_api_key`, `jwt_secret`) **registrados em algum lugar** pra serem adicionados ao Secrets Manager antes do deploy em prod
-- [ ] Status reports de todas as tarefas estão em `docs/status/` com `Próximo passo` apontando pra próxima tarefa
+- [ ] Status reports de todas as tarefas estão em `docs/sprints/<NN>/status/` com `Próximo passo` apontando pra próxima tarefa
 
 Se tudo isso passa: pode mergear `develop` com segurança.
 

@@ -55,5 +55,5 @@ A escolha cascateia em cache, CORS, comportamento de cookie e pipeline de deploy
 - `docs/aprendizado/front-api-hostnames-separados.md` (a explicação conceitual destilada)
 - `docs/aprendizado/cors-vs-samesite.md`, `cookies-samesite.md` (cross-origin vs same-site)
 - `docs/aprendizado/hospedagem-spa-s3-cloudfront.md` (o lado do front)
-- `docs/plans/BACKLOG-produto.md` (DEP-02, DEP-03, DEP-05) e `docs/status/DEP-02.md`
+- `docs/plans/BACKLOG-produto.md` (DEP-02, DEP-03, DEP-05) e `docs/sprints/01-mvp/status/DEP-02.md`
 </content>

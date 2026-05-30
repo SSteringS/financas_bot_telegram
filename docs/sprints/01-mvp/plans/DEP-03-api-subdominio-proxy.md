@@ -72,7 +72,7 @@ Recomendo **A** pra esta task (entrega o subdomínio sem risco de regressão na 
 > **Nota (validação 2026-05-27):** os smoke-tests `/actuator/health` e `/v3/api-docs` retornam 404 — não por falha do proxy, mas porque **prod não serve nenhum dos dois**: o `pom.xml` não tem `spring-boot-starter-actuator`, e `application-prod.properties` traz `springdoc.api-docs.enabled=false`/`swagger-ui.enabled=false` (não expor a API publicamente). A cadeia proxy→app foi confirmada do mesmo jeito (404 é do Spring, com headers de CORS do app). Validar com `/api/v1/resumo` → 401. Follow-up opcional de back: adicionar o Actuator pra ter um health real (a SecurityConfig da BE-12 já libera `/actuator/health` anônimo, hoje apontando pro vazio).
 - [ ] **Webhook do Telegram segue funcionando** — mandar uma mensagem de teste pro bot e confirmar que processa (regressão da 8443).
 - [ ] Renovação automática do cert confirmada (Caddy faz sozinho; checar `caddy` logs / `systemctl status caddy`).
-- [ ] Status report em `docs/status/DEP-03.md` com frontmatter válido **incluindo os comandos manuais executados na EC2** (pra reprodutibilidade).
+- [ ] Status report em `docs/sprints/01-mvp/status/DEP-03.md` com frontmatter válido **incluindo os comandos manuais executados na EC2** (pra reprodutibilidade).
 
 ## Coordenação
 
@@ -82,12 +82,12 @@ Recomendo **A** pra esta task (entrega o subdomínio sem risco de regressão na 
 
 ## Definição de pronto
 
-Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build/lint/testes = `na` se não houver mudança de código Java; `terraform plan` limpo conta como evidência de infra), status report em `docs/status/DEP-03.md` com frontmatter válido, e **revisão independente pelo Reviewer** antes do merge (obrigatória — toca em infra de produção). Abrir PR pra `develop`; não mergear sozinho.
+Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build/lint/testes = `na` se não houver mudança de código Java; `terraform plan` limpo conta como evidência de infra), status report em `docs/sprints/01-mvp/status/DEP-03.md` com frontmatter válido, e **revisão independente pelo Reviewer** antes do merge (obrigatória — toca em infra de produção). Abrir PR pra `develop`; não mergear sozinho.
 
 ## Referências
 
 - `docs/plans/BACKLOG-produto.md` (DEP-03 original; ajustar `finbot.dom.br` → `satyansaita.com`)
 - ADR 0006 (`docs/decisions/0006-front-e-api-em-hostnames-separados.md`) e `docs/aprendizado/front-api-hostnames-separados.md`
-- `docs/status/DEP-01.md`, `docs/status/DEP-02.md` (o que já existe de DNS/cert/infra)
+- `docs/sprints/01-mvp/status/DEP-01.md`, `docs/sprints/01-mvp/status/DEP-02.md` (o que já existe de DNS/cert/infra)
 - `docs/PENDENCIAS-TECNICAS.md` (débito "cert self-signed → Let's Encrypt", relacionado ao follow-up do webhook)
 </content>

@@ -3,7 +3,7 @@
 **Data:** 2026-05-27  
 **Reviewer:** claude-reviewer (sessão independente — ADR 0005)  
 **Branch revisada:** `feature/dep-05-cors-cookie-prod`  
-**Status report:** `docs/status/DEP-05.md`  
+**Status report:** `docs/sprints/01-mvp/status/DEP-05.md`  
 **Plano:** `docs/plans/DEP-05-cors-cookie-prod.md`
 
 ---
@@ -24,7 +24,7 @@
 | `testes_novos: 0` | `0` | Mudança é de config, sem novos testes | ✓ |
 | `lint` | `na` | Back não tem linter configurado | ✓ |
 | `branch_convencao` | `ok` | `git merge-base --is-ancestor origin/develop HEAD` → exit 0 ✓ | ✓ |
-| `territorio` | `ok` | `financas_bot_telegram/src/main/resources/application-prod.properties` (back ✓) + `docs/status/` (shared ✓) | ✓ |
+| `territorio` | `ok` | `financas_bot_telegram/src/main/resources/application-prod.properties` (back ✓) + `docs/sprints/01-mvp/status/` (shared ✓) | ✓ |
 | `estado: concluido` | declarado | Gates ok, `pendencias_humano: 0` — estado válido | ✓ |
 
 ---

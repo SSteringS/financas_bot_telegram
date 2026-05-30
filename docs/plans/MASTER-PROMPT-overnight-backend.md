@@ -35,7 +35,7 @@ Você vai trabalhar overnight executando uma sequência de 12 tarefas do backend
    - Se o teste vermelho é dos testes novos que você acabou de escrever, ajuste e re-rode.
    - Se é teste antigo (anterior à tarefa) que quebrou, investiga: a tarefa atual quebrou contrato existente? Isso é sinal de bug — **pare** e relate (criterio de aceitação implícito é "não quebrar testes existentes").
 
-6. **Escreva o status report** em `docs/status/BE-XX-<slug>.md` seguindo `docs/status/_TEMPLATE.md`. Status report é parte do commit (não commit separado).
+6. **Escreva o status report** em `docs/status/BE-XX-<slug>.md` seguindo `docs/templates/_TEMPLATE-status.md`. Status report é parte do commit (não commit separado).
 
 7. **Commit** com a mensagem padrão. Não faça push intermediário (mantém local na sua máquina ou push só quando terminar tudo — eu reviso pelo git log).
 
@@ -43,7 +43,7 @@ Você vai trabalhar overnight executando uma sequência de 12 tarefas do backend
 
 **Pontos pra PARAR e me esperar:**
 
-Pare e **deixe um arquivo `docs/status/BE-XX-PARADO.md`** explicando o motivo se:
+Pare e **deixe um arquivo `docs/sprints/01-mvp/status/BE-XX-PARADO.md`** explicando o motivo se:
 
 - Testes existentes (anteriores à sua tarefa) começam a falhar e não é óbvio o porquê
 - Pré-requisito do plano não está satisfeito (ex: BE-10 manda usar `RequisitanteRepositoryAdapter` que não existe ainda)
@@ -80,7 +80,7 @@ Pare e **deixe um arquivo `docs/status/BE-XX-PARADO.md`** explicando o motivo se
 - Configs sensíveis (jwt secret, admin api key) vão pro Secrets Manager em prod. Em dev, valores placeholder em `application-dev.properties.example`. Os planos detalham quais chaves novas eu (humano) preciso adicionar ao `finbot-prod-secrets` — **liste consolidado no último status report (BE-14)** pra eu fazer antes do deploy.
 - Cada commit deve ser cirúrgico: só os arquivos da tarefa atual. Sem mudanças "de oportunidade" em código não relacionado.
 
-Quando terminar todas as 12 ou parar em alguma, deixa um resumo final em `docs/status/_RESUMO-overnight.md` listando o que foi feito, o que ficou parado, e qualquer coisa que precise da minha atenção. Esse arquivo é o que eu vou ler primeiro de manhã.
+Quando terminar todas as 12 ou parar em alguma, deixa um resumo final em `docs/sprints/01-mvp/status/_RESUMO-overnight.md` listando o que foi feito, o que ficou parado, e qualquer coisa que precise da minha atenção. Esse arquivo é o que eu vou ler primeiro de manhã.
 
 Boa execução. Roda!
 
@@ -95,9 +95,9 @@ Boa execução. Roda!
 Se tudo correr bem, ao acordar você terá:
 
 - 12 commits novos na branch `feature/backend-fase3-api-completa`, com mensagens padronizadas
-- 12 status reports em `docs/status/BE-XX-*.md`
+- 12 status reports em `docs/sprints/01-mvp/status/BE-XX-*.md`
 - 1 ADR novo em `docs/decisions/0003-controller-webhook-nunca-retorna-5xx.md`
-- 1 arquivo `docs/status/_RESUMO-overnight.md` resumindo tudo
+- 1 arquivo `docs/sprints/01-mvp/status/_RESUMO-overnight.md` resumindo tudo
 
 **Antes de mergear em develop, eu sugiro fazer:**
 
@@ -125,6 +125,6 @@ Se algum commit estiver problemático: cherry-pick os bons, descartar o ruim, aj
 ## Em caso de problemas overnight
 
 Se você acordar e o Claude do back tiver parado em uma tarefa:
-- Leia `docs/status/BE-XX-PARADO.md` (ou o último status report)
+- Leia `docs/sprints/01-mvp/status/BE-XX-PARADO.md` (ou o último status report)
 - Decida: deixa o problema pra mim resolver (planejador), ou corrige direto
 - Se for ajustar e re-executar, basta dar continue: "Voltei. Resolve o problema da BE-XX e continua a sequência."

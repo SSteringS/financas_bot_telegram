@@ -377,7 +377,7 @@ Abrir PR direto pra `develop`. Após approve + merge, abrir PR `develop → main
 
 ## Reportar status
 
-Criar `docs/status/HOTFIX-pedido-data-pedido-PATCH.md` seguindo `docs/status/_TEMPLATE.md`. Cobrir:
+Criar `docs/sprints/01-mvp/status/HOTFIX-pedido-data-pedido-PATCH.md` seguindo `docs/templates/_TEMPLATE-status.md`. Cobrir:
 
 - Output de `./mvnw test` (sumário final)
 - Smoke test: ID do pedido criado + `SELECT` mostrando todos os campos preenchidos

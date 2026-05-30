@@ -65,7 +65,7 @@ Antes de escrever código, confirme:
 
 ## STATUS REPORT
 
-Escrever em `docs/sprints/02-canal-whatsapp/status/FE-14.md` seguindo `docs/status/_TEMPLATE.md`. Frontmatter válido (incluindo `estado`, `testes_total`, `testes_novos`, `lint`, `build`). Anotar:
+Escrever em `docs/sprints/02-canal-whatsapp/status/FE-14.md` seguindo `docs/templates/_TEMPLATE-status.md`. Frontmatter válido (incluindo `estado`, `testes_total`, `testes_novos`, `lint`, `build`). Anotar:
 
 - Decisão A (generalizar vs clonar) + justificativa
 - Decisão B (estado independente vs mutuamente exclusivo) + justificativa
@@ -106,6 +106,6 @@ Pare ao final do status report. Não mergeie.
 - Plano completo: `docs/sprints/02-canal-whatsapp/plans/FE-14-botao-ver-arquivo-original.md`.
 - CLAUDE.md §"Worktrees git" + §"Fluxo de branches" + §"Definição de pronto".
 - `docs/roles/frontend.md`.
-- `docs/status/_TEMPLATE.md`.
+- `docs/templates/_TEMPLATE-status.md`.
 - Modelo de DISPATCH: `docs/sprints/02-canal-whatsapp/plans/DISPATCH-FIX-idempotencia-porta-application.md`.
 - Backend: `application/services/ObterUrlImagemPedidoServiceImpl` (service existente — exposição a confirmar).

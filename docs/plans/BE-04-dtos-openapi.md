@@ -400,7 +400,7 @@ Em outra aba ou navegador:
 
 ## Reportar status
 
-`docs/status/BE-04-dtos-openapi.md` seguindo `_TEMPLATE.md`. Cobrir:
+`docs/sprints/01-mvp/status/BE-04-dtos-openapi.md` seguindo `_TEMPLATE.md`. Cobrir:
 
 - Output de `./mvnw test` (sumário com `Tests run: X, Failures: 0, Errors: 0, Skipped: 0`)
 - Screenshot/cópia da resposta de `curl http://localhost:8080/v3/api-docs` (recortar pra mostrar a seção `components/schemas` com os DTOs)

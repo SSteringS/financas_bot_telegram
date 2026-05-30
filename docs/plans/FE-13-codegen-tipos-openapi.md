@@ -88,12 +88,12 @@ App-code continua importando de `tipos.ts`. O arquivo gerado é detalhe de imple
 
 ## Definição de pronto
 
-Passar pelos gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build, lint, testes, convenção de branch, território) e escrever o status report em `docs/status/FE-13-*.md` com frontmatter válido (`docs/status/_TEMPLATE.md`). `estado: concluido` só com todos os gates ok e zero pendência.
+Passar pelos gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build, lint, testes, convenção de branch, território) e escrever o status report em `docs/sprints/01-mvp/status/FE-13-*.md` com frontmatter válido (`docs/templates/_TEMPLATE-status.md`). `estado: concluido` só com todos os gates ok e zero pendência.
 
 ## Referências
 
 - `docs/plans/BACKLOG-evolucao-workflow.md` (item #1, origem)
-- `docs/status/FE-12.md` e `docs/plans/FE-12-resumo-parametrizado-e-contadores.md` (o incidente de drift `mesAtual→mes`)
+- `docs/sprints/01-mvp/status/FE-12.md` e `docs/plans/FE-12-resumo-parametrizado-e-contadores.md` (o incidente de drift `mesAtual→mes`)
 - `docs/plans/BE-04-dtos-openapi.md` (decisão de gerar OpenAPI via springdoc a partir das anotações)
 - `docs/plans/CI-01-gate-pr-develop.md` (onde o check de drift da fase 2 se encaixa)
 </content>

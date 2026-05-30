@@ -52,7 +52,7 @@ Trabalho profissional, completo, transparente e de alta qualidade. Pequenas opor
   - Cache de auth via variáveis de módulo em vez de Context
   - `happy-dom` em vez de `jsdom` (incompatibilidade ESM/CJS do vitest)
 - **Zero decisão de produto improvisada** — quando o plano não especificava, o implementador escolheu o caminho conservador e documentou
-- Respeitou estritamente o território: tocou só em `frontend/` e `docs/status/`
+- Respeitou estritamente o território: tocou só em `frontend/` e `docs/sprints/01-mvp/status/`
 
 ### 3. Arquitetura (parte do 8/10 em código)
 

@@ -140,4 +140,4 @@ Criar em `docs/decisions/` baseado no `_TEMPLATE.md`. Conteúdo essencial:
 
 ## Status report
 
-`docs/status/BE-15-handler-generico-excecoes.md`. Output dos 4 testes novos + confirmação visual via logs locais (rodar app, simular erro, ver os logs em ERROR e o "200 OK" no response). Próximo: BE-14.
+`docs/sprints/01-mvp/status/BE-15-handler-generico-excecoes.md`. Output dos 4 testes novos + confirmação visual via logs locais (rodar app, simular erro, ver os logs em ERROR e o "200 OK" no response). Próximo: BE-14.

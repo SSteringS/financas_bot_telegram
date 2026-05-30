@@ -45,4 +45,4 @@ Nenhum. Fix autocontido.
 ## Arquivos criados/modificados
 
 - `financas_bot_telegram/src/main/java/.../infra/OpenApiConfig.java` (modificado: bloco static + 2 imports)
-- `docs/status/FIX-hide-requisitanteid-swagger.md` (novo)
+- `docs/sprints/01-mvp/status/FIX-hide-requisitanteid-swagger.md` (novo)

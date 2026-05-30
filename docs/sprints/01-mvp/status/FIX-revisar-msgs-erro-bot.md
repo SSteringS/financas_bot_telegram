@@ -61,4 +61,4 @@ Se quiser criar um comando `/ajuda` no futuro, ele pode reutilizar as mesmas str
 - `adapters/in/telegram/strategy/PaymentRequestStrategy.java` (modificado: exception type + mensagens)
 - `adapters/in/telegram/strategy/PaymentProofStrategy.java` (modificado: mensagens)
 - `adapters/in/telegram/strategy/PaymentRequestStrategyTest.java` (modificado: +2 testes)
-- `docs/status/FIX-revisar-msgs-erro-bot.md` (novo)
+- `docs/sprints/01-mvp/status/FIX-revisar-msgs-erro-bot.md` (novo)

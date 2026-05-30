@@ -90,7 +90,7 @@ sudo systemctl restart systemd-journald
 - [ ] `journald.conf` com `SystemMaxUse=200M` aplicado; `journalctl --disk-usage` respeitando o teto após restart.
 - [ ] **Deploy do back re-disparado e verde** — o `mv`/`restart` completa e `systemctl is-active finbot` retorna `active`.
 - [ ] App sem downtime durante o processo (continuou no JAR antigo até o redeploy).
-- [ ] Status report em `docs/status/FIX-crescer-volume-ec2.md` com frontmatter válido, incluindo os comandos rodados na instância e o `df -h` antes/depois.
+- [ ] Status report em `docs/sprints/01-mvp/status/FIX-crescer-volume-ec2.md` com frontmatter válido, incluindo os comandos rodados na instância e o `df -h` antes/depois.
 
 ## Coordenação
 

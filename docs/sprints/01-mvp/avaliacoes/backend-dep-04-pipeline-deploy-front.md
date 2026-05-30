@@ -3,7 +3,7 @@
 **Data:** 2026-05-27  
 **Reviewer:** claude-reviewer (sessão independente — ADR 0005)  
 **Branch revisada:** `feature/dep-04-pipeline-deploy-front`  
-**Status report:** `docs/status/DEP-04.md`  
+**Status report:** `docs/sprints/01-mvp/status/DEP-04.md`  
 **Plano:** `docs/plans/DEP-04-pipeline-deploy-front.md`
 
 ---
@@ -28,7 +28,7 @@
 |---|---|---|---|
 | `build/lint/testes` | `na` | Infra-only + workflow YAML — sem código de produto | ✓ |
 | `branch_convencao` | `ok` | `git merge-base --is-ancestor origin/develop HEAD` → exit 0 ✓ | ✓ |
-| `territorio` | `ok` | `.github/workflows/deploy-frontend.yml` (back ✓) + `financas_bot_telegram/infra/iam-github-oidc.tf` (back ✓) + `docs/status/` (shared ✓) | ✓ |
+| `territorio` | `ok` | `.github/workflows/deploy-frontend.yml` (back ✓) + `financas_bot_telegram/infra/iam-github-oidc.tf` (back ✓) + `docs/sprints/01-mvp/status/` (shared ✓) | ✓ |
 | `estado: concluido` | declarado | **INVÁLIDO** com `pendencias_humano: 1` — template exige 0 | ✗ |
 
 ---

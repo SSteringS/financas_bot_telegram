@@ -72,7 +72,7 @@ Ao fim da Fase 1, o webhook já está num cert real — mas a app ainda tem o ke
 - [ ] SG sem ingress 8443; `terraform plan` in-place (sem replace da EC2).
 - [ ] Keystore e `keystore_password` removidos; nada self-signed no box.
 - [ ] DEP-07 `bootstrap.sh` atualizado pra não tratar keystore.
-- [ ] Status report `docs/status/DEP-08.md` com frontmatter válido (comandos manuais documentados).
+- [ ] Status report `docs/sprints/01-mvp/status/DEP-08.md` com frontmatter válido (comandos manuais documentados).
 
 ## Coordenação
 

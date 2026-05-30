@@ -54,7 +54,7 @@ Todos os passos acima ✅. Se algo falhar, anotar onde e qual o sintoma:
 - **Imagem do comprovante não carrega** → pre-signed URL / permissão S3 (BE-07/08).
 - **Link com domínio errado** → `app.frontend.base-url` (DEP-05).
 
-Registrar o resultado num status report `docs/status/DEP-06.md` (mesmo sendo teste manual — vira evidência de que o MVP está no ar).
+Registrar o resultado num status report `docs/sprints/01-mvp/status/DEP-06.md` (mesmo sendo teste manual — vira evidência de que o MVP está no ar).
 
 ## Referências
 

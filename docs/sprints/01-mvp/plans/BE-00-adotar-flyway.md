@@ -216,7 +216,7 @@ Se algo der errado em prod, abrir issue/avisar humano. **Não fazer hotfix no ba
 
 ## Reportar status
 
-Ao terminar, criar `docs/status/BE-00-adotar-flyway.md` seguindo o template em `docs/status/_TEMPLATE.md`. Pontos a cobrir no relatório:
+Ao terminar, criar `docs/sprints/01-mvp/status/BE-00-adotar-flyway.md` seguindo o template em `docs/templates/_TEMPLATE-status.md`. Pontos a cobrir no relatório:
 
 - Confirmação de cada item do critério de aceitação
 - Output dos logs do Flyway no startup em dev (cole o trecho)

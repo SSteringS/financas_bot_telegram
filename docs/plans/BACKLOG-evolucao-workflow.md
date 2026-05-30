@@ -7,7 +7,7 @@ Itens de **profissionalização do workflow** que saíram da auditoria de 2026-0
 ## Em voo (já planejados)
 
 - **CI-01 — gate de CI no PR pra `develop`.** Plano em `docs/plans/CI-01-gate-pr-develop.md`. **Decisão (2026-05-26): PR→develop com o CI rodando no PR; branch protection adiada** → gate informativo, não bloqueante por ora. Pendente: execução do `ci.yml` pelo back. (Ligar branch protection no GitHub quando quiser tornar bloqueante.)
-- **FIX-gitattributes-eol.** ✅ **Feito** (ver `docs/status/FIX-gitattributes-eol.md`) — drift CRLF/LF eliminado, `terraform plan` limpo. Pendente só o PR pra `develop`.
+- **FIX-gitattributes-eol.** ✅ **Feito** (ver `docs/sprints/01-mvp/status/FIX-gitattributes-eol.md`) — drift CRLF/LF eliminado, `terraform plan` limpo. Pendente só o PR pra `develop`.
 - **FE-13 — codegen do `tipos.ts` a partir do OpenAPI.** ✅ Plano escrito em `docs/plans/FE-13-codegen-tipos-openapi.md` (promovido do item #1 abaixo). Pendente: execução pelo front.
 
 ## A escrever (do codegen pra frente)
@@ -19,7 +19,7 @@ Itens de **profissionalização do workflow** que saíram da auditoria de 2026-0
 **O quê:** um resumo curto e vivo: fase atual, o que está em `develop`, o que está em voo, próximos passos. **Por quê:** agente que começa frio re-deriva contexto; isso orienta rápido. **Feito:** `docs/STATE.md` criado (2026-05-26). Manter atualizado a cada mudança relevante de estado.
 
 ### 3. Script de métricas sobre o frontmatter dos status reports — ✅ feito
-**O quê:** script que lê `docs/status/*.md`, extrai o frontmatter e agrega (tasks por `estado`, `desvios` por área, soma de `testes_total`, taxa de gate-fail). **Feito:** `docs/scripts/metricas_status.py` (+ `docs/scripts/README.md`). Métricas escolhidas: cobertura do schema canônico, estado das tasks, gate-fails, desvios/pendências, soma de testes. **Achado da 1ª rodada:** só 12/36 reports têm frontmatter e só 1 (DEP-02) segue o schema canônico — os demais são anteriores ao `_TEMPLATE`/ADR 0007. O schema vale dos novos pra frente; a métrica serve pra ver a adoção subir.
+**O quê:** script que lê `docs/sprints/<NN>/status/*.md`, extrai o frontmatter e agrega (tasks por `estado`, `desvios` por área, soma de `testes_total`, taxa de gate-fail). **Feito:** `docs/scripts/metricas_status.py` (+ `docs/scripts/README.md`). Métricas escolhidas: cobertura do schema canônico, estado das tasks, gate-fails, desvios/pendências, soma de testes. **Achado da 1ª rodada:** só 12/36 reports têm frontmatter e só 1 (DEP-02) segue o schema canônico — os demais são anteriores ao `_TEMPLATE`/ADR 0007. O schema vale dos novos pra frente; a métrica serve pra ver a adoção subir.
 
 ### 4. Formalizar o template de task (intake) — ✅ feito
 **O quê:** adicionar ao padrão de plano os campos que faltam: **origem**, **riscos**, **prioridade** (já temos contexto/critérios/dependências/branch). **Por quê:** estruturar o input contract (mesmo princípio do status report). **Feito:** `docs/plans/_TEMPLATE.md` criado com bloco de Intake (origem, prioridade, esforço, território/quem executa, branch, dependências, riscos) + seções de corpo. O plano `FE-13` já segue o formato.
@@ -34,7 +34,7 @@ Itens de **profissionalização do workflow** que saíram da auditoria de 2026-0
 **O quê:** instruções por papel pra reduzir context dilution e viés do planejador. **Feito:** ADR `0005` + arquivos `docs/roles/{planner,backend,frontend,reviewer}.md`. Localização ficou `docs/roles/` (não `.claude/`, que é protegido pra escrita da sessão de planejamento). **Reviewer adotado (2026-05-26):** revisão independente em sessão separada passa a ser obrigatória pra toda task antes do merge (registrado no `CLAUDE.md`, seção pré-merge). `architect.md`/`qa.md` seguem adiados.
 
 ### 7. Pequeno — incluir prefixo `CI` no regex de task-id — ✅ feito
-**O quê:** atualizar o regex em `PRE-MERGE-CHECKLIST.md` pra aceitar `CI-`. **Feito:** regex de `branch_convencao` no `PRE-MERGE-CHECKLIST.md` e o comentário de schema no `docs/status/_TEMPLATE.md` agora incluem `ci`/`CI`.
+**O quê:** atualizar o regex em `PRE-MERGE-CHECKLIST.md` pra aceitar `CI-`. **Feito:** regex de `branch_convencao` no `PRE-MERGE-CHECKLIST.md` e o comentário de schema no `docs/templates/_TEMPLATE-status.md` agora incluem `ci`/`CI`.
 
 ### 8. Checklist arquitetural explícito no `reviewer.md` — TÓPICO PRA RETRO-02
 **O quê:** evoluir `docs/roles/reviewer.md` pra incluir um **bloco específico de smells arquiteturais** que o Reviewer deve procurar ativamente: violação de direção de dependência hexagonal (application importando de infra), vazamento de internals de adapter pra application (ex.: justificar decisões de application com raciocínio JPA/JDBC), repos/queries direto em controller, etc.
@@ -50,7 +50,7 @@ Itens de **profissionalização do workflow** que saíram da auditoria de 2026-0
 
 ### 9. Numeração sequencial zero-padded pra TODO task-id — TÓPICO PRA RETRO-02 (adoção parcial em 2026-05-29)
 
-**Atualização 2026-05-29 — adoção parcial:** o humano decidiu adotar **agora**, forward-only, **só pra FIX e HOTFIX** com **3 dígitos zero-padded** (FIX-001, HOTFIX-001). Branch passa a ser `fix/<id3d>-<slug>` e `hotfix/<id3d>-<slug>`. Os planos FIX já escritos mas não-mergeados (`FIX-idempotencia-porta-application`, `FIX-padronizar-restclient-builder`) ficam no formato slug-only legado. Registrado em `CLAUDE.md` (Fluxo de branches) + `docs/status/_TEMPLATE.md` (schema). A discussão restante (zero-padding pra **BE/FE/DEP/EVO/CI** + tratamento de bifurcações tipo `BE-19a` + script `next-task-id.sh`) segue pra RETRO-02.
+**Atualização 2026-05-29 — adoção parcial:** o humano decidiu adotar **agora**, forward-only, **só pra FIX e HOTFIX** com **3 dígitos zero-padded** (FIX-001, HOTFIX-001). Branch passa a ser `fix/<id3d>-<slug>` e `hotfix/<id3d>-<slug>`. Os planos FIX já escritos mas não-mergeados (`FIX-idempotencia-porta-application`, `FIX-padronizar-restclient-builder`) ficam no formato slug-only legado. Registrado em `CLAUDE.md` (Fluxo de branches) + `docs/templates/_TEMPLATE-status.md` (schema). A discussão restante (zero-padding pra **BE/FE/DEP/EVO/CI** + tratamento de bifurcações tipo `BE-19a` + script `next-task-id.sh`) segue pra RETRO-02.
 
 **O quê (proposta original):** padronizar task-id em formato **zero-padded sequencial global**: `BE-0001`, `BE-0002`, `FIX-0001`, `HOTFIX-0001`, `FE-0001`, `DEP-0001`, `CI-0001` etc. — em vez do formato atual `BE-17`, `BE-19a`, `FIX-idempotencia-porta-application` (slug-based pros FIX).
 

@@ -101,4 +101,4 @@ Os cenários abaixo foram validados pelos 212 testes automatizados e **não prec
 
 ## Para o Claude de planejamento
 
-Este documento serve de entrada para a avaliação da entrega `feature/backend-polish-evo07`. Os status reports individuais estão em `docs/status/` (prefixo `FIX-*`, `BE-15b-*`, `EVO-07-*`) e o resumo consolidado da sessão em `docs/status/_RESUMO-overnight-back-2.md`.
+Este documento serve de entrada para a avaliação da entrega `feature/backend-polish-evo07`. Os status reports individuais estão em `docs/sprints/01-mvp/status/` (prefixo `FIX-*`, `BE-15b-*`, `EVO-07-*`) e o resumo consolidado da sessão em `docs/sprints/01-mvp/status/_RESUMO-overnight-back-2.md`.

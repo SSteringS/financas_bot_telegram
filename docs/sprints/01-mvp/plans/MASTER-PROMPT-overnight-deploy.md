@@ -14,14 +14,14 @@ Você é o Claude do back deste projeto. Leia, nesta ordem:
 - docs/plans/DEP-05-cors-cookie-prod.md
 - docs/plans/DEP-04-pipeline-deploy-front.md
 - docs/plans/DEP-07-codificar-provisionamento-ec2.md
-- docs/status/DEP-03.md (Caddyfile/unit já instalados — fonte pro DEP-07)
+- docs/sprints/01-mvp/status/DEP-03.md (Caddyfile/unit já instalados — fonte pro DEP-07)
 - docs/plans/FIX-crescer-volume-ec2.md (config do journald — fonte pro DEP-07)
 
 ## REGRAS DURAS (não violar)
 1. CODE-ONLY. NÃO rode `terraform apply`. NÃO faça SSH na EC2. NÃO mexa no console/CLI da AWS. NÃO faça `git push` pra develop nem merge. NÃO rode testes em produção.
 2. Validação permitida é LOCAL: `terraform fmt -check` / `terraform validate`, `shellcheck`, `mvn test`, `mvn package -DskipTests`.
 3. UMA BRANCH POR TASK, criada a partir de `develop` (`git checkout develop && git pull && git checkout -b feature/<id>-<slug>`). UM commit por task no padrão `feat(<ID>): ...`.
-4. Ao terminar CADA task: escreva o status report em docs/status/<ID>.md com frontmatter válido (docs/status/_TEMPLATE.md), e PARE — não mergeie. A revisão é do Reviewer; o apply é do humano.
+4. Ao terminar CADA task: escreva o status report em docs/sprints/<NN>/status/<ID>.md com frontmatter válido (docs/templates/_TEMPLATE-status.md), e PARE — não mergeie. A revisão é do Reviewer; o apply é do humano.
 5. Território: só `financas_bot_telegram/`, `infra/`, `.github/workflows/`. NÃO toque em `frontend/`.
 6. Se bater numa decisão de produto que o plano não cobre, NÃO invente: registre como pendência no status report daquela task (estado: bloqueado) e siga pra próxima task.
 
@@ -32,26 +32,26 @@ Branch: feature/dep-05-cors-cookie-prod
 - Corrigir em application-prod.properties: app.frontend.base-url, app.cors.allowed-origin (https://satyansaita.com, sem barra final), app.cookie.domain (satyansaita.com). Detalhes no plano.
 - `grep` por hosts hardcoded no src/main (não deve haver; tudo é @Value).
 - `mvn test` + `mvn package -DskipTests` verdes.
-- Status report docs/status/DEP-05.md.
+- Status report docs/sprints/01-mvp/status/DEP-05.md.
 
 ### Task 2 — DEP-04 (pipeline do front via OIDC)
 Branch: feature/dep-04-pipeline-deploy-front
 - Criar infra/iam-github-oidc.tf (provider OIDC + role escopada ao repo/branch main + policy mínima S3+CloudFront). Para o `sub` do OIDC, leia o slug owner/repo de `git remote get-url origin`; se não der pra resolver, use o placeholder <OWNER>/<REPO> e marque isso CLARAMENTE no status report como pendência de humano.
 - Criar .github/workflows/deploy-frontend.yml conforme o plano (push em main paths frontend/**; OIDC; npm ci/build; s3 sync; invalidate). Bucket finbot-frontend-prod-776658251579, distribuição E1WG4Q8MG3V9HY, region us-east-1.
 - `terraform fmt` + `terraform validate` (NÃO `plan`/`apply` — sem credenciais).
-- Status report docs/status/DEP-04.md, anotando: o provider OIDC é singleton da conta (humano confirma/importa se já existir) e o slug do repo usado.
+- Status report docs/sprints/01-mvp/status/DEP-04.md, anotando: o provider OIDC é singleton da conta (humano confirma/importa se já existir) e o slug do repo usado.
 
 ### Task 3 — DEP-07 (codificar provisionamento — a mais densa)
 Branch: feature/dep-07-codificar-provisionamento-ec2
-- Criar infra/provision/bootstrap.sh idempotente capturando TUDO que hoje é manual: Java, usuário/pasta finbot, unit finbot.service, Caddy+Caddyfile+unit (copiar de docs/status/DEP-03.md), cap do journald (SystemMaxUse=200M, de docs/plans/FIX-crescer-volume-ec2.md), e o keystore (opção (a) do plano: regenerar self-signed no boot + nota de re-registrar webhook).
+- Criar infra/provision/bootstrap.sh idempotente capturando TUDO que hoje é manual: Java, usuário/pasta finbot, unit finbot.service, Caddy+Caddyfile+unit (copiar de docs/sprints/01-mvp/status/DEP-03.md), cap do journald (SystemMaxUse=200M, de docs/plans/FIX-crescer-volume-ec2.md), e o keystore (opção (a) do plano: regenerar self-signed no boot + nota de re-registrar webhook).
 - Templates versionados (Caddyfile, finbot.service, drop-in do journald) conforme o plano.
 - Religar ec2.tf: user_data via templatefile(), interpolando domain_name. Manter lifecycle ignore_changes=[ami].
 - `shellcheck` no bootstrap.sh + `terraform fmt`/`validate`.
 - NÃO dá pra confirmar plan in-place nem subir instância de teste (sem credenciais) — registre isso como verificação pendente do humano no status report.
-- Status report docs/status/DEP-07.md.
+- Status report docs/sprints/01-mvp/status/DEP-07.md.
 
 ## AO FINAL
-Escreva docs/status/_RESUMO-overnight-deploy.md com:
+Escreva docs/sprints/01-mvp/status/_RESUMO-overnight-deploy.md com:
 - Tabela: task | branch | commit | resultado das checagens locais | estado.
 - CHECKLIST MANUAL PRA MANHÃ (humano), na ordem:
   1. DEP-05/DEP-07: revisar diffs; `terraform plan` e CONFIRMAR in-place (sem replace da EC2) antes de qualquer apply.
@@ -77,5 +77,5 @@ NÃO mergeie nada. Pare aqui.
 ## Referências
 
 - Planos: DEP-04, DEP-05, DEP-07 · Runbook: RUNBOOK-dep06-e2e-prod.md · FIX-crescer-volume-ec2.
-- Padrão de overnight anterior: `docs/status/_RESUMO-overnight-back-2.md`.
+- Padrão de overnight anterior: `docs/sprints/01-mvp/status/_RESUMO-overnight-back-2.md`.
 </content>
