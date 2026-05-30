@@ -41,15 +41,16 @@ public class WhatsAppWebhookController {
         WhatsAppMessageMapper messageMapper,
         MensagemEntrantePortIn mensagemEntrantePortIn,
         ObjectMapper objectMapper,
-        @Value("${whatsapp.verify-token}") String verifyToken,
-        @Value("${whatsapp.allowed-wa-ids}") List<String> allowedWaIds
+        @Value("${whatsapp.verify-token:NAO_CONFIGURADO}") String verifyToken,
+        @Value("${whatsapp.allowed-wa-ids:}") List<String> allowedWaIds
     ) {
         this.signatureValidator = signatureValidator;
         this.messageMapper = messageMapper;
         this.mensagemEntrantePortIn = mensagemEntrantePortIn;
         this.objectMapper = objectMapper;
         this.verifyToken = verifyToken;
-        this.allowedWaIds = allowedWaIds;
+        // Spring converte string vazia em lista com elemento vazio [""] — filtrar para lista vazia de fato.
+        this.allowedWaIds = allowedWaIds.stream().filter(s -> !s.isBlank()).toList();
     }
 
     @GetMapping("/webhook/whatsapp")
