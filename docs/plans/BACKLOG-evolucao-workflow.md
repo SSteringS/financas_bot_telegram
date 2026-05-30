@@ -1,6 +1,6 @@
 # Backlog — evolução do workflow (melhorias de processo)
 
-Itens de **profissionalização do workflow** que saíram da auditoria de 2026-05-26 (ver ADR `0004`). Não são features do produto (essas estão em `BACKLOG-produto.md`) — são melhorias de processo/tooling. Ordem = prioridade aproximada de impacto.
+Itens de **profissionalização do workflow** que saíram da auditoria de 2026-05-26 (ver ADR `0004`). Não são features do produto (essas estão em `FASE-3-VISUALIZACAO.md`) — são melhorias de processo/tooling. Ordem = prioridade aproximada de impacto.
 
 > Guardado pra sobreviver à separação de sessões. Quando um item virar task formal, promover pra um plano próprio e marcar aqui.
 
@@ -37,4 +37,92 @@ Itens de **profissionalização do workflow** que saíram da auditoria de 2026-0
 **O quê:** atualizar o regex em `PRE-MERGE-CHECKLIST.md` pra aceitar `CI-`. **Feito:** regex de `branch_convencao` no `PRE-MERGE-CHECKLIST.md` e o comentário de schema no `docs/status/_TEMPLATE.md` agora incluem `ci`/`CI`.
 
 ### 8. Checklist arquitetural explícito no `reviewer.md` — TÓPICO PRA RETRO-02
-**O quê:** evoluir `docs/roles/reviewer.md` pra incluir um **bloco específico de smells arquiteturais** que o Reviewer deve procurar ativamente: violação d
+**O quê:** evoluir `docs/roles/reviewer.md` pra incluir um **bloco específico de smells arquiteturais** que o Reviewer deve procurar ativamente: violação de direção de dependência hexagonal (application importando de infra), vazamento de internals de adapter pra application (ex.: justificar decisões de application com raciocínio JPA/JDBC), repos/queries direto em controller, etc.
+
+**Por quê:** descoberto em 2026-05-28 na revisão da BE-19a — o humano flagrou `MensagemProcessadaService` (application) dependendo direto de `JdbcTemplate` (infra). Reviewer aprovou comportamento mas **não pegou** a violação arquitetural. Promovido pra `FIX-idempotencia-porta-application` (sprint 02). Sinaliza que o Reviewer tem rede em comportamento/testes/gates mas o "olho arquitetural" precisa virar explícito também — não pode depender de instinto.
+
+**Esforço:** baixo (atualizar `reviewer.md` com bullets/checklist concreto). **Prioridade:** alta — toda task que mexer em camada nova arrisca repetir o mesmo tipo de drift até resolver.
+
+**Pra discussão na RETRO-02:**
+- Definir os 4–6 smells mais valiosos a checar explicitamente (não virar lista interminável).
+- Decidir se vira **seção no `reviewer.md`** (delta enxuto) ou **runbook próprio** que o Reviewer puxa quando a task toca camadas de arquitetura.
+- Medir no próximo ciclo se a frequência de drift detectado-pelo-humano cai.
+
+### 9. Numeração sequencial zero-padded pra TODO task-id — TÓPICO PRA RETRO-02 (adoção parcial em 2026-05-29)
+
+**Atualização 2026-05-29 — adoção parcial:** o humano decidiu adotar **agora**, forward-only, **só pra FIX e HOTFIX** com **3 dígitos zero-padded** (FIX-001, HOTFIX-001). Branch passa a ser `fix/<id3d>-<slug>` e `hotfix/<id3d>-<slug>`. Os planos FIX já escritos mas não-mergeados (`FIX-idempotencia-porta-application`, `FIX-padronizar-restclient-builder`) ficam no formato slug-only legado. Registrado em `CLAUDE.md` (Fluxo de branches) + `docs/status/_TEMPLATE.md` (schema). A discussão restante (zero-padding pra **BE/FE/DEP/EVO/CI** + tratamento de bifurcações tipo `BE-19a` + script `next-task-id.sh`) segue pra RETRO-02.
+
+**O quê (proposta original):** padronizar task-id em formato **zero-padded sequencial global**: `BE-0001`, `BE-0002`, `FIX-0001`, `HOTFIX-0001`, `FE-0001`, `DEP-0001`, `CI-0001` etc. — em vez do formato atual `BE-17`, `BE-19a`, `FIX-idempotencia-porta-application` (slug-based pros FIX).
+
+**Por quê:** o humano levantou (2026-05-29) que **fica melhor pra enxergar e achar a mais recente**. Hoje:
+- BEs são numerados (`BE-17`, `BE-18`, `BE-19`, `BE-19a` — o "a" já é gambiarra de bifurcação) mas sem zero-pad → ordenação alfabética não bate com cronológica (`BE-2` vem depois de `BE-19`).
+- FIX/HOTFIX usam slug (`FIX-gitattributes-eol`, `FIX-idempotencia-porta-application`, `FIX-padronizar-restclient-builder`) → impossível saber qual é o mais recente sem `ls -lt`, e o slug repete info que já está no título do plano.
+- Ordenação previsível ajuda Reviewer, planner e humano a localizar o "último BE", "último FIX" sem precisar varrer.
+
+**Esforço:** baixo a médio. **Migração**: provavelmente **só forward** (novas tasks no formato novo; legado fica como está, ou rename opcional dos últimos N). Mexe em: `CLAUDE.md` (convenção de branch), `_TEMPLATE.md` (header), `PRE-MERGE-CHECKLIST.md` (regex), `metricas_status.py` (regex). **Prioridade:** média — não bloqueia nada, mas quanto antes resolver, menos legado pra carregar.
+
+**Pra discussão na RETRO-02:**
+- Largura do padding: `0001` (4 dígitos, suporta 9999) parece confortável; `001` (3 dígitos) pode bastar se o projeto for menor que parece.
+- **Sequência única por prefixo** (BE tem sua sequência, FIX tem outra) **ou única global** (uma só, atravessando prefixos — `0001-BE`, `0002-FIX`)? A primeira é mais comum (estilo Jira); a segunda dá ordem temporal absoluta mas mistura tipos no `ls`.
+- O que fazer com bifurcações tipo `BE-19a` (filha tardia de uma task já fechada): manter sufixo letra ou alocar novo número sequencial? (Vot pessoal: novo número — sufixo letra é o que está atrapalhando a leitura.)
+- Migrar histórico ou só daqui pra frente? (Vot pessoal: forward-only; legado fica.)
+- Como descobrir o "próximo número" sem race: script `docs/scripts/next-task-id.sh BE` que varre `docs/sprints/*/plans/` + `docs/plans/` e devolve o próximo. Custo baixo, evita colisão entre sessões paralelas.
+
+### 10. Separar configurações dos agentes em roles × skills × workflows — TÓPICO PRA RETRO-02
+
+**O quê:** explorar se vale dividir o que hoje é "tudo dentro de `docs/roles/`" em três dimensões conceituais:
+
+- **Roles** — *quem o agente é*. Identidade: território, voz, o que ele otimiza, como ele se comporta. (Hoje: `docs/roles/{planner,backend,frontend,reviewer,architect}.md`.)
+- **Skills** — *o que o agente sabe fazer*. Pacotes de capacidade carregados sob demanda: "como escrever um status report", "como fazer review arquitetural", "como compor um master prompt de overnight", "como navegar um runbook de smoke test". Disclosure progressivo — não pesa no contexto se não tá em uso.
+- **Workflows** — *como processos fluem*. Receitas multi-passo: como uma FIX vai de PENDENCIAS até merge, como um overnight é despachado, como uma sprint é encerrada, como uma RETRO é conduzida.
+
+**Por quê (ideia do humano, 2026-05-29):** vem do estudo dele de padrões de design de sistemas multiagente, não de erro concreto. Mas tem sinais no nosso próprio repo que sugerem que a separação pode ajudar:
+
+- `docs/roles/reviewer.md` hoje mistura **identidade** ("o que é um Reviewer, postura"), **skill** ("como ler arquitetura hexagonal e detectar smells" — item #8 do backlog quer adicionar) e **workflow** ("ordem dos checks numa revisão"). Cada uma dessas dimensões tem público e ciclo de vida diferentes.
+- `docs/runbooks/` é uma mistura de **workflow** (PRE-MERGE-CHECKLIST, smoke test do Telegram, PREP-WA) e **skill** (ROTEIRO-TESTES-BACKEND, ROTEIRO-FRONTEND são mais "como fazer" do que "passo a passo de processo").
+- O Cowork/Anthropic skills system já materializa essa separação na ferramenta (skills com `SKILL.md`, progressive disclosure, gatilhos explícitos). Adotar a mesma taxonomia internamente daria isomorfismo entre nosso repo e como o agente consome instrução.
+- O item #8 (checklist arquitetural) tá tratado como "delta no reviewer.md" mas é fundamentalmente uma **skill** ("como ler arquitetura") que **vários papéis** (Reviewer hoje, Architect amanhã, talvez planner antes de aprovar plano) poderiam carregar. Forçar dentro de uma role limita reuso.
+
+**Esforço:** médio a alto. Não é só renomear pasta — é **redesenhar como os agentes carregam contexto**. Provavelmente exige: (a) ADR registrando a taxonomia; (b) reestruturar `docs/roles/` (talvez virar `docs/agents/{roles,skills,workflows}/`); (c) revisar referências cruzadas em todos os planos e templates; (d) decidir critério de gatilho de skill (palavras-chave? região do código? heurística?). **Prioridade:** média — sistema funciona hoje, mas o custo de migrar cresce com cada role/runbook novo que escrevemos no padrão atual.
+
+**Pra discussão na RETRO-02:**
+
+- Vale a separação ou é over-engineering pro tamanho do projeto? (Argumento a favor: 5 roles × instruções que crescem é onde a confusão começa. Argumento contra: hoje o repo é navegável, talvez padronizar README de cada role com 3 seções fixas — "identidade", "skills carregadas", "workflows próprios" — resolva sem mover arquivo.)
+- Se separar, **uma skill é compartilhada entre roles ou é dona de uma role?** (Ex.: "ler arquitetura hexagonal" — Reviewer e Architect compartilham? E o planner usa quando avalia plano antes de despachar?)
+- **Mapeamento com a infra do Cowork:** as skills do Cowork (`docx`, `xlsx`, `consolidate-memory`, etc.) ficam **fora** do nosso conceito de skill (são mecânicas de ferramenta), ou a gente unifica e nossas skills viram `.skill` instaláveis também? (Provavelmente fora — Cowork skills são output-format/tool-handling, nossas seriam domain knowledge — mas vale debater.)
+- **Workflows herdam de quem?** Hoje os runbooks são meio "doc do projeto", meio "instrução pro agente". Se virar workflow, ele é carregado por uma role específica (ex.: PRE-MERGE-CHECKLIST é workflow da Reviewer + dos implementadores) ou é entidade independente que qualquer role aciona?
+- Critério de parada: a separação só compensa se reduzir **context bloat** ou **drift** mensuráveis. Definir antes da RETRO o que olharíamos pra dizer "deu certo" (ex.: tamanho médio de role.md cai, número de "skill genérica precisou ser duplicada em 2 roles" cai pra zero).
+
+**Insumo concreto — análise dos prompts de dispatch (2026-05-29):**
+
+Comparando os `MASTER-PROMPT-overnight-*.md` (multi-task) e o primeiro `DISPATCH-*.md` (single-task) escritos até agora, **~70% do conteúdo é boilerplate genérico** ("como um Claude implementador trabalha aqui") e **~30% é específico da task**. Padrões que se repetem em todos os prompts e seriam candidatos diretos a extrair:
+
+- **Boot sequence:** "leia nesta ordem CLAUDE.md → role.md → STATE.md → sprint README → plano(s)". Idêntica em todos. Candidato a `workflows/agent-bootstrap.md`.
+- **Regras duras:** code-only, sem `terraform apply`, sem SSH, sem merge, sem push direto, território da instância. Idem todos. Candidato a `workflows/implementer-guardrails.md`.
+- **Criação de branch:** `git fetch && git checkout -b <branch> develop` (forma nova com worktree). Idem todos pós-2026-05-29. Candidato a `skills/criar-branch-worktree.md`.
+- **Status report:** "escreva em status/<task>.md seguindo `_TEMPLATE.md`, frontmatter válido, anote X/Y/Z". Idem todos. Já tem `_TEMPLATE.md`; faltaria só a skill "como preencher por tipo de task".
+- **Validação local:** mvn test + mvn package (back), npm test + npm run build (front), terraform fmt/validate (infra). Por stack. Candidato a `skills/validacao-local-por-stack.md`.
+- **Handling de falha:** "se quebrar, registre `estado: parcial` no status, NÃO force". Idem todos. Candidato a rule no `workflows/implementer-guardrails.md`.
+- **Encerramento:** "pare ao final do status report; não mergeie". Idem todos.
+
+**Hipótese:** se esses pacotes virarem workflows/skills referenciáveis, os prompts colapsam pra algo tipo:
+
+```
+Você é o Claude do back. Execute <plano>, seguindo o workflow `implementer-single-task`.
+
+Específico desta task:
+- Branch: ...
+- Critério de aceitação chave: ...
+- Decisão a tomar no caminho: ...
+```
+
+O resto vem por referência ao workflow + skills que ele carrega. Reduz o prompt de ~80 linhas pra ~15. Atualizar o protocolo em **um** lugar (workflow) propaga pra todos os dispatches automaticamente.
+
+**Risco a debater na RETRO-02:** se o workflow ficar muito genérico, vira mais um arquivo pra navegar sem economia real. Se ficar muito específico por tipo de task (single vs overnight vs FIX vs hotfix), reproduz a explosão de arquivos só com nome diferente. O sweet spot provavelmente é **1 workflow base ("implementer-execution") + deltas curtos por modo** (overnight adiciona resumo final, FIX adiciona regra de branch slug-only legado, etc.).
+
+**Material a olhar antes da RETRO-02:** `docs/sprints/01-mvp/plans/MASTER-PROMPT-overnight-deploy.md`, `docs/sprints/02-canal-whatsapp/plans/MASTER-PROMPT-overnight-sprint02-1.md`, `MASTER-PROMPT-overnight-sprint02-2.md`, `DISPATCH-FIX-idempotencia-porta-application.md`. Diffar lado a lado pra ver o que é boilerplate idêntico (extrair) vs específico (manter inline).
+
+## Fora deste backlog (rastreado em outro lugar)
+
+- Deploy DEP-03 a DEP-06 → `FASE-3-VISUALIZACAO.md`.
+- Headers de segurança no CloudFront, rotação do token Telegram, `keystore_password` no Secrets Manager → `PENDENCIAS-TECNICAS.md`.

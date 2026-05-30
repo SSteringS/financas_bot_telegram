@@ -823,4 +823,42 @@ Depende de migration pequena (V3+) pra adicionar a coluna `tipo_arquivo` e backf
    - **Transferência bancária** → guardar dados bancários (banco, agência, conta, tipo).
 3. **Registrar vales** dados ao longo do mês — a serem **descontados no dia do pagamento** (fechamento do mês).
 
-**Su
+**Sub-frentes identificadas** (a partir da discovery 2026-05-30):
+
+1. **Cadastro de funcionário** (front + back) — entidade nova mínima: `nome`, `salario_base`, `forma_pagamento` (`PIX` ou `TED`), dados conforme forma, `dia_pagamento_referencia` (informativo — fechamento é manual no MVP), `ativo`. Operada só pelo filho na aba nova "Folha de pagamento".
+2. **Vale via bot** — bot reconhece intenção de "vale" + funcionário + valor → cria pedido com tipo `VALE`, linkado ao funcionário pelo `funcionario_id`. **Formato do comando: PENDENTE com arquiteto** (texto natural com nome vs comando estruturado / inline keyboard).
+3. **Fechamento mensal manual** — na aba do front, filho clica "fechar mês" pra um funcionário → sistema calcula `salario_base - soma(vales do mês)` → cria pedido com categoria `FOLHA` linkado ao funcionário → filho paga e anexa comprovante normalmente (reusa fluxo BE-05/06/07/08).
+4. **Visualização** — pai vê pedidos `FOLHA` na lista atual sem mudança no front dele. Filho ganha aba nova mostrando funcionários ativos, vales abertos do mês, e status do fechamento. Não precisa de tela dedicada por funcionário no MVP — listagem simples basta.
+
+**Decisões fechadas na discovery 2026-05-30:**
+
+- ✅ **Quem opera:** só o filho. Pai apenas visualiza (como hoje).
+- ✅ **Modelo de domínio:** reusa entidade `Pedido` com tipo/categoria novos (`VALE` e `FOLHA`). **NÃO cria entidade "Holerite" separada** — minimiza código novo e aproveita 100% do fluxo BE-04..BE-09 (DTOs, listagem, presigned URL, comprovante).
+- ✅ **Entrada de vale:** pelo bot, virando pedido especial linkado a funcionário.
+- ✅ **Geração do pedido FOLHA:** manual (filho dispara fechamento via botão no front). Sem job cron no MVP.
+
+**Decisões pendentes (refinar com arquiteto antes do planning):**
+
+- 🔄 **Cálculo do pagamento mensal:** MVP cobre só `salario_base - vales`? OU permite linha de ajuste manual (bonificação/desconto extra)? OU precisa de campos próprios (hora extra, comissão)? Trade-off: simplicidade vs cobertura de casos reais.
+- 🔄 **Comando do bot pra vale:** texto natural ("vale Maria 200") vs comando estruturado ("/vale") com inline keyboard de funcionários. Trade-off: UX rápido vs robustez (fuzzy match em nome ambíguo). Provavelmente envolve estender o parser atual do bot.
+- 🔄 **Modelagem de "tipo" vs "categoria":** hoje `Pedido` tem `tipo` (BOLETO/PIX/TED/AGENDAMENTO) que descreve **como pagar**, e `categoria` (que veio no MVP). Onde encaixa `VALE` e `FOLHA`? Categoria parece mais natural — `VALE`/`FOLHA` são propósitos, não formas de pagamento. Confirmar no levantamento do modelo atual.
+
+**Perguntas abertas pro PO/discovery (a responder antes do planning):**
+
+- **Vale tem comprovante?** Tradicionalmente filho dá o dinheiro na hora → comprovante não faz sentido. Mas o sistema atual exige? Ou pedido VALE nasce já "pago"/sem necessidade de comprovante?
+- **Reabertura de mês fechado:** filho fechou mês e descobre vale extra. Permite reabrir? Ou cria pedido de ajuste no mês seguinte? (Provavelmente segunda opção — mais simples.)
+- **Funcionário inativado:** vales/folhas antigas ficam visíveis no histórico? Funcionário some da listagem ativa mas não some do banco.
+- **Data do vale:** o `data_pedido` atual basta como "data do vale" pra agrupar no mês? Ou precisa de campo `data_vale` separado (ex: vale lançado hoje mas valeu pra mês anterior)?
+- **Múltiplos funcionários, mesmo primeiro nome:** se o comando do bot for por texto natural, como diferenciar "Maria Santos" e "Maria Silva"? (Anula no esquema "comando estruturado".)
+
+**Sub-frentes técnicas estimadas** (refinar no planning):
+
+- **BE-folha-1:** entidade `Funcionario` + repositório + service de CRUD + migration.
+- **BE-folha-2:** estender modelo `Pedido` com `tipo`/`categoria` (VALE/FOLHA) + `funcionario_id` opcional + listagem por funcionário.
+- **BE-folha-3:** service de fechamento mensal (calcular + criar pedido FOLHA + marcar vales como "fechados").
+- **BE-folha-4:** estender bot pra reconhecer vale (depende de decisão do comando).
+- **FE-folha-1:** aba nova "Folha de pagamento" com listagem de funcionários + CRUD.
+- **FE-folha-2:** tela do funcionário (vales abertos do mês, botão fechar, valor calculado).
+- **FE-folha-3:** integração com lista existente de pedidos (filtrar/ver categoria FOLHA do pai).
+
+Quantidade real depende das decisões pendentes (especialmente cálculo + comando do bot). Estimativa **grossa**: 4-6 tasks de back, 2-3 de front, possivelmente 1 migration + 1 ADR.
