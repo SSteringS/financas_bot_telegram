@@ -38,6 +38,10 @@ whatsapp.graph-api-base-url=https://graph.facebook.com
 whatsapp.graph-api-version=v20.0
 whatsapp.phone-number-id=CHANGE_ME
 whatsapp.access-token=CHANGE_ME
+whatsapp.verify-token=CHANGE_ME
+whatsapp.app-secret=CHANGE_ME
+# CSV de waIds autorizados no formato E.164 sem '+' (ex: 5511999998888)
+whatsapp.allowed-wa-ids=CHANGE_ME
 
 # Auth admin
 app.admin.api-key=dev-admin-key-apenas-para-testes-locais
