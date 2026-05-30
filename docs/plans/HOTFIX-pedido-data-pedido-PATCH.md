@@ -382,4 +382,4 @@ Criar `docs/status/HOTFIX-pedido-data-pedido-PATCH.md` seguindo `docs/status/_TE
 - Output de `./mvnw test` (sumário final)
 - Smoke test: ID do pedido criado + `SELECT` mostrando todos os campos preenchidos
 - Estado da pipeline em CI após push
-- Próximo passo: revisão de `FASE-3-VISUALIZACAO.md` pra continuar com endpoints REST
+- Próximo passo: revisão de `BACKLOG-produto.md` pra continuar com endpoints REST

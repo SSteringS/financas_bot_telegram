@@ -53,7 +53,7 @@ O **conhecimento cumulativo, canônico e cross-cutting**:
 
 Ponto de inflexão natural (MVP fechado): **arquivar a Fase 3 em `docs/sprints/01-mvp/`**.
 
-- Vão pra `docs/sprints/01-mvp/{plans,status,avaliacoes}/`: os planos e status das tasks BE/FE/DEP/FIX/HOTFIX/EVO-07/CI-01 **entregues**, o master-plan `FASE-3-VISUALIZACAO.md`, os `MASTER-PROMPT-overnight-*`, e as avaliações do ciclo.
+- Vão pra `docs/sprints/01-mvp/{plans,status,avaliacoes}/`: os planos e status das tasks BE/FE/DEP/FIX/HOTFIX/EVO-07/CI-01 **entregues**, o master-plan `BACKLOG-produto.md`, os `MASTER-PROMPT-overnight-*`, e as avaliações do ciclo.
 - **Ficam no global** `docs/plans/`: `_TEMPLATE.md`, `BACKLOG-evolucao-workflow.md`, e planos ainda não entregues/parqueados (DEP-08; DEP-07 se ainda não mergeado).
 - `docs/status/_TEMPLATE.md` e `docs/avaliacoes/README.md`/`_TEMPLATE.md` ficam globais.
 - A próxima sprint (`02-*`) nasce com a estrutura nova quando o deliverable for definido (decisão de produto pendente).

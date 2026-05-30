@@ -2,7 +2,7 @@
 
 > **Intake (contrato de entrada da task)**
 >
-> - **Origem:** `docs/plans/FASE-3-VISUALIZACAO.md` (Fase 3c, DEP-04). Próximo da fila de deploy depois do front já estar hospedado (DEP-02).
+> - **Origem:** `docs/plans/BACKLOG-produto.md` (Fase 3c, DEP-04). Próximo da fila de deploy depois do front já estar hospedado (DEP-02).
 > - **Prioridade:** alta — sem pipeline, todo deploy do front é manual (`npm run build` + `aws s3 sync` na mão), propenso a erro e a esquecer a invalidação do CloudFront.
 > - **Esforço:** médio (workflow é direto; o grosso é configurar o OIDC corretamente — é a primeira vez que o projeto usa OIDC).
 > - **Território / quem executa:** `.github/workflows/` + `financas_bot_telegram/infra/` → **Claude do back**. ⚠️ Um ajuste de 1 linha em `frontend/.env.production` é **território do front** — ver Coordenação.
@@ -106,7 +106,7 @@ Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build/lint/testes = `na` se nã
 
 ## Referências
 
-- `docs/plans/FASE-3-VISUALIZACAO.md` (DEP-04 original)
+- `docs/plans/BACKLOG-produto.md` (DEP-04 original)
 - `docs/status/DEP-02.md` (bucket `finbot-frontend-prod-776658251579`, distribuição `E1WG4Q8MG3V9HY`, conta `776658251579`)
 - `docs/plans/DEP-03-api-subdominio-proxy.md` (o hostname da API que o `.env.production` deve apontar)
 - `.github/workflows/deploy.yml` (deploy do back via SSH — contraste; candidato a migrar pra OIDC depois)

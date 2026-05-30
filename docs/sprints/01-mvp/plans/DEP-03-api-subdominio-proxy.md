@@ -2,7 +2,7 @@
 
 > **Intake (contrato de entrada da task)**
 >
-> - **Origem:** `docs/plans/FASE-3-VISUALIZACAO.md` (Fase 3c, DEP-03) + ADR 0006 (front e API em hostnames separados). É o próximo da fila de deploy depois de DEP-01/02.
+> - **Origem:** `docs/plans/BACKLOG-produto.md` (Fase 3c, DEP-03) + ADR 0006 (front e API em hostnames separados). É o próximo da fila de deploy depois de DEP-01/02.
 > - **Prioridade:** alta — sem hostname HTTPS válido pra API, o front em prod (`https://satyansaita.com`) não consegue chamar o backend (cert self-signed da 8443 não serve pro browser).
 > - **Esforço:** médio (DNS + SG são triviais; o proxy + TLS na EC2 é o grosso, e é trabalho manual de servidor).
 > - **Território / quem executa:** `financas_bot_telegram/infra/` (Terraform) + configuração na própria EC2 (SSH) → **Claude do back**. Se mexer em connector/porta da app, `application-prod.properties` (também back).
@@ -86,7 +86,7 @@ Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build/lint/testes = `na` se nã
 
 ## Referências
 
-- `docs/plans/FASE-3-VISUALIZACAO.md` (DEP-03 original; ajustar `finbot.dom.br` → `satyansaita.com`)
+- `docs/plans/BACKLOG-produto.md` (DEP-03 original; ajustar `finbot.dom.br` → `satyansaita.com`)
 - ADR 0006 (`docs/decisions/0006-front-e-api-em-hostnames-separados.md`) e `docs/aprendizado/front-api-hostnames-separados.md`
 - `docs/status/DEP-01.md`, `docs/status/DEP-02.md` (o que já existe de DNS/cert/infra)
 - `docs/PENDENCIAS-TECNICAS.md` (débito "cert self-signed → Let's Encrypt", relacionado ao follow-up do webhook)

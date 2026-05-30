@@ -16,7 +16,7 @@
 
 ## Índice
 
-- `FASE-3-VISUALIZACAO.md` — master-plan da fase.
+- `BACKLOG-produto.md` — master-plan da fase.
 - `plans/` — planos das tasks BE/FE/DEP/FIX/HOTFIX/CI + master-prompts overnight.
 - `status/` — status reports + resumos overnight.
 - `avaliacoes/` — revisões do Reviewer do ciclo.
