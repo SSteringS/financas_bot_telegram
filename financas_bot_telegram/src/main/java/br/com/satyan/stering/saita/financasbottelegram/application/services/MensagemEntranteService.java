@@ -3,6 +3,7 @@ package br.com.satyan.stering.saita.financasbottelegram.application.services;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.PaymentMessageDTO;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.in.MensagemEntrantePortIn;
+import br.com.satyan.stering.saita.financasbottelegram.application.port.out.IdempotenciaMensagemPort;
 import br.com.satyan.stering.saita.financasbottelegram.application.strategy.MensagemProcessingStrategy;
 import java.util.List;
 import org.slf4j.Logger;
@@ -27,18 +28,18 @@ public class MensagemEntranteService implements MensagemEntrantePortIn {
 
     private static final Logger logger = LoggerFactory.getLogger(MensagemEntranteService.class);
     private final List<MensagemProcessingStrategy> strategies;
-    private final MensagemProcessadaService mensagemProcessadaService;
+    private final IdempotenciaMensagemPort idempotenciaPort;
 
     public MensagemEntranteService(List<MensagemProcessingStrategy> strategies,
-        MensagemProcessadaService mensagemProcessadaService) {
+        IdempotenciaMensagemPort idempotenciaPort) {
         this.strategies = strategies;
-        this.mensagemProcessadaService = mensagemProcessadaService;
+        this.idempotenciaPort = idempotenciaPort;
     }
 
     @Transactional
     @Override
     public void processar(PaymentMessageDTO dto) {
-        if (!mensagemProcessadaService.tentarClaim(dto.getCanal(), dto.getExternalId())) {
+        if (!idempotenciaPort.tentarClaim(dto.getCanal(), dto.getExternalId())) {
             logger.info("Mensagem {} (canal={}) já processada — descartando (idempotência).",
                 dto.getExternalId(), dto.getCanal());
             return;
