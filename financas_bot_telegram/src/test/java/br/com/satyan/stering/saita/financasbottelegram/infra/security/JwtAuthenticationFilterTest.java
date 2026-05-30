@@ -93,9 +93,9 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    void naoDeveAplicarFiltroEmWebhook() throws Exception {
+    void naoDeveAplicarFiltroEmWebhookTelegram() throws Exception {
         MockHttpServletRequest req = new MockHttpServletRequest();
-        req.setRequestURI("/webhook");
+        req.setRequestURI("/webhook/telegram");
 
         assertThat(filter.shouldNotFilter(req)).isTrue();
     }
