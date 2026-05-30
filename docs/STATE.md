@@ -2,16 +2,18 @@
 
 > **Doc vivo de orientação.** Existe pra uma sessão que começa fria (planner, back, front ou reviewer) se situar em 1 minuto, sem re-derivar contexto. **Curto de propósito.** Detalhe mora nos planos (`docs/plans/`), status reports (`docs/status/`) e ADRs (`docs/decisions/`).
 >
-> **Última atualização:** 2026-05-30 (pós-merge FIX-001 PR #78 + BE-17b PR #79 — sprint 02 entrando em modo de fechamento).
+> **Última atualização:** 2026-05-30 (sprint 02 fechada com FE-14 mergeado PR #80; RETRO-02 publicada; **sprint 02b kaizen aberta** com WF-01..WF-03 refinadas).
 > **Fonte:** este resumo é derivado dos status reports em `docs/status/` e `docs/sprints/02-canal-whatsapp/status/`. O **estado real de merge em `develop` é do humano** (ele é o integrador — ADR 0004). Quando um status diz "aguardando revisão / não mergeado", está marcado abaixo.
 
 ---
 
 ## Sprint atual
 
-**Sprint 02 — Canal WhatsApp + notificação de pagamento + observability** (`docs/sprints/02-canal-whatsapp/README.md`).
+**Sprint 02b — Kaizen (workflow/processo)** (`docs/sprints/02b-kaizen-workflow/README.md`).
 
-**Modo:** 🟢 **fechamento** — FIX-001 e BE-17b mergeados; única task de produto pendente é **FE-14** (front). Após FE-14 mergeada (ou descartada), abrir PR `develop → main` e fazer RETRO-02 + plano sprint 03.
+**Modo:** 🟡 **em execução** — primeira leva (WF-01, WF-02, WF-03) refinada e pronta pra sessão executora. Reviewer dispensado pra meta-workflow (exceção documentada do ADR 0005; humano revisa direto). Segunda leva (WF-04..WF-08) refina depois da primeira mergear.
+
+**Sprint 02 — Canal WhatsApp** ✅ **fechada** em 2026-05-30 com FE-14 mergeado (PR #80). Retro em `docs/retrospectivas/RETRO-02-canal-whatsapp.md`. Falta abrir PR `develop → main` pro deploy (não bloqueante).
 
 **Escopo revisado em 2026-05-29:** *código completo* do canal WhatsApp em prod (com endpoints inertes por sentinela), observability externalizada, e UX upgrades. **"WhatsApp vivo em prod"** (smoke E2E real contra Meta) **saiu pra próxima sprint** quando o chip dedicado + Business Verification estiverem disponíveis (bloqueio externo).
 
