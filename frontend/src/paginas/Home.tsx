@@ -10,7 +10,9 @@ import { Timeline } from '../components/Timeline'
 import { CarregandoLista } from '../components/CarregandoLista'
 import { ListaVazia } from '../components/ListaVazia'
 import { ModalComprovante } from '../components/ModalComprovante'
+import { ModalArquivo } from '../components/ModalArquivo'
 import { CabecalhoApp } from '../components/CabecalhoApp'
+import { urlFotoPedido } from '../api/pedidos'
 import type { Pagina, PedidoResumo } from '../api/tipos'
 
 type FiltroStatusValue = 'TUDO' | 'PENDENTE' | 'PAGO'
@@ -36,7 +38,18 @@ function statusParaApi(valor: FiltroStatusValue): 'pendente' | 'pago' | 'todos' 
 export function Home() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [pedidoIdAberto, setPedidoIdAberto] = useState<number | null>(null)
+  const [pedidoIdFotoAberto, setPedidoIdFotoAberto] = useState<number | null>(null)
   const [pagina, setPagina] = useState(0)
+
+  const abrirComprovante = useCallback((id: number) => {
+    setPedidoIdFotoAberto(null)
+    setPedidoIdAberto(id)
+  }, [])
+
+  const abrirFotoPedido = useCallback((id: number) => {
+    setPedidoIdAberto(null)
+    setPedidoIdFotoAberto(id)
+  }, [])
 
   const mes = searchParams.get('mes') ?? mesAtual()
   const filtroStatus = (searchParams.get('status') as FiltroStatusValue) ?? 'TUDO'
@@ -132,7 +145,8 @@ export function Home() {
           ) : (
             <Timeline
               pedidos={todosOsPedidos}
-              onAbrirComprovante={setPedidoIdAberto}
+              onAbrirComprovante={abrirComprovante}
+              onAbrirFotoPedido={abrirFotoPedido}
             />
           )}
 
@@ -155,6 +169,18 @@ export function Home() {
       <ModalComprovante
         pedidoId={pedidoIdAberto}
         onClose={() => setPedidoIdAberto(null)}
+      />
+
+      {/* Modal de foto/PDF original do pedido */}
+      <ModalArquivo
+        pedidoId={pedidoIdFotoAberto}
+        onClose={() => setPedidoIdFotoAberto(null)}
+        titulo="Foto/PDF do pedido"
+        iframeTitle="Foto original do pedido"
+        ariaLabelFechar="Fechar foto do pedido"
+        ariaLabelDownload="Abrir foto/PDF do pedido em nova aba"
+        tituloDownload="Abrir foto/PDF"
+        urlFn={urlFotoPedido}
       />
     </div>
   )

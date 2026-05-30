@@ -7,6 +7,7 @@ import { parseISO } from 'date-fns'
 interface TimelineProps {
   pedidos: PedidoResumo[]
   onAbrirComprovante: (pedidoId: number) => void
+  onAbrirFotoPedido: (pedidoId: number) => void
 }
 
 interface GrupoDia {
@@ -65,7 +66,7 @@ function HeaderDia({ data, totalValor, quantidadePedidos }: { data: string; tota
   )
 }
 
-export function Timeline({ pedidos, onAbrirComprovante }: TimelineProps) {
+export function Timeline({ pedidos, onAbrirComprovante, onAbrirFotoPedido }: TimelineProps) {
   const grupos = agruparPorDia(pedidos)
 
   return (
@@ -87,6 +88,7 @@ export function Timeline({ pedidos, onAbrirComprovante }: TimelineProps) {
                 key={pedido.id}
                 pedido={pedido}
                 onAbrirComprovante={() => onAbrirComprovante(pedido.id)}
+                onAbrirFotoPedido={() => onAbrirFotoPedido(pedido.id)}
               />
             ))}
           </div>

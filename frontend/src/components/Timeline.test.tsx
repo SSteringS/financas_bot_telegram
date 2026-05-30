@@ -29,25 +29,25 @@ describe('Timeline', () => {
       makePedido({ dataPedido: '2026-05-05' }),
       makePedido({ dataPedido: '2026-05-05' }),
     ]
-    render(<Timeline pedidos={pedidos} onAbrirComprovante={vi.fn()} />)
+    render(<Timeline pedidos={pedidos} onAbrirComprovante={vi.fn()} onAbrirFotoPedido={vi.fn()} />)
     const headers = screen.getAllByText(/de maio/)
     expect(headers).toHaveLength(2)
   })
 
   it('pedido com dataPedido = hoje → label "Hoje"', () => {
     const pedidos = [makePedido({ dataPedido: hoje })]
-    render(<Timeline pedidos={pedidos} onAbrirComprovante={vi.fn()} />)
+    render(<Timeline pedidos={pedidos} onAbrirComprovante={vi.fn()} onAbrirFotoPedido={vi.fn()} />)
     expect(screen.getByText('Hoje')).toBeInTheDocument()
   })
 
   it('pedido com dataPedido = ontem → label "Ontem"', () => {
     const pedidos = [makePedido({ dataPedido: ontem })]
-    render(<Timeline pedidos={pedidos} onAbrirComprovante={vi.fn()} />)
+    render(<Timeline pedidos={pedidos} onAbrirComprovante={vi.fn()} onAbrirFotoPedido={vi.fn()} />)
     expect(screen.getByText('Ontem')).toBeInTheDocument()
   })
 
   it('lista vazia → renderiza sem quebrar', () => {
-    const { container } = render(<Timeline pedidos={[]} onAbrirComprovante={vi.fn()} />)
+    const { container } = render(<Timeline pedidos={[]} onAbrirComprovante={vi.fn()} onAbrirFotoPedido={vi.fn()} />)
     expect(container.firstChild).toBeTruthy()
   })
 })
