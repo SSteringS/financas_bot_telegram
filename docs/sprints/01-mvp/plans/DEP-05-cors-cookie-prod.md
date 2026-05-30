@@ -2,7 +2,7 @@
 
 > **Intake (contrato de entrada da task)**
 >
-> - **Origem:** `docs/plans/FASE-3-VISUALIZACAO.md` (Fase 3c, DEP-05) + bug encontrado validando o DEP-03: `application-prod.properties` aponta pra `finbot.satyan.com.br` (domínio antigo) em vez de `satyansaita.com`.
+> - **Origem:** `docs/plans/BACKLOG-produto.md` (Fase 3c, DEP-05) + bug encontrado validando o DEP-03: `application-prod.properties` aponta pra `finbot.satyan.com.br` (domínio antigo) em vez de `satyansaita.com`.
 > - **Prioridade:** alta — **bloqueia o front↔API**. Como está, o CORS recusa a origem do front e o cookie de sessão não cola.
 > - **Esforço:** baixo (3 linhas de properties; o código já lê de config, nada hardcoded).
 > - **Território / quem executa:** `financas_bot_telegram/` (`application-prod.properties`) → **Claude do back**.
@@ -67,5 +67,5 @@ Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build/lint/testes verdes; mudan
 
 - ADR 0006 (`docs/decisions/0006-front-e-api-em-hostnames-separados.md`) e `docs/aprendizado/front-api-hostnames-separados.md`, `cors-vs-samesite.md`, `cookies-samesite.md`.
 - `docs/status/DEP-03.md` (onde o bug de domínio foi flagrado).
-- `docs/plans/FASE-3-VISUALIZACAO.md` (DEP-05 original).
+- `docs/plans/BACKLOG-produto.md` (DEP-05 original).
 </content>

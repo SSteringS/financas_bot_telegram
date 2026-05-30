@@ -8,7 +8,7 @@ Levantamento feito em 2026-05-10, lendo direto o código de `financas_bot_telegr
 
 O backend está mais maduro do que o resumo inicial sugeria. O fluxo do bot Telegram (registrar pedido, registrar comprovante) está completo e funcional, com hexagonal aplicada de forma majoritariamente correta. **Não existe ainda nenhum endpoint REST de consulta** — apesar do nome da branch `feature/api-consulta-pedidos-comprovantes` sugerir o contrário, o PR #45 só adicionou os arquivos `CLAUDE.md` de instrução. O scaffold da camada de visualização (modelo, endpoints REST, auth, pre-signed URL) ainda está integralmente pendente.
 
-A boa notícia é que muito do que `FASE-3-VISUALIZACAO.md` propunha encaixa direto na arquitetura existente. A má notícia é que a especificação técnica precisa de pequenos mas importantes ajustes — algumas premissas estavam erradas (stack, nomenclatura, modelo de dados existente).
+A boa notícia é que muito do que `BACKLOG-produto.md` propunha encaixa direto na arquitetura existente. A má notícia é que a especificação técnica precisa de pequenos mas importantes ajustes — algumas premissas estavam erradas (stack, nomenclatura, modelo de dados existente).
 
 ---
 
@@ -212,9 +212,9 @@ Não tem **Flyway** nem **Liquibase**. Os arquivos `migration.sql` e `migration_
 
 ---
 
-## 7. Comparação detalhada com `FASE-3-VISUALIZACAO.md`
+## 7. Comparação detalhada com `BACKLOG-produto.md`
 
-Análise tarefa-por-tarefa do que `plans/FASE-3-VISUALIZACAO.md` propõe versus o que existe:
+Análise tarefa-por-tarefa do que `plans/BACKLOG-produto.md` propõe versus o que existe:
 
 ### Backend
 
@@ -264,7 +264,7 @@ Antes de começar qualquer tarefa BE-* nova, **fechar 4 pendências baratas que 
 3. **Decidir sobre `PaymentCategory`** — implementar como enum ou apagar. ~10 min.
 4. **Reativar testes na pipeline** com H2 — está marcado como `-DskipTests` temporário. Quando começar a adicionar endpoints REST de leitura, ter testes vivendo é essencial.
 
-Depois disso, seguir o plano da Fase 3 com os ajustes desta análise. Vou propor uma versão atualizada do `FASE-3-VISUALIZACAO.md` em uma próxima passada — esta análise é a base para reescrever.
+Depois disso, seguir o plano da Fase 3 com os ajustes desta análise. Vou propor uma versão atualizada do `BACKLOG-produto.md` em uma próxima passada — esta análise é a base para reescrever.
 
 ---
 
@@ -284,7 +284,7 @@ Anotando aqui pra não esquecer. Não bloqueia a Fase 3, mas vale tratar antes d
 
 ## 10. Próximos passos sugeridos (do meu lado)
 
-1. Atualizar `plans/FASE-3-VISUALIZACAO.md` aplicando os ajustes desta análise.
+1. Atualizar `plans/BACKLOG-produto.md` aplicando os ajustes desta análise.
 2. Criar ADR retroativo `0001-spring-mvc-em-vez-de-webflux.md` em `docs/decisions/`.
 3. Atualizar `architecture/especificacao-tecnica.md` substituindo exemplos de WebFlux por MVC.
 4. Quando a tarefa BE-04 estiver na hora de executar, decidir formalmente o tema OpenAPI (springdoc anotado vs YAML manual).

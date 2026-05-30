@@ -1,6 +1,6 @@
 # Backlog — evolução do workflow (melhorias de processo)
 
-Itens de **profissionalização do workflow** que saíram da auditoria de 2026-05-26 (ver ADR `0004`). Não são features do produto (essas estão em `FASE-3-VISUALIZACAO.md`) — são melhorias de processo/tooling. Ordem = prioridade aproximada de impacto.
+Itens de **profissionalização do workflow** que saíram da auditoria de 2026-05-26 (ver ADR `0004`). Não são features do produto (essas estão em `BACKLOG-produto.md`) — são melhorias de processo/tooling. Ordem = prioridade aproximada de impacto.
 
 > Guardado pra sobreviver à separação de sessões. Quando um item virar task formal, promover pra um plano próprio e marcar aqui.
 
@@ -37,18 +37,4 @@ Itens de **profissionalização do workflow** que saíram da auditoria de 2026-0
 **O quê:** atualizar o regex em `PRE-MERGE-CHECKLIST.md` pra aceitar `CI-`. **Feito:** regex de `branch_convencao` no `PRE-MERGE-CHECKLIST.md` e o comentário de schema no `docs/status/_TEMPLATE.md` agora incluem `ci`/`CI`.
 
 ### 8. Checklist arquitetural explícito no `reviewer.md` — TÓPICO PRA RETRO-02
-**O quê:** evoluir `docs/roles/reviewer.md` pra incluir um **bloco específico de smells arquiteturais** que o Reviewer deve procurar ativamente: violação de direção de dependência hexagonal (application importando de infra), vazamento de internals de adapter pra application (ex.: justificar decisões de application com raciocínio JPA/JDBC), repos/queries direto em controller, etc.
-
-**Por quê:** descoberto em 2026-05-28 na revisão da BE-19a — o humano flagrou `MensagemProcessadaService` (application) dependendo direto de `JdbcTemplate` (infra). Reviewer aprovou comportamento mas **não pegou** a violação arquitetural. Promovido pra `FIX-idempotencia-porta-application` (sprint 02). Sinaliza que o Reviewer tem rede em comportamento/testes/gates mas o "olho arquitetural" precisa virar explícito também — não pode depender de instinto.
-
-**Esforço:** baixo (atualizar `reviewer.md` com bullets/checklist concreto). **Prioridade:** alta — toda task que mexer em camada nova arrisca repetir o mesmo tipo de drift até resolver.
-
-**Pra discussão na RETRO-02:**
-- Definir os 4–6 smells mais valiosos a checar explicitamente (não virar lista interminável).
-- Decidir se vira **seção no `reviewer.md`** (delta enxuto) ou **runbook próprio** que o Reviewer puxa quando a task toca camadas de arquitetura.
-- Medir no próximo ciclo se a frequência de drift detectado-pelo-humano cai.
-
-## Fora deste backlog (rastreado em outro lugar)
-
-- Deploy DEP-03 a DEP-06 → `FASE-3-VISUALIZACAO.md`.
-- Headers de segurança no CloudFront, rotação do token Telegram, `keystore_password` no Secrets Manager → `PENDENCIAS-TECNICAS.md`.
+**O quê:** evoluir `docs/roles/reviewer.md` pra incluir um **bloco específico de smells arquiteturais** que o Reviewer deve procurar ativamente: violação d

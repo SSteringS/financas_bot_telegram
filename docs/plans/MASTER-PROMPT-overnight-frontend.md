@@ -15,7 +15,7 @@ Você é o **Claude do front-end**. Vai trabalhar overnight executando uma sequ�
 1. `frontend/CLAUDE.md` — sua identidade, território, stack, regras
 2. `docs/README.md` — convenções da pasta de docs
 3. `docs/runbooks/ROTEIRO-FRONTEND.md` — sua bíblia. Tem os prompts prontos pra cada tarefa FE-XX na seção 5.
-4. `docs/plans/FASE-3-VISUALIZACAO.md` — contexto detalhado de cada FE-XX
+4. `docs/plans/BACKLOG-produto.md` — contexto detalhado de cada FE-XX
 5. `docs/architecture/especificacao-tecnica.md` — contratos REST que você vai consumir
 6. `docs/architecture/fluxo-autenticacao.md` — diagrama do fluxo de auth (importante pra FE-04)
 7. `docs/architecture/design-proposals/variante-c-timeline.html` — design alvo. Abra no navegador antes de implementar FE-05+.
@@ -31,7 +31,7 @@ Você é o **Claude do front-end**. Vai trabalhar overnight executando uma sequ�
    
    O título do commit deve dar pra pessoa entender o que mudou em 5 segundos.
 
-3. **Antes de começar cada tarefa:** leia a seção correspondente em `docs/plans/FASE-3-VISUALIZACAO.md` E o prompt completo da tarefa em `docs/runbooks/ROTEIRO-FRONTEND.md` seção 5. Os prompts já têm código pronto pra usar como referência.
+3. **Antes de começar cada tarefa:** leia a seção correspondente em `docs/plans/BACKLOG-produto.md` E o prompt completo da tarefa em `docs/runbooks/ROTEIRO-FRONTEND.md` seção 5. Os prompts já têm código pronto pra usar como referência.
 
 4. **Implemente seguindo a runbook + plano.** Se quiser desviar significativamente (ex: usar biblioteca diferente, estrutura diferente), **pare e documente no status**, não improvise.
 
@@ -163,3 +163,4 @@ Se você acordar e o Claude do front tiver parado em alguma tarefa:
 - Leia `docs/status/FE-XX-PARADO.md` (ou o último status report)
 - Decida: deixa o problema pra mim resolver (planejador), ou corrige direto
 - Se for ajustar e re-executar, basta dar continue: "Voltei. Resolve o problema da FE-XX e continua a sequência."
+                                                                                                                                                                     

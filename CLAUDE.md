@@ -35,7 +35,8 @@ docs/
     fluxo-autenticacao.md          ← diagrama de sequência da auth
     design-proposals/              ← variantes visuais e de UX
   plans/
-    FASE-3-VISUALIZACAO.md         ← plano da fase atual
+    BACKLOG-produto.md         ← backlog de evoluções de produto (features futuras)
+    BACKLOG-evolucao-workflow.md  ← backlog de melhorias de processo/workflow
     BE-XX-*.md                     ← planos individuais de tarefas
   runbooks/
     ROTEIRO-FRONTEND.md            ← guia passo a passo para o front
@@ -108,3 +109,4 @@ main (protegida — só via PR)
 - **S3:** `bot-financas-pagamentos-satyan` (prod) / `bot-financas-pagamentos-dev` (dev)
 - **Secrets Manager:** `finbot-prod-secrets` (telegram_token, db_host, db_username, db_password)
 - **HTTPS:** porta 8443, certificado auto-assinado em `/opt/finbot/keystore.p12`
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   

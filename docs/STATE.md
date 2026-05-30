@@ -9,7 +9,7 @@
 
 ## Fase atual
 
-**Fase 3 — Camada de visualização** (plano-mãe: `docs/plans/FASE-3-VISUALIZACAO.md`).
+**Fase 3 — Camada de visualização** (plano-mãe: `docs/plans/BACKLOG-produto.md`).
 Adiciona uma camada de leitura pro requisitante (Pedro): API REST + front React (PWA) + deploy em AWS, com auth por link mágico. A operação do bot de Telegram continua igual.
 
 Sub-fases: **3a Backend** → **3b Front** → **3c Deploy** → **3d Evolução pós-MVP** (não fazer agora).

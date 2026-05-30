@@ -1,6 +1,6 @@
 # BE-00B — Refatorar camada de persistência (separar domain de JPA + eliminar dual port)
 
-> **Esta tarefa precede a Fase 3 (`FASE-3-VISUALIZACAO.md`)**. Executar **depois da BE-00 (Flyway)** estar merge em develop. Não tem dependência funcional com BE-00, apenas ordenação prática.
+> **Esta tarefa precede a Fase 3 (`BACKLOG-produto.md`)**. Executar **depois da BE-00 (Flyway)** estar merge em develop. Não tem dependência funcional com BE-00, apenas ordenação prática.
 
 ---
 
@@ -544,3 +544,4 @@ Ao terminar, criar `docs/status/BE-00B-refatorar-persistencia.md` seguindo `docs
 - Qualquer comportamento inesperado que apareceu no caminho
 
 **Próximo passo após esta tarefa:** BE-01 da Fase 3 (criar migration V2 com `requisitante`, datas, categoria, `auth_token`).
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  

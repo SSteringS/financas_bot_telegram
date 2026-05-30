@@ -58,6 +58,6 @@ Registrar o resultado num status report `docs/status/DEP-06.md` (mesmo sendo tes
 
 ## Referências
 
-- `docs/plans/FASE-3-VISUALIZACAO.md` (DEP-06) · `docs/plans/DEP-05-cors-cookie-prod.md` · `docs/plans/DEP-03-api-subdominio-proxy.md`
+- `docs/plans/BACKLOG-produto.md` (DEP-06) · `docs/plans/DEP-05-cors-cookie-prod.md` · `docs/plans/DEP-03-api-subdominio-proxy.md`
 - Fluxo de auth: BE-10 (token admin), BE-11 (exchange + cookie), `docs/architecture/fluxo-autenticacao.md`
 </content>

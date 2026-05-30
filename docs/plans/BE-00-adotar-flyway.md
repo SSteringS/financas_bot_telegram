@@ -1,6 +1,6 @@
 # BE-00 — Adotar Flyway pra gestão de migrations
 
-> **Esta tarefa precede toda a Fase 3 (`FASE-3-VISUALIZACAO.md`)**. Executar antes da BE-01.
+> **Esta tarefa precede toda a Fase 3 (`BACKLOG-produto.md`)**. Executar antes da BE-01.
 
 ---
 
@@ -223,3 +223,4 @@ Ao terminar, criar `docs/status/BE-00-adotar-flyway.md` seguindo o template em `
 - Output do `SELECT * FROM flyway_schema_history;` em dev
 - Qualquer ajuste que precisou fazer no V1 caso o schema atual de prod tenha alguma diferença em relação ao listado no Passo 2
 - Próximo passo: BE-01 está liberada
+                                                                                                                                                                                                                                 

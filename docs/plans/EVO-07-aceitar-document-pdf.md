@@ -229,4 +229,5 @@ private TipoArquivo tipoArquivo;
 - SQL: `SELECT id, pedido_id, tipo_arquivo, imagem_url FROM comprovantes ORDER BY id DESC LIMIT 5;` mostrando que `tipo_arquivo` está sendo preenchido
 - Marcar `docs/PENDENCIAS-TECNICAS.md` removendo o item correspondente da EVO-07 (mover pra resolvidos)
 
-Atualizar `docs/plans/FASE-3-VISUALIZACAO.md` marcando EVO-07 como ✅ concluída na seção "Fase 3d — Evolução pós-MVP".
+Atualizar `docs/plans/BACKLOG-produto.md` marcando EVO-07 como ✅ concluída na seção "Fase 3d — Evolução pós-MVP".
+                                                                                                                                                                                                                                        
