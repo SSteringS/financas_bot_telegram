@@ -33,7 +33,7 @@ public class TelegramWebhookController {
     this.allowedUserIds = allowedUserIds;
   }
 
-  @PostMapping("/webhook")
+  @PostMapping("/webhook/telegram")
   public ResponseEntity<Void> receberMensagem(@RequestBody Update update, HttpServletRequest request) {
     logger.info("Recebendo mensagem do Telegram: {}", update);
     request.setAttribute("__update", update);
