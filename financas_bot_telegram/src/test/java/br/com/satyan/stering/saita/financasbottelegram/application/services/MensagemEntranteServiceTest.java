@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.PaymentMessageDTO;
+import br.com.satyan.stering.saita.financasbottelegram.application.port.out.IdempotenciaMensagemPort;
 import br.com.satyan.stering.saita.financasbottelegram.application.strategy.MensagemProcessingStrategy;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.Canal;
 import java.util.List;
@@ -21,7 +22,7 @@ class MensagemEntranteServiceTest {
 
     @Mock private MensagemProcessingStrategy strategyA;
     @Mock private MensagemProcessingStrategy strategyB;
-    @Mock private MensagemProcessadaService mensagemProcessadaService;
+    @Mock private IdempotenciaMensagemPort idempotenciaPort;
 
     private PaymentMessageDTO dto(Long chatId) {
         return PaymentMessageDTO.builder()
@@ -35,10 +36,10 @@ class MensagemEntranteServiceTest {
     @Test
     void deveDespacharParaAPrimeiraStrategyQueSuportar() {
         PaymentMessageDTO dto = dto(100L);
-        when(mensagemProcessadaService.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
+        when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
         when(strategyA.supports(dto)).thenReturn(false);
         when(strategyB.supports(dto)).thenReturn(true);
-        MensagemEntranteService service = new MensagemEntranteService(List.of(strategyA, strategyB), mensagemProcessadaService);
+        MensagemEntranteService service = new MensagemEntranteService(List.of(strategyA, strategyB), idempotenciaPort);
 
         service.processar(dto);
 
@@ -49,9 +50,9 @@ class MensagemEntranteServiceTest {
     @Test
     void deveDespacharParaPrimeiraStrategyQuandoAmbasSuportam() {
         PaymentMessageDTO dto = dto(100L);
-        when(mensagemProcessadaService.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
+        when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
         when(strategyA.supports(dto)).thenReturn(true);
-        MensagemEntranteService service = new MensagemEntranteService(List.of(strategyA, strategyB), mensagemProcessadaService);
+        MensagemEntranteService service = new MensagemEntranteService(List.of(strategyA, strategyB), idempotenciaPort);
 
         service.processar(dto);
 
@@ -62,10 +63,10 @@ class MensagemEntranteServiceTest {
     @Test
     void deveLancarInvalidMessageFormatExceptionQuandoNenhumaStrategySuportar() {
         PaymentMessageDTO dto = dto(200L);
-        when(mensagemProcessadaService.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
+        when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
         when(strategyA.supports(dto)).thenReturn(false);
         when(strategyB.supports(dto)).thenReturn(false);
-        MensagemEntranteService service = new MensagemEntranteService(List.of(strategyA, strategyB), mensagemProcessadaService);
+        MensagemEntranteService service = new MensagemEntranteService(List.of(strategyA, strategyB), idempotenciaPort);
 
         assertThatThrownBy(() -> service.processar(dto))
                 .isInstanceOf(InvalidMessageFormatException.class)
@@ -78,8 +79,8 @@ class MensagemEntranteServiceTest {
     @Test
     void deveLancarInvalidMessageFormatExceptionComListaVazia() {
         PaymentMessageDTO dto = dto(300L);
-        when(mensagemProcessadaService.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
-        MensagemEntranteService service = new MensagemEntranteService(List.of(), mensagemProcessadaService);
+        when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
+        MensagemEntranteService service = new MensagemEntranteService(List.of(), idempotenciaPort);
 
         assertThatThrownBy(() -> service.processar(dto))
                 .isInstanceOf(InvalidMessageFormatException.class);
@@ -88,8 +89,8 @@ class MensagemEntranteServiceTest {
     @Test
     void deveSaltarProcessamentoQuandoClaimFalhar() {
         PaymentMessageDTO dto = dto(400L);
-        when(mensagemProcessadaService.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(false);
-        MensagemEntranteService service = new MensagemEntranteService(List.of(strategyA, strategyB), mensagemProcessadaService);
+        when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(false);
+        MensagemEntranteService service = new MensagemEntranteService(List.of(strategyA, strategyB), idempotenciaPort);
 
         service.processar(dto);
 
