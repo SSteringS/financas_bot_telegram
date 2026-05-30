@@ -1,25 +1,40 @@
 # Sprint 02 — Canal WhatsApp + notificação de pagamento + observability
 
-**Status:** 🔜 em discovery/planejamento (PO = humano).
+**Status:** 🟢 fechamento (escopo revisado 2026-05-29; FIX-001 e BE-17b mergeados 2026-05-30).
 
-**Objetivo (o que define "pronto"):** o bot/notificações da família passam a viver no **WhatsApp** (onde eles já estão), o Pedro **recebe automaticamente** um aviso quando um comprovante é registrado, e o time deixa de voar cego — **logs e alarmes externalizados** (sem precisar de SSH na EC2).
+**Objetivo revisado (2026-05-29) — o que define "pronto" desta sprint:** o **código completo** do canal WhatsApp está **deployado em prod** (mesmo que **inerte** — endpoints respondendo 403/200 silencioso por sentinelas defensivas), a observability está externalizada (CloudWatch agent + log metric filter + métricas Micrometer), e o front ganhou UX upgrades (botão "ver foto/PDF original"). **"WhatsApp vivo em prod"** — smoke E2E real contra Meta com chip dedicado + Business Verification — **saiu pra próxima sprint** quando esses bloqueios externos estiverem resolvidos.
+
+**Por que o escopo virou:** o humano (PO) não consegue comprar chip dedicado pra WhatsApp Business imediatamente, e o Test number da Meta sofre restrição BR 130497 (Business não-verificada não envia business-initiated). Detalhes em `docs/aprendizado/whatsapp-restricoes-pais-business-nao-verificada.md`. Faz mais sentido empilhar o código pronto em prod (com defaults defensivos) do que segurar tudo esperando o chip.
 
 ## Frentes do ciclo
 
-1. **EVO-01 — Canal WhatsApp.** Migrar (ou adicionar) o canal de Telegram pra WhatsApp. A arquitetura hexagonal isola o adapter de entrada. **Decisão de provider em aberto** (Cloud API oficial da Meta vs Z-API/Evolution não-oficiais) — é o **primeiro trabalho do arquiteto** e provavelmente vira **ADR** antes de qualquer código.
-2. **EVO-02 — Notificação automática de pagamento.** Quando um comprovante é registrado, disparar mensagem pro requisitante com link pro site. **Depende do canal (EVO-01).**
-3. **Observability.** Externalizar logs + alarmes básicos (disco/CPU/ERROR). Caminho provável: **CloudWatch** (a IAM `CloudWatchAgentServerPolicy` já está na EC2). **Fazer cedo no ciclo** — é rede de segurança pra debugar a migração arriscada da EVO-01. Ver `docs/aprendizado/observability-logs-externalizar.md` e ação #4 da RETRO-01.
+1. **EVO-01 — Canal WhatsApp (código).** Adapter de entrada + saída + idempotência + roteamento por `canalPreferido`. **Provedor decidido:** WhatsApp Cloud API oficial da Meta (ADR registrado). **Status:** ✅ código completo mergeado em `develop` (BE-17, BE-18, BE-19, BE-19a, BE-21a, BE-17b PR #79, FIX-001 PR #78). Falta apenas PR `develop → main` pra deploy.
+2. **EVO-02 — Notificação automática de pagamento (parcial).** Evento + roteamento por canalPreferido prontos (BE-21a). **`WhatsAppNotificadorImpl` + templates Meta saíram pra próxima sprint** (depende de BE-20 + Business Verification).
+3. **Observability.** ✅ DEP-09 (CloudWatch agent + log metric filter `finbot/app/errors`) mergeado; ✅ BE-22 (Micrometer custom metrics ~$7/mês) mergeado. Pendências futuras: BE-22b (alarmes), BE-22c (timers chamadas externas), BE-22d (timer queries DB).
+4. **UX no front.** **FE-14** (botão "ver foto/PDF original do pedido") — única task de produto pendente; pronto pra dispatch. Território disjunto do back.
 
-## Ordem sugerida
+## Estado de cada task
 
-Observability **primeiro** (habilitador de debug) → decisão de provider do WhatsApp (ADR) → adapter de entrada (EVO-01) → notificação (EVO-02).
+Ver `docs/STATE.md` §"Onde estamos na sprint 02" pra status atualizado de cada task (mergeada / pronta pra dispatch / parqueada).
+
+## Próximos passos imediatos
+
+1. **Despachar FE-14** pro front (única task de produto pendente).
+2. **Abrir PR `develop → main`** pra deploy em prod do canal WhatsApp inerte + BE-17b + BE-22 + FIX-001 — **já desbloqueado** pelos merges de hoje. Pode ir em paralelo com FE-14 (FE-14 só toca `frontend/`, deploy é só do back).
+3. **RETRO-02** — escrever retrospectiva incluindo itens #8/#9/#10 do `docs/plans/BACKLOG-evolucao-workflow.md` + lições aprendidas (sync gremlin do OneDrive, dois worktrees, convenção FIX-NNN forward-only).
+4. **Abrir sprint 03.** Candidatos a escopo: EVO-09 (folha de pagamento — refinar com PO/arquiteto), BE-22b/c/d (alarmes + timers), itens de workflow não cobertos na retro, BE-20 + BE-21b + EVO-02 completa **se** chip + Business Verification chegarem.
 
 ## Estrutura
 
-`plans/` · `status/` · `avaliacoes/` desta sprint entram aqui conforme as tasks forem planejadas (ADR 0010). Retro do ciclo virá em `docs/retrospectivas/RETRO-02-*.md`.
+`plans/` · `status/` · `avaliacoes/` desta sprint estão aqui (ADR 0010). Retro do ciclo virá em `docs/retrospectivas/RETRO-02-*.md`.
 
-## Pendências de produto (PO)
+## Tópicos abertos pra RETRO-02
 
-- Nome/escopo fechado das tasks (aguardando uso real do MVP + decisão do humano).
-- Provider do WhatsApp: trade-off custo/risco (ToS) vs simplicidade — comparativo a cargo do arquiteto.
-</content>
+Registrados em `docs/plans/BACKLOG-evolucao-workflow.md`:
+- Item #8 — checklist arquitetural explícito no `reviewer.md`.
+- Item #9 — completar adoção da numeração zero-padded pros outros prefixos (BE, FE, DEP, EVO, CI).
+- Item #10 — separar configurações de agentes em **roles × skills × workflows**.
+
+Adicionais surgidos durante a sprint (a registrar no backlog se relevantes):
+- **Sync gremlin do OneDrive** — writes em arquivos novos podem se perder se Cowork estiver no worktree errado. Mitigação adotada: worktree dedicado pro planner (CLAUDE.md §Worktrees git).
+- **Convenção FIX-NNN forward-only** — inaugurada em FIX-001; planos retroativos não são renomeados (CLAUDE.md §Fluxo de branches).

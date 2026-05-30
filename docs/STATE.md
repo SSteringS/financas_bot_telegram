@@ -2,48 +2,62 @@
 
 > **Doc vivo de orientação.** Existe pra uma sessão que começa fria (planner, back, front ou reviewer) se situar em 1 minuto, sem re-derivar contexto. **Curto de propósito.** Detalhe mora nos planos (`docs/plans/`), status reports (`docs/status/`) e ADRs (`docs/decisions/`).
 >
-> **Última atualização:** 2026-05-27 (pelo reviewer — pós DEP-06 E2E).
-> **Fonte:** este resumo é derivado dos status reports em `docs/status/`. O **estado real de merge em `develop` é do humano** (ele é o integrador — ADR 0004). Quando um status diz "aguardando revisão / não mergeado", está marcado abaixo.
+> **Última atualização:** 2026-05-30 (pós-merge FIX-001 PR #78 + BE-17b PR #79 — sprint 02 entrando em modo de fechamento).
+> **Fonte:** este resumo é derivado dos status reports em `docs/status/` e `docs/sprints/02-canal-whatsapp/status/`. O **estado real de merge em `develop` é do humano** (ele é o integrador — ADR 0004). Quando um status diz "aguardando revisão / não mergeado", está marcado abaixo.
 
 ---
 
-## Fase atual
+## Sprint atual
 
-**Fase 3 — Camada de visualização** (plano-mãe: `docs/plans/BACKLOG-produto.md`).
-Adiciona uma camada de leitura pro requisitante (Pedro): API REST + front React (PWA) + deploy em AWS, com auth por link mágico. A operação do bot de Telegram continua igual.
+**Sprint 02 — Canal WhatsApp + notificação de pagamento + observability** (`docs/sprints/02-canal-whatsapp/README.md`).
 
-Sub-fases: **3a Backend** → **3b Front** → **3c Deploy** → **3d Evolução pós-MVP** (não fazer agora).
+**Modo:** 🟢 **fechamento** — FIX-001 e BE-17b mergeados; única task de produto pendente é **FE-14** (front). Após FE-14 mergeada (ou descartada), abrir PR `develop → main` e fazer RETRO-02 + plano sprint 03.
+
+**Escopo revisado em 2026-05-29:** *código completo* do canal WhatsApp em prod (com endpoints inertes por sentinela), observability externalizada, e UX upgrades. **"WhatsApp vivo em prod"** (smoke E2E real contra Meta) **saiu pra próxima sprint** quando o chip dedicado + Business Verification estiverem disponíveis (bloqueio externo).
+
+A Fase 3 (MVP de visualização) está **concluída** desde 2026-05-27 — histórico em `docs/sprints/01-mvp/` e bloco histórico do `docs/plans/BACKLOG-produto.md`.
 
 ---
 
-## Onde estamos
+## Onde estamos na sprint 02
 
-### 3a — Backend: **concluída** (conforme status reports)
-API REST completa: DTOs+OpenAPI (BE-04), listagem/detalhe/resumo (BE-05/06/09), pre-signed URL + endpoints de imagem (BE-07/08), auth completa (token admin → exchange JWT → filtro → CORS, BE-10 a BE-13), testes de integração com Testcontainers (BE-14), handler genérico de exceções do webhook (BE-15, gate de deploy), e o resumo parametrizado por mês/busca (BE-16). Base (Flyway, refatoração de persistência, backfill de testes) em BE-00/00B/01a. Polish + EVO-07 (aceitar document/PDF) na branch `feature/backend-polish-evo07` (212 testes, BUILD SUCCESS).
+### Mergeado em `develop`
 
-### 3b — Front: **concluída** (conforme status reports)
-Fase 3b inteira (FE-03 a FE-11) na branch `feature/frontend-fase3-completa`. Em cima dela, **FE-12** corrigiu os dois bugs da revisão (contadores que colapsavam ao filtrar; header travado no mês corrente) ligando o front ao contrato `mes`/`busca`/`todos` da BE-16. **FE-12 estava como "aguardando revisão, não mergeado" no seu último status** — confirmar com o humano se já entrou em `develop`.
+- **DEP-09** Observability infra (CloudWatch agent + log metric filter `finbot/app/errors`): ✅
+- **BE-17** Refactor porta agnóstica de entrada (`MensagemEntrantePortIn`): ✅
+- **BE-18** Adapter de saída WhatsApp (sender + downloader Graph API): ✅
+- **BE-19** Adapter de entrada WhatsApp (handshake GET + POST HMAC + mapper + exception handler) — PR #76: ✅
+- **BE-19a** Idempotência via tabela `mensagem_processada` (cobre `wamid`): ✅
+- **BE-21a** Eventos + notificador roteando por `canalPreferido`: ✅
+- **BE-22** Micrometer + CloudWatch custom metrics (~$7/mês) — PR #77: ✅
+- **FIX-001-whatsapp-defaults-deploy-safe** — `@Value` defensivos pros 3 secrets WhatsApp — PR #78 (2026-05-30): ✅ **primeiro FIX no padrão novo zero-padded.**
+- **BE-17b-renomear-rota-telegram** — `/webhook` → `/webhook/telegram` + `setWebhook` manual coordenado — PR #79 (2026-05-30): ✅
+- **FIX-padronizar-restclient-builder** (legacy slug): ✅
+- **FIX-idempotencia-porta-application** (legacy slug — porta extraída pra `application/port/out/`): ✅
 
-### 3c — Deploy: **concluída** ✅ (2026-05-27)
+### Pronto pra dispatch (planos escritos, aguardando despacho)
 
-E2E completo validado em produção: link mágico → JWT → cookie → listagem de pedidos. Todos os serviços no ar.
+- **FE-14-botao-ver-arquivo-original** — botão menor destaque no `PedidoCard` pra abrir foto/PDF original. Front; território disjunto do back. **Única task de produto pendente da sprint 02.**
 
-- **DEP-01** Route 53 + ACM: ✅
-- **DEP-02** S3 + CloudFront do front (`satyansaita.com`): ✅
-- **DEP-03** `api.satyansaita.com` via Caddy/Let's Encrypt: ✅
-- **DEP-04** Pipeline GitHub Actions (OIDC → S3 sync → CloudFront): ✅ pipeline rodou verde (2026-05-27)
-- **DEP-05** CORS + cookie `Domain=satyansaita.com` em prod: ✅ deployado (2026-05-27)
-- **DEP-06** E2E em produção: ✅ todos os cenários passaram (2026-05-27)
-- **DEP-07** Bootstrap idempotente EC2 (`bootstrap.sh` + `user_data`): PR #64 aberto — aguarda merge + `terraform apply`. Sem urgência (instância atual não afetada — ADR 0009).
-- **DEP-08** Webhook → Caddy/LE + aposentar keystore: 📝 plano escrito (`docs/plans/DEP-08-webhook-https-caddy.md`). Fase 2 precisa de ADR de topologia TLS. Item de 3d.
+### Parqueado (entra na sprint vigente quando o chip chegar)
+
+- **BE-20-deploy-whatsapp-smoke** — deploy WhatsApp + config webhook na Meta + smoke E2E. Plano escrito; bloqueado por (a) chip dedicado WhatsApp Business não-comprável imediatamente; (b) Test number Meta sofre restrição BR 130497 (Business não-verificada não envia business-initiated). Ver `docs/aprendizado/whatsapp-restricoes-pais-business-nao-verificada.md`.
+- **BE-21b** — `WhatsAppNotificadorImpl` + templates de utilidade Meta. Sem plano ainda. Depende de BE-20.
+- **EVO-02 completa** — migrar `canalPreferido` do Pedro pra WHATSAPP. Sem plano. Depende de BE-21b.
+- **PREP-WA** fases 4 (Business Verification — lead time externo), 8 (configurar webhook Meta), 9 (smoke com chip).
+
+### Pendências de produto registradas
+
+- **EVO-09 — folha de pagamento** (registrada em `docs/plans/BACKLOG-produto.md` por iniciativa do humano em 2026-05-29). 8 perguntas abertas pro PO, sub-frentes identificadas. Entra no escopo de planejamento da sprint 03.
 
 ---
 
 ## Próximos passos prováveis
 
-1. **DEP-07:** merge PR #64 + `terraform apply` (sem urgência, EC2 atual não afetada).
-2. **3d — Evolução pós-MVP:** ver backlog em `docs/plans/BACKLOG-evolucao-workflow.md`. Próximo item relevante: DEP-08 (aposentar keystore self-signed).
-3. **Ícones do PWA** ainda são placeholders — trocar antes de divulgar o app.
+1. **Despachar FE-14** pro front (única task de produto pendente na sprint 02).
+2. **Abrir PR `develop → main`** pra deploy em prod do canal WhatsApp inerte + BE-17b (rota Telegram simétrica) + BE-22 (Micrometer) + FIX-001 (defaults defensivos). **Já desbloqueado** pelos merges de hoje.
+3. **RETRO-02** — escrever retrospectiva da sprint 02 incluindo itens #8/#9/#10 do `docs/plans/BACKLOG-evolucao-workflow.md` + lições aprendidas (sync gremlin do OneDrive, dois worktrees, convenção FIX-NNN).
+4. **Abrir sprint 03** — decidir escopo: EVO-09 (folha de pagamento — refinar com PO/arquiteto), BE-22b/c/d (alarmes + timers), itens de workflow não cobertos na retro. Estrutura nova: `docs/sprints/03-<slug>/`.
 
 ---
 
@@ -65,6 +79,8 @@ Backlog vivo em `docs/plans/BACKLOG-evolucao-workflow.md`. Estado dos itens em v
 - **Codegen do `tipos.ts`** (FE-13): ✅ mergeado.
 - **Script de métricas** dos status reports: ✅ `docs/scripts/metricas_status.py`. **Regex de task-id** aceita `CI-`: ✅.
 - **Reviewer:** **adotado pra toda task (2026-05-26)** — revisão independente em sessão separada antes do merge (ADR 0005). Já em uso.
+- **Convenção FIX-NNN / HOTFIX-NNN zero-padded:** ✅ adotada forward-only desde 2026-05-29 (CLAUDE.md). FIX-001 inaugurou.
+- **Dois worktrees git compartilhando `.git/`:** ✅ adotado (planner em worktree dedicado fixo em `develop`, implementador no worktree principal). Documentado em CLAUDE.md.
 - **Governança:** ADR 0004 (taxonomia), ADR 0005 (sessões por papel). Retroativos: ADR 0006 (hostnames), ADR 0007 (reporting com gates), ADR 0008 (Terraform módulo único). ADR 0009 (provisionamento da EC2 codificado).
 
 ---
@@ -81,5 +97,3 @@ Backlog vivo em `docs/plans/BACKLOG-evolucao-workflow.md`. Estado dos itens em v
 | Definição de pronto / gates | `docs/runbooks/PRE-MERGE-CHECKLIST.md` |
 | Instruções por papel | `docs/roles/` |
 | Débito técnico conhecido | `docs/PENDENCIAS-TECNICAS.md` |
-</content>
-</invoke>
