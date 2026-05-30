@@ -20,7 +20,7 @@ public class MetaSignatureValidator {
 
     private final byte[] appSecretBytes;
 
-    public MetaSignatureValidator(@Value("${whatsapp.app-secret}") String appSecret) {
+    public MetaSignatureValidator(@Value("${whatsapp.app-secret:NAO_CONFIGURADO}") String appSecret) {
         this.appSecretBytes = appSecret.getBytes(StandardCharsets.UTF_8);
     }
 
