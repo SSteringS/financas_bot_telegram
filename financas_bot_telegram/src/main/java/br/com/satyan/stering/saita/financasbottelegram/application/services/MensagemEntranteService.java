@@ -19,7 +19,7 @@ public class MensagemEntranteService implements MensagemEntrantePortIn {
 
     public static final String ERROR_MESSAGE =
         "😕 Formato de mensagem inválido. Não entendi o que você quis dizer.\n\n" +
-            "Para registrar um *novo pedido*, envie a foto com a legenda no formato:\n" +
+            "Para registrar um *novo pedido*, envie a foto ou documento com a legenda no formato:\n" +
             "`VALOR DESCRIÇÃO`\n" +
             "*Exemplo:* `150.50 Almoço com cliente`\n\n" +
             "Para adicionar um *comprovante* a um pedido existente, use:\n" +
