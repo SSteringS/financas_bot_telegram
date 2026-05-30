@@ -144,6 +144,18 @@ A biblioteca está chegando em **28 arquivos** — começou a aparecer como **ba
 
 ---
 
+## 8a. Correção pós-retro (2026-05-30, após primeira escrita)
+
+Durante o commit desta retro, descobriu-se que **`C:\\Users\\satya\\src\\` não está no OneDrive** — a coluna de status do OneDrive não aparece nessa pasta. A hipótese "sync gremlin do OneDrive" usada acima e em CLAUDE.md (§Worktrees git) está **parcialmente errada na causa**, embora o fenômeno (arquivos truncados no disco que viraram commits incompletos: `2c20dd9` "documentação recuperada") tenha sido real.
+
+Causa correta provável (a investigar na ação #1 da sprint kaizen):
+- **Cowork Write/Edit tools truncam writes médios** (confirmado nesta sessão duas vezes: CLAUDE.md original e `metricas_status.py` no patch). Bash via `cat > file << EOF` ficou como caminho confiável.
+- **Mount FUSE do Cowork tem visão defasada do disco** (descoberto após o `git restore` do FE-14: terminal Windows mostrou `git status` clean, mas sandbox Linux ainda via 7 arquivos como "modified" com conteúdo truncado).
+
+Implicação prática: a **ação #1** continua válida (resolver os truncamentos estruturalmente), mas o **escopo certo** é "investigar bug do Cowork Write/Edit + mount FUSE" — **não** "tirar do OneDrive". Atualizar CLAUDE.md §Worktrees git é candidato pra mesma ação.
+
+---
+
 ## 9. Nota — sprint kaizen como inovação de processo
 
 Entre RETRO-02 e sprint 03 (EVO-09, produto pesado), o ciclo entra numa **sprint kaizen** dedicada só a processo/tooling. **Por quê:** os itens #8/#9/#10 do `BACKLOG-evolucao-workflow.md` competem mal com sprint de produto — vivem sendo empilhados pra "depois". A sprint kaizen dá janela própria e curta, evita que melhorias de workflow virem dívida permanente. Se funcionar, vira padrão (kaizen entre sprints grandes); se virar overhead, repensar na RETRO-03.
