@@ -19,4 +19,4 @@ Aqui é o **olhar agregado do ciclo**: workflow, aprendizados, e as **ações** 
 ## Índice
 
 - [`RETRO-01-mvp-fase3.md`](RETRO-01-mvp-fase3.md) — MVP da Fase 3 (camada de visualização) no ar; primeira retro do projeto.
-</content>
+- [`RETRO-02-canal-whatsapp.md`](RETRO-02-canal-whatsapp.md) — Sprint 02: código WhatsApp em prod (inerte) + observability + UX; primeira retro com comparação direta com a anterior.
