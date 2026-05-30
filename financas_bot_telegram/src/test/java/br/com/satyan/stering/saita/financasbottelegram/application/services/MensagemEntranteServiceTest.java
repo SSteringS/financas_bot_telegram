@@ -8,10 +8,15 @@ import static org.mockito.Mockito.when;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.PaymentMessageDTO;
+import br.com.satyan.stering.saita.financasbottelegram.application.metrics.MetricsConstants;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.IdempotenciaMensagemPort;
 import br.com.satyan.stering.saita.financasbottelegram.application.strategy.MensagemProcessingStrategy;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.Canal;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -23,6 +28,17 @@ class MensagemEntranteServiceTest {
     @Mock private MensagemProcessingStrategy strategyA;
     @Mock private MensagemProcessingStrategy strategyB;
     @Mock private IdempotenciaMensagemPort idempotenciaPort;
+
+    private MeterRegistry meterRegistry;
+
+    @BeforeEach
+    void setUp() {
+        meterRegistry = new SimpleMeterRegistry();
+    }
+
+    private MensagemEntranteService service(MensagemProcessingStrategy... strategies) {
+        return new MensagemEntranteService(List.of(strategies), idempotenciaPort, meterRegistry);
+    }
 
     private PaymentMessageDTO dto(Long chatId) {
         return PaymentMessageDTO.builder()
@@ -39,9 +55,8 @@ class MensagemEntranteServiceTest {
         when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
         when(strategyA.supports(dto)).thenReturn(false);
         when(strategyB.supports(dto)).thenReturn(true);
-        MensagemEntranteService service = new MensagemEntranteService(List.of(strategyA, strategyB), idempotenciaPort);
 
-        service.processar(dto);
+        service(strategyA, strategyB).processar(dto);
 
         verify(strategyB).process(dto);
         verify(strategyA, never()).process(dto);
@@ -52,9 +67,8 @@ class MensagemEntranteServiceTest {
         PaymentMessageDTO dto = dto(100L);
         when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
         when(strategyA.supports(dto)).thenReturn(true);
-        MensagemEntranteService service = new MensagemEntranteService(List.of(strategyA, strategyB), idempotenciaPort);
 
-        service.processar(dto);
+        service(strategyA, strategyB).processar(dto);
 
         verify(strategyA).process(dto);
         verify(strategyB, never()).supports(dto);
@@ -66,9 +80,8 @@ class MensagemEntranteServiceTest {
         when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
         when(strategyA.supports(dto)).thenReturn(false);
         when(strategyB.supports(dto)).thenReturn(false);
-        MensagemEntranteService service = new MensagemEntranteService(List.of(strategyA, strategyB), idempotenciaPort);
 
-        assertThatThrownBy(() -> service.processar(dto))
+        assertThatThrownBy(() -> service(strategyA, strategyB).processar(dto))
                 .isInstanceOf(InvalidMessageFormatException.class)
                 .satisfies(ex -> {
                     InvalidMessageFormatException ime = (InvalidMessageFormatException) ex;
@@ -80,9 +93,8 @@ class MensagemEntranteServiceTest {
     void deveLancarInvalidMessageFormatExceptionComListaVazia() {
         PaymentMessageDTO dto = dto(300L);
         when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
-        MensagemEntranteService service = new MensagemEntranteService(List.of(), idempotenciaPort);
 
-        assertThatThrownBy(() -> service.processar(dto))
+        assertThatThrownBy(() -> service().processar(dto))
                 .isInstanceOf(InvalidMessageFormatException.class);
     }
 
@@ -90,11 +102,51 @@ class MensagemEntranteServiceTest {
     void deveSaltarProcessamentoQuandoClaimFalhar() {
         PaymentMessageDTO dto = dto(400L);
         when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(false);
-        MensagemEntranteService service = new MensagemEntranteService(List.of(strategyA, strategyB), idempotenciaPort);
 
-        service.processar(dto);
+        service(strategyA, strategyB).processar(dto);
 
         verify(strategyA, never()).supports(dto);
         verify(strategyB, never()).supports(dto);
+    }
+
+    @Test
+    void timerRegistrado_quandoStrategyExecuta() {
+        PaymentMessageDTO dto = dto(100L);
+        when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
+        when(strategyA.supports(dto)).thenReturn(true);
+
+        service(strategyA).processar(dto);
+
+        Timer timer = meterRegistry.find(MetricsConstants.MENSAGEM_ENTRANTE_TIMER)
+            .tags(MetricsConstants.TAG_CANAL, Canal.TELEGRAM.name(),
+                MetricsConstants.TAG_TIPO, MetricsConstants.TIPO_PEDIDO)
+            .timer();
+        assertThat(timer).isNotNull();
+        assertThat(timer.count()).isEqualTo(1L);
+    }
+
+    @Test
+    void timerNaoRegistrado_quandoClaimFalha() {
+        PaymentMessageDTO dto = dto(400L);
+        when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(false);
+
+        service(strategyA).processar(dto);
+
+        Timer timer = meterRegistry.find(MetricsConstants.MENSAGEM_ENTRANTE_TIMER).timer();
+        assertThat(timer).isNull();
+    }
+
+    @Test
+    void timerRegistrado_mesmoQuandoStrategyLancaExcecao() {
+        PaymentMessageDTO dto = dto(100L);
+        when(idempotenciaPort.tentarClaim(Canal.TELEGRAM, dto.getExternalId())).thenReturn(true);
+        when(strategyA.supports(dto)).thenReturn(true);
+        org.mockito.Mockito.doThrow(new RuntimeException("erro simulado")).when(strategyA).process(dto);
+
+        assertThatThrownBy(() -> service(strategyA).processar(dto));
+
+        Timer timer = meterRegistry.find(MetricsConstants.MENSAGEM_ENTRANTE_TIMER).timer();
+        assertThat(timer).isNotNull();
+        assertThat(timer.count()).isEqualTo(1L);
     }
 }

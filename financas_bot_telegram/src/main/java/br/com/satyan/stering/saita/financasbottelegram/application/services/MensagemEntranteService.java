@@ -2,9 +2,13 @@ package br.com.satyan.stering.saita.financasbottelegram.application.services;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.PaymentMessageDTO;
+import br.com.satyan.stering.saita.financasbottelegram.application.metrics.MetricsConstants;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.in.MensagemEntrantePortIn;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.IdempotenciaMensagemPort;
 import br.com.satyan.stering.saita.financasbottelegram.application.strategy.MensagemProcessingStrategy;
+import br.com.satyan.stering.saita.financasbottelegram.application.strategy.PaymentProofStrategy;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,11 +33,16 @@ public class MensagemEntranteService implements MensagemEntrantePortIn {
     private static final Logger logger = LoggerFactory.getLogger(MensagemEntranteService.class);
     private final List<MensagemProcessingStrategy> strategies;
     private final IdempotenciaMensagemPort idempotenciaPort;
+    private final MeterRegistry meterRegistry;
 
-    public MensagemEntranteService(List<MensagemProcessingStrategy> strategies,
-        IdempotenciaMensagemPort idempotenciaPort) {
+    public MensagemEntranteService(
+        List<MensagemProcessingStrategy> strategies,
+        IdempotenciaMensagemPort idempotenciaPort,
+        MeterRegistry meterRegistry
+    ) {
         this.strategies = strategies;
         this.idempotenciaPort = idempotenciaPort;
+        this.meterRegistry = meterRegistry;
     }
 
     @Transactional
@@ -45,18 +54,27 @@ public class MensagemEntranteService implements MensagemEntrantePortIn {
             return;
         }
 
-        strategies.stream()
-            .filter(strategy -> strategy.supports(dto))
+        MensagemProcessingStrategy strategy = strategies.stream()
+            .filter(s -> s.supports(dto))
             .findFirst()
-            .ifPresentOrElse(
-                strategy -> {
-                    logger.info("Executando estratégia: {}", strategy.getClass().getSimpleName());
-                    strategy.process(dto);
-                },
-                () -> {
-                    logger.warn("Nenhuma estratégia encontrada para a mensagem. Lançando InvalidMessageFormatException.");
-                    throw new InvalidMessageFormatException(ERROR_MESSAGE, dto.getChatId());
-                }
-            );
+            .orElseThrow(() -> {
+                logger.warn("Nenhuma estratégia encontrada para a mensagem. Lançando InvalidMessageFormatException.");
+                return new InvalidMessageFormatException(ERROR_MESSAGE, dto.getChatId());
+            });
+
+        String tipoMetrica = strategy instanceof PaymentProofStrategy
+            ? MetricsConstants.TIPO_COMPROVANTE
+            : MetricsConstants.TIPO_PEDIDO;
+        String canalMetrica = dto.getCanal() != null ? dto.getCanal().name() : "DESCONHECIDO";
+
+        Timer.Sample sample = Timer.start(meterRegistry);
+        try {
+            logger.info("Executando estratégia: {}", strategy.getClass().getSimpleName());
+            strategy.process(dto);
+        } finally {
+            sample.stop(Timer.builder(MetricsConstants.MENSAGEM_ENTRANTE_TIMER)
+                .tags(MetricsConstants.TAG_TIPO, tipoMetrica, MetricsConstants.TAG_CANAL, canalMetrica)
+                .register(meterRegistry));
+        }
     }
 }
