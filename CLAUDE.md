@@ -98,7 +98,8 @@ git fetch
 git checkout -b feature/<id>-<slug> develop
 ```
 
-- O Cowork do humano (sessão de planejamento) **deve estar apontando pro worktree do planner**. Se Cowork for aberto no worktree do implementador por engano, writes em arquivos novos podem se perder quando o implementador trocar de branch (sync gremlin do OneDrive). **Confirmar isso no início de qualquer sessão de planejamento.**
+- O Cowork do humano (sessão de planejamento) **deve estar apontando pro worktree do planner**. Se Cowork for aberto no worktree do implementador por engano, writes em arquivos novos podem se perder quando o implementador trocar de branch. **Confirmar isso no início de qualquer sessão de planejamento.**
+- **Escrita defensiva é obrigatória pro planner.** As tools `Write`/`Edit` do Cowork podem truncar arquivos silenciosamente e o mount FUSE do sandbox serve view defasada do disco — diagnóstico em `docs/aprendizado/cowork-write-truncamento.md`, regras operacionais em `docs/roles/planner.md` §"Escrita defensiva de arquivos (workaround Cowork)".
 
 ## Acesso ao git pelo Cowork (planner)
 

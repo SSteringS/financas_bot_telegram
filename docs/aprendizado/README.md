@@ -46,6 +46,10 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 - [`git-reset-e-area-de-staging.md`](git-reset-e-area-de-staging.md) — index, modos de `git reset`, lock file
 - [`git-line-endings-crlf-lf.md`](git-line-endings-crlf-lf.md) — CRLF vs LF, `.gitattributes`, renormalização; drift de `user_data` no Terraform
 
+### Ferramental / ambiente
+
+- [`cowork-write-truncamento.md`](cowork-write-truncamento.md) — Cowork `Write`/`Edit` truncam silenciosamente; mount FUSE serve view defasada e não permite delete; workaround via bash heredoc + `wc -l && tail`; bug report rascunho em inglês pra colar no feedback
+
 ### IA / engenharia de modelos
 
 - [`structured-outputs.md`](structured-outputs.md) — saídas estruturadas de LLM (schema mode, semântica vs. sintaxe), aplicação no parser do bot e no workflow de Claudes
