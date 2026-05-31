@@ -10,7 +10,7 @@ type: project
 Primeira leva concluída: WF-01, WF-02, WF-03 commitadas em `develop`. Push para `origin/develop` pendente (humano executa no terminal Windows).
 
 Segunda leva (WF-04..WF-08) ainda a refinar:
-- WF-04 — Adoção zero-padded geral (numeração BE/FE/DEP/EVO/CI)
+- WF-04 — Adoção zero-padded geral (numeração BE/FE/DEP/EVO/CI) → **delegado ao engenheiro de IA** (humano decidiu 2026-05-31)
 - WF-05 — Roles × skills × workflows (ADR 0015 `Proposed`, pendente homologação)
 - WF-06 — Ritual de métricas no fim de cada sprint
 - WF-07 — Ligar branch protection (CI-01 bloqueante)

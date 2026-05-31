@@ -2,16 +2,16 @@
 
 > **Doc vivo de orientação.** Existe pra uma sessão que começa fria (planner, back, front ou reviewer) se situar em 1 minuto, sem re-derivar contexto. **Curto de propósito.** Detalhe mora nos planos (`docs/plans/`), status reports (`docs/sprints/<NN>/status/`) e ADRs (`docs/decisions/`).
 >
-> **Última atualização:** 2026-05-30 (sprint 02 fechada com FE-14 mergeado PR #80; RETRO-02 publicada; **sprint 02b kaizen aberta** com WF-01..WF-03 refinadas).
+> **Última atualização:** 2026-05-31 (sprint 02b kaizen **fechada** — 7/8 WF tasks concluídas, 16 skills, ADR 0015; RETRO-02b publicada; **sprint 03 a abrir**).
 > **Fonte:** este resumo é derivado dos status reports em `docs/sprints/<NN>/status/` e `docs/sprints/02-canal-whatsapp/status/`. O **estado real de merge em `develop` é do humano** (ele é o integrador — ADR 0004). Quando um status diz "aguardando revisão / não mergeado", está marcado abaixo.
 
 ---
 
 ## Sprint atual
 
-**Sprint 02b — Kaizen (workflow/processo)** (`docs/sprints/02b-kaizen-workflow/README.md`).
+**Sprint 03 — a abrir** (EVO-09 folha de pagamento — refinar com arquiteto antes de despachar).
 
-**Modo:** 🟡 **em execução** — primeira leva (WF-01, WF-02, WF-03) refinada e pronta pra sessão executora. Reviewer dispensado pra meta-workflow (exceção documentada do ADR 0005; humano revisa direto). Segunda leva (WF-04..WF-08) refina depois da primeira mergear.
+**Sprint 02b — Kaizen (workflow/processo)** ✅ **fechada** em 2026-05-31. Retro em `docs/retrospectivas/RETRO-02b-kaizen-workflow.md`. Push de 4 commits locais pendente (humano executa).
 
 **Sprint 02 — Canal WhatsApp** ✅ **fechada** em 2026-05-30 com FE-14 mergeado (PR #80). Retro em `docs/retrospectivas/RETRO-02-canal-whatsapp.md`. Falta abrir PR `develop → main` pro deploy (não bloqueante).
 

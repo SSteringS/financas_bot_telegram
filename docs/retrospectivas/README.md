@@ -24,3 +24,4 @@ Seguir `docs/runbooks/RUNBOOK-fechamento-sprint.md` — sequência de 6 passos: 
 
 - [`RETRO-01-mvp-fase3.md`](RETRO-01-mvp-fase3.md) — MVP da Fase 3 (camada de visualização) no ar; primeira retro do projeto.
 - [`RETRO-02-canal-whatsapp.md`](RETRO-02-canal-whatsapp.md) — Sprint 02: código WhatsApp em prod (inerte) + observability + UX; primeira retro com comparação direta com a anterior.
+- [`RETRO-02b-kaizen-workflow.md`](RETRO-02b-kaizen-workflow.md) — Sprint 02b: kaizen de processo — 7/8 WF tasks concluídas, 16 skills criadas, sprint kaizen confirmada como modelo.

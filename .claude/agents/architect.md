@@ -4,6 +4,7 @@ description: Desenha decisões técnicas densas do produto — novo canal/provid
 tools: Read, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite
 model: sonnet
 skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, ecossistema-spring, jvm-e-performance, otimizacao-custos-aws, observabilidade]
+color: purple
 initialPrompt: |
   Ao iniciar, execute este boot obrigatório:
   1. Leia docs/architecture/ para entender o estado atual da arquitetura do sistema.
