@@ -51,7 +51,7 @@ Decisões locais (nome de variável, escolha de helper, organização de arquivo
 
 ## Decisões pendentes (esperando humano)
 
-Se bateu em algo que precisa de decisão de produto e não dá pra inferir do plano + architecture, registre aqui e **não prossiga** (use `estado: bloqueado`). O número de itens deve bater com `pendencias_humano:`. Se não há nada, escreva "Nenhuma — tarefa fechada." e mantenha `pendencias_humano: 0`.
+Se há qualquer ação que só o humano pode executar — decisão de produto, push/merge, configuração de infra externa, aprovação de PR — registre aqui com uma linha por item. Use `estado: bloqueado` enquanto a ação não for concluída. O número de itens deve bater com `pendencias_humano:`. Se não há nada, escreva "Nenhuma — tarefa fechada." e mantenha `pendencias_humano: 0`.
 
 ---
 
