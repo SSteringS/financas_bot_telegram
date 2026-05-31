@@ -13,6 +13,7 @@ gates:
   testes: ok                      # ok | fail | na
   testes_total: 67                # int — total de testes que rodaram
   testes_novos: 12                # int — testes adicionados nesta tarefa
+  cobertura_pct: na               # number | na — cobertura % da classe principal da task (BE: mvn jacoco:report; FE: jest --coverage); na quando task não cria lógica testável
   branch_convencao: ok            # ok | fail — bate com feature/<id>-<slug> a partir de develop
   territorio: ok                  # ok | fail — tocou só na pasta do território da instância
 commits:
@@ -57,6 +58,20 @@ Se bateu em algo que precisa de decisão de produto e não dá pra inferir do pl
 ## Próximos passos / observações pro próximo
 
 Gotchas e atalhos que o próximo implementador (ou o planejador) precisa saber.
+
+---
+
+## Padrões técnicos (BE: obrigatório; outros papéis: omitir)
+
+> Preencher **apenas em tasks BE-\* ou FIX/\* que envolvem lógica não-trivial**. FE, DEP, CI: omitir esta seção.
+
+Quais princípios SOLID foram aplicados e **onde** (arquivo:linha ou classe):
+
+Quais design patterns foram usados e **por quê** — o problema que o pattern resolveu:
+
+Como a implementação respeita a arquitetura hexagonal (ou onde flexibilizou e por quê):
+
+Trade-offs conscientes (ex.: "optei por X em vez de Y porque Z"):
 
 ---
 

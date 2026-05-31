@@ -1,4 +1,4 @@
-# Skills — capacidades técnicas reutilizáveis ou densas-mas-raras
+﻿# Skills — capacidades técnicas reutilizáveis ou densas-mas-raras
 
 > Pasta criada pela ADR `0015` (taxonomia roles × skills). Em adoção — primeira skill é piloto, refinar com o uso.
 
@@ -154,6 +154,9 @@ As skills vivem em `.claude/skills/<name>/SKILL.md` — formato canônico Anthro
 | `ciclo-de-sprint/SKILL.md` | contextual | planner | Abertura, condução, fechamento, retro e kaizen — workflow específico do projeto (não Scrum genérico). |
 | `escrita-de-dispatch/SKILL.md` | contextual | planner | Como escrever DISPATCH/MASTER-PROMPT sem boilerplate. Resolve o problema dos ~70% genérico identificado no BACKLOG #10. |
 | `escrita-de-plano-completo/SKILL.md` | contextual | planner | Como derivar critérios de aceite verificáveis, identificar riscos reais e definir território. Complementa o template — não substitui. |
+| `ecossistema-spring/SKILL.md` | shared | backend, architect | Decisões de biblioteca Spring Boot — Spring Data JDBC vs JPA, RestClient/WebClient/Feign, eventos, virtual threads, HikariCP sizing. |
+| `jvm-e-performance/SKILL.md` | shared | backend, architect | JVM flags para t4g.micro (heap ≤ 700 MB), GC, Micrometer, diagnóstico de thread dump e virtual threads. |
+| `formatacao-java/SKILL.md` | contextual | backend | Naming por camada, ordering de imports/anotações, records para DTOs, var, Javadoc mínimo. |
 
 ## Relação com outras pastas
 

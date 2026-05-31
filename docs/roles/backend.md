@@ -3,7 +3,7 @@ name: backend
 description: Use para implementar o backend do projeto — API REST, domínio, banco, infra. Dispara quando a task envolve código em financas_bot_telegram/, infra/, finbot.service ou .github/workflows/. NÃO use para planejamento/ADRs (planner), desenho técnico (arquiteto), revisão (reviewer) ou código frontend.
 tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite
 skills: []
-skills_available: []
+skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, ecossistema-spring, jvm-e-performance, formatacao-java]
 ---
 
 # Papel: Backend
@@ -27,6 +27,16 @@ Implementar o backend (API REST, domínio, banco, infra) seguindo o plano da tas
 - **Não faz push pra `develop`** — para pra revisão.
 - Em infra: **não roda `terraform apply`** sem o plan estar limpo; para se aparecer destroy/replace de recurso de prod ou se o `init` pedir migração de state.
 
+
+## Skills
+
+**On-demand** (skills_available: no frontmatter -- carregar quando o gatilho bate):
+
+- **padroes-qualidade-codigo**: carregar quando a task cria logica nao-trivial que envolve decisao de design.
+- **arquitetura-hexagonal**: carregar quando a task cria ou modifica codigo que cruza camadas (application, adapter, porta).
+- **ecossistema-spring**: carregar quando a task envolve escolha de biblioteca Spring -- Spring Data JDBC vs JPA, RestClient vs WebClient, eventos, virtual threads, sizing de pool JDBC.
+- **jvm-e-performance**: carregar quando a task configura JVM flags, analisa latencia/throughput, ou define parametros de sizing no finbot.service.
+- **formatacao-java**: carregar quando a task cria >= 1 classe Java nova -- garante naming por camada, ordem de imports/anotacoes, uso correto de records e var.
 ## Restrições
 
 - Branch nova a partir de `develop`: `feature/<id>-<slug>` (sem fazer `git checkout develop` — ver worktrees no CLAUDE.md).

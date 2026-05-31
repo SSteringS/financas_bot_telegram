@@ -4,7 +4,7 @@ description: Implementa o backend do projeto — API REST, domínio, banco, infr
 tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite, Agent(reviewer)
 model: sonnet
 memory: project
-skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal]
+skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, ecossistema-spring, jvm-e-performance, formatacao-java]
 initialPrompt: |
   Ao iniciar, execute este boot obrigatório ANTES de qualquer implementação:
   1. Se uma task foi mencionada no prompt (ex: BE-19, FIX-001), localize e leia o plano: Glob("docs/sprints/**/plans/*<TASK-ID>*.md"). Leia o arquivo encontrado inteiro.
