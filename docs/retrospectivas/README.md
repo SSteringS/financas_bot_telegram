@@ -9,6 +9,10 @@ Não confundir com:
 
 Aqui é o **olhar agregado do ciclo**: workflow, aprendizados, e as **ações** que carregamos adiante.
 
+## Como conduzir o fechamento
+
+Seguir `docs/runbooks/RUNBOOK-fechamento-sprint.md` — sequência de 6 passos: métricas de tasks (script), agregação de skills (B+C), 4 perguntas de agents & skills, escrita da retro, atualização do backlog de workflow, aprovação humana.
+
 ## Convenção
 
 - Arquivo por retro: `RETRO-NN-<contexto>.md`, numerado (`RETRO-01-...`).
