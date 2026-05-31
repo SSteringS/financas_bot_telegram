@@ -10,6 +10,10 @@ veredito_final: pendente                   # pendente | aprovado | aprovado_com_
 observacoes_count: 2                       # int — observações materiais (não cosméticas)
 roteiro_executado: false                   # bool — humano já preencheu a tabela (quando aplicável)
 gates_verificados_contra_realidade: ok     # ok | divergente — Reviewer reproduziu os gates do status?
+skills_eficazes: []          # skills cujo efeito foi observado no código — sinal C positivo
+                             # ex: [arquitetura-hexagonal] quando não há drift em task que toca application/
+skills_gaps: []              # skills ausentes no dispatch cuja falta causou problema observável — sinal C negativo
+                             # ex: [qualidade-de-testes] quando testes cobrem só happy path
 ---
 
 # Avaliação — [TASK-ID] (título curto)
@@ -93,7 +97,22 @@ Reviewer monta o roteiro, humano executa, Reviewer fecha o veredito final.
 
 ---
 
-## 5. Para o planner (próximos passos)
+## 5. Skills — feedback loop
+
+> Preencher sempre, mesmo que as listas fiquem vazias — é o único ponto de coleta do sinal C.
+> Basta uma linha por skill; o frontmatter é o que o script agrega.
+
+**Skills eficazes** (confirma efeito observável no código):
+- `<nome-da-skill>` — evidência: ex. "nenhum drift hexagonal detectado; adapter não importa JdbcTemplate diretamente"
+
+**Skills com gap** (ausentes no dispatch, falta foi causa observável de problema):
+- `<nome-da-skill>` — problema observado + por que essa skill teria prevenido
+
+Se nenhum signal: "Sem observação de skills nesta task." e `skills_eficazes: []`, `skills_gaps: []`.
+
+---
+
+## 6. Para o planner (próximos passos)
 
 Decisões/ações que o planner precisa integrar após esta avaliação:
 

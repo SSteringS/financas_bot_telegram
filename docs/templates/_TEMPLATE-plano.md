@@ -11,6 +11,9 @@ territorio: back                           # back | front | plan | infra
 estado: pronto-pra-execucao                # rascunho | pronto-pra-execucao | em-execucao | concluido | bloqueado | parqueado
 depende_de: []                             # lista de task-ids; [] se nenhuma
 bloqueia: []                               # lista de task-ids; [] se nenhuma
+skills_dispatched: []                      # skills a carregar nesta task — sinal B do feedback loop
+                                           # ex: [arquitetura-hexagonal, qualidade-de-testes]
+                                           # [] se nenhuma skill específica além das always-on do role
 ---
 
 # [TASK-ID] — Título curto da tarefa
