@@ -3,7 +3,7 @@ name: frontend
 description: Use para implementar o frontend do projeto — UI, componentes, hooks, chamadas à API. Dispara quando a task envolve código em frontend/. NÃO use para planejamento/ADRs (planner), desenho técnico (arquiteto), revisão (reviewer) ou código backend.
 tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite
 skills: []
-skills_available: []
+skills_available: [boas-praticas-react, seguranca-web-frontend, ecossistema-frontend]
 ---
 
 # Papel: Frontend
@@ -28,6 +28,14 @@ Implementar o frontend (UI, componentes, hooks, chamadas à API) seguindo o plan
 - **Não usa `as` (type assertion) sem validação** correspondente (lição da avaliação overnight).
 - **Não cria branch a partir de outra feature branch** — sempre a partir de `develop`, mesmo que a dependência ainda não tenha sido mergeada. Se houver dependência de código ainda não em `develop`, declarar `> EXCEÇÃO DE BRANCH:` no plano e aguardar o merge antes de começar. Incidente: FE-13 criada a partir de `feature/ci-01-gate-pr-develop` em vez de `develop`, gerando violação detectada só na revisão.
 
+
+## Skills
+
+**On-demand** (skills_available: no frontmatter -- carregar quando o gatilho bate):
+
+- **boas-praticas-react**: carregar quando a task cria componente nao-trivial, hook com logica de negocio, ou envolve decisao de composicao/estado. Inclui padroes arquiteturais (Compound Components, custom hooks, Context) e justificativa tecnica para o relatorio done.
+- **seguranca-web-frontend**: carregar quando a task toca autenticacao, tokens, formularios com dados sensiveis, integracao com servico externo, ou script de terceiro.
+- **ecossistema-frontend**: carregar quando a task envolve configuracao de tooling (Vite, TS, Jest), setup/ajuste de testes, ou consumo de endpoint novo da API (contrato OpenAPI + MSW).
 ## Restrições
 
 - Branch nova a partir de `develop`: `feature/<id>-<slug>` (sem fazer `git checkout develop` — ver worktrees no CLAUDE.md).
