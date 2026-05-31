@@ -8,7 +8,7 @@ Bot de finanças para Telegram com frontend web. Monorepo com múltiplos módulo
 
 | Instância | Worktree (pasta no disco) | Branch | Responsabilidade |
 |---|---|---|---|
-| Claude do **back** | `C:\Users\satya\src\financas_bot_telegram` | `feature/be-*` / `fix/NNN-*` / `hotfix/NNN-*` | API REST, domínio, banco, deploy. Pasta de código: `financas_bot_telegram/` + `infra/` + `finbot.service` + `.github/workflows/` |
+| Claude do **back** | `C:\Users\satya\src\financas_bot_telegram` | `feature/be-NNN-*` / `fix/NNN-*` / `hotfix/NNN-*` | API REST, domínio, banco, deploy. Pasta de código: `financas_bot_telegram/` + `infra/` + `finbot.service` + `.github/workflows/` |
 | Claude do **front** | `C:\Users\satya\src\financas_bot_telegram` (mesmo worktree do back; territórios disjuntos por pasta) | `feature/fe-*` | UI, componentes, chamadas à API. Pasta de código: `frontend/` |
 | Claude de **planejamento** | `C:\Users\satya\src\financas_bot_telegram-planner` (worktree dedicado, fixo em `develop`) | `develop` (commita direto) | Documentação, especificações técnicas, decisões de arquitetura, planos de feature |
 | Claude **Reviewer** | qualquer worktree (sessão somente-leitura) | a branch sob revisão | Revisão independente antes do merge (ADR 0005) |
@@ -38,7 +38,7 @@ docs/
   plans/
     BACKLOG-produto.md         ← backlog de evoluções de produto (features futuras)
     BACKLOG-evolucao-workflow.md  ← backlog de melhorias de processo/workflow
-    BE-XX-*.md                     ← planos individuais de tarefas
+    BE-NNN-*.md                     ← planos individuais de tarefas
   runbooks/
     ROTEIRO-FRONTEND.md            ← guia passo a passo para o front
     ROTEIRO-TESTES-BACKEND.md      ← roteiro de testes em camadas
@@ -133,15 +133,15 @@ Se houver sessão do Claude do back/front ativa no worktree do implementador (tr
 ```
 main (protegida — só via PR)
  └── develop  ← planejamento commita aqui direto (no worktree planner)
-      ├── feature/be-17b-renomear-rota-telegram   ← back
-      ├── feature/fe-14-botao-ver-arquivo-original ← front
+      ├── feature/be-017-renomear-rota-telegram   ← back
+      ├── feature/fe-014-botao-ver-arquivo-original ← front
       ├── fix/001-whatsapp-defaults-deploy-safe   ← back (padrão novo zero-padded)
       └── hotfix/NNN-<slug>                       ← emergências
 ```
 
 - Back e front sempre criam branch a partir de `develop` (ver "Worktrees git" pro fluxo correto sem `git checkout develop`).
 - **Padrão de nome de branch:**
-  - `feature/<id>-<slug>` para tarefas planejadas — id é `be-NN`, `fe-NN`, `dep-NN`, `evo-NN`, `ci-NN`. Ex: `feature/be-17b-renomear-rota-telegram`.
+  - `feature/<id>-<slug>` para tarefas planejadas — id de **3 dígitos zero-padded**: `be-NNN`, `fe-NNN`, `dep-NNN`, `evo-NNN`, `ci-NNN`. Ex: `feature/be-017-nova-feature`. Convenção **forward-only desde 2026-05-31**: tasks BE/FE/DEP/EVO/CI anteriores ficam no formato legado (`be-17`, `fe-14`) e **não** são renomeadas.
   - `fix/NNN-<slug>` para FIXes — id de **3 dígitos zero-padded** (`001`, `002`, ..., `099`, `100`). Ex: `fix/001-whatsapp-defaults-deploy-safe`. Convenção **forward-only desde 2026-05-29**: FIXes anteriores ficam com slug-only (`fix/idempotencia-porta-application`, `fix/gitattributes-eol`) e **não** são renomeados.
   - `hotfix/NNN-<slug>` para HOTFIXes — mesma regra de 3 dígitos zero-padded. Ex: `hotfix/001-document-vs-photo`. Convenção forward-only — hotfixes anteriores ficam com nome legado.
 - **Uma tarefa = uma branch nova** a partir de `develop`, nomeada com o padrão acima. Não reaproveitar branch guarda-chuva de outra tarefa.

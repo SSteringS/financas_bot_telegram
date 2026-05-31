@@ -15,7 +15,7 @@ Conceito: o status report é um *output schema* (forma garantida, parseável). E
 | `build` | Back: `./mvnw -q -DskipTests package` · Front: `npm run build` | Sai com código 0, sem erro de compilação/TS |
 | `lint` | Front: `npm run lint` · Back: `na` (não há linter configurado) | Sem erros. `na` quando a stack não tem linter |
 | `testes` + `testes_total` + `testes_novos` | Back: `./mvnw test` · Front: `npm test` | Todos verdes. Anotar o total e quantos foram adicionados nesta tarefa |
-| `branch_convencao` | `git rev-parse --abbrev-ref HEAD` e `git merge-base --is-ancestor origin/develop HEAD` | Nome bate `^feature/(be\|fe\|dep\|fix\|hotfix\|evo\|ci)-\d+[a-z]?-` **e** saiu de `develop` (develop é ancestral). Ver regra de branch no CLAUDE.md |
+| `branch_convencao` | `git rev-parse --abbrev-ref HEAD` e `git merge-base --is-ancestor origin/develop HEAD` | Nome bate `^(feature/(be|fe|dep|evo|ci)-\d{3}[a-z]?-|fix/\d{3}-|hotfix/\d{3}-)` **e** saiu de `develop` (develop é ancestral). Ver regra de branch no CLAUDE.md |
 | `territorio` | `git diff --name-only origin/develop...HEAD` | Todos os caminhos alterados estão dentro do território da instância (ver tabela abaixo) |
 
 ### Territórios (pra o gate `territorio`)

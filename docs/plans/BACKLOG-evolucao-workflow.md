@@ -48,9 +48,10 @@ Itens de **profissionalização do workflow** que saíram da auditoria de 2026-0
 - Decidir se vira **seção no `reviewer.md`** (delta enxuto) ou **runbook próprio** que o Reviewer puxa quando a task toca camadas de arquitetura.
 - Medir no próximo ciclo se a frequência de drift detectado-pelo-humano cai.
 
-### 9. Numeração sequencial zero-padded pra TODO task-id — TÓPICO PRA RETRO-02 (adoção parcial em 2026-05-29)
+### 9. Numeração sequencial zero-padded pra TODO task-id — ✅ feito (WF-04, 2026-05-31)
 
 **Atualização 2026-05-29 — adoção parcial:** o humano decidiu adotar **agora**, forward-only, **só pra FIX e HOTFIX** com **3 dígitos zero-padded** (FIX-001, HOTFIX-001). Branch passa a ser `fix/<id3d>-<slug>` e `hotfix/<id3d>-<slug>`. Os planos FIX já escritos mas não-mergeados (`FIX-idempotencia-porta-application`, `FIX-padronizar-restclient-builder`) ficam no formato slug-only legado. Registrado em `CLAUDE.md` (Fluxo de branches) + `docs/templates/_TEMPLATE-status.md` (schema). A discussão restante (zero-padding pra **BE/FE/DEP/EVO/CI** + tratamento de bifurcações tipo `BE-19a` + script `next-task-id.sh`) segue pra RETRO-02.
+**Atualização 2026-05-31 — WF-04:** estendido para **todos os prefixos** (BE/FE/DEP/EVO/CI) — 3 dígitos zero-padded forward-only. Branch vira `feature/<prefix>-NNN-<slug>`. `CLAUDE.md`, `PRE-MERGE-CHECKLIST.md` e `_TEMPLATE-status.md` atualizados. Legado (e.g. `BE-17`, `FE-14`) não é renomeado.
 
 **O quê (proposta original):** padronizar task-id em formato **zero-padded sequencial global**: `BE-0001`, `BE-0002`, `FIX-0001`, `HOTFIX-0001`, `FE-0001`, `DEP-0001`, `CI-0001` etc. — em vez do formato atual `BE-17`, `BE-19a`, `FIX-idempotencia-porta-application` (slug-based pros FIX).
 
