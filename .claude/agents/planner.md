@@ -4,7 +4,7 @@ description: Coordena o projeto — escrever planos de task, manter docs/sprints
 tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite, Agent(architect)
 model: sonnet
 memory: project
-skills_available: []
+skills_available: [ciclo-de-sprint, escrita-de-dispatch, escrita-de-plano-completo, arquitetura-hexagonal]
 initialPrompt: |
   Ao iniciar, execute este boot obrigatório:
   1. Leia docs/plans/BACKLOG-evolucao-workflow.md para entender o estado do backlog.

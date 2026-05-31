@@ -3,7 +3,7 @@ name: arquitetura-hexagonal
 description: Arquitetura hexagonal do projeto — estrutura de camadas, regras de dependência, como implementar uma feature respeitando as fronteiras, como projetar novas portas/adapters, e como detectar violações em review. Carregar quando a task toca application/, domain/, adapters/, ou quando o plano/proposta define como uma feature entra na arquitetura.
 allowed-tools: Read, Grep, Glob, Bash
 load_pattern: shared
-used_by: [backend, architect, reviewer]
+used_by: [backend, architect, reviewer, planner]
 created: 2026-05-30
 status: ativa
 ---
@@ -15,6 +15,7 @@ status: ativa
 - **Backend:** ao implementar qualquer classe em `application/`, `domain/` ou adapters. Antes de decidir onde uma nova classe mora.
 - **Architect:** ao propor como uma feature entra na arquitetura — definir porta, adapter, contrato de interface.
 - **Reviewer:** ao revisar PRs que tocam `application/` ou `infra/` — detectar violações.
+- **Planner:** ao escrever spec de feature que cria ou modifica portas/adapters ou cruza fronteiras de camada. Saber onde a feature "mora" (qual porta, qual adapter) antes de definir o critério de aceite.
 
 ## Resumo
 
@@ -59,6 +60,13 @@ financas_bot_telegram/
 - Verificar se existe porta similar que pode ser reutilizada ou estendida.
 - Definir o **contrato da porta** (interface) antes de qualquer implementação — é o artefato que planner referencia no plano.
 - Documentar em `docs/architecture/` com diagrama de sequência quando o fluxo é não-óbvio.
+
+## Como escrever spec de feature (Planner)
+
+- Identificar em qual(ais) camadas a feature vive antes de escrever os critérios de aceite.
+- Se a feature precisa de nova porta: o critério de aceite inclui a interface da porta (nome, assinatura).
+- Se a feature reutiliza porta existente: verificar em `docs/architecture/especificacao-tecnica.md` o contrato atual.
+- Sinal de decisão arquitetural aberta: planner não consegue definir o critério de aceite sem saber qual porta usar → chamar `@architect` como subagente.
 
 ## Detecção de violações (Reviewer + Backend)
 

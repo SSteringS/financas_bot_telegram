@@ -150,7 +150,10 @@ As skills vivem em `.claude/skills/<name>/SKILL.md` — formato canônico Anthro
 | Skill (em `.claude/skills/`) | load_pattern | used_by | Descrição curta |
 |---|---|---|---|
 | `padroes-qualidade-codigo/SKILL.md` | shared | backend, architect, reviewer | SOLID + design patterns + boas práticas. Quando usar cada pattern e o problema que ele resolve. |
-| `arquitetura-hexagonal/SKILL.md` | shared | backend, architect, reviewer | Estrutura de camadas, regras de dependência, como implementar/projetar uma feature, detecção de violações. Planner não carrega — só referencia specs do arquiteto nos planos. |
+| `arquitetura-hexagonal/SKILL.md` | shared | backend, architect, reviewer, planner | Estrutura de camadas, regras de dependência, como implementar/projetar uma feature, detecção de violações. Planner carrega ao escrever spec de feature que cruza camadas. |
+| `ciclo-de-sprint/SKILL.md` | contextual | planner | Abertura, condução, fechamento, retro e kaizen — workflow específico do projeto (não Scrum genérico). |
+| `escrita-de-dispatch/SKILL.md` | contextual | planner | Como escrever DISPATCH/MASTER-PROMPT sem boilerplate. Resolve o problema dos ~70% genérico identificado no BACKLOG #10. |
+| `escrita-de-plano-completo/SKILL.md` | contextual | planner | Como derivar critérios de aceite verificáveis, identificar riscos reais e definir território. Complementa o template — não substitui. |
 
 ## Relação com outras pastas
 

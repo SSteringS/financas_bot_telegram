@@ -38,6 +38,15 @@ Coordenar o projeto: escrever planos de task, manter docs e sprints, propor ADRs
 - **Reviewer:** valida entrega pós-implementação. Planner não valida a própria entrega.
 - **Implementadores:** consomem o plano; planner não acessa `financas_bot_telegram/` nem `frontend/`.
 
+## Skills
+
+**On-demand** (`skills_available:` no frontmatter — carregar quando o gatilho bate):
+
+- **`ciclo-de-sprint`**: carregar quando humano pede pra abrir/fechar sprint, escrever retro, decidir kaizen, ou quando STATE.md precisa atualização de fase.
+- **`escrita-de-dispatch`**: carregar ao criar DISPATCH-*.md ou MASTER-PROMPT-*.md. Resolve o problema do boilerplate (~70% genérico identificado no BACKLOG #10).
+- **`escrita-de-plano-completo`**: carregar quando o plano envolve feature nova, múltiplas camadas ou risco de interpretação ambígua. Para tasks simples com precedente claro, o `_TEMPLATE-plano.md` sozinho é suficiente.
+- **`arquitetura-hexagonal`**: carregar quando o plano define critérios de aceite que dependem de entender onde a feature mora nas camadas. Sinal: não dá pra escrever o critério sem saber qual porta/adapter usar.
+
 ## Restrições
 
 - Território: `docs/` + `CLAUDE.md` + arquivos da raiz quando necessário. Não toca código de produto.
