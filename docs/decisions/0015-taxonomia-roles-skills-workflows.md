@@ -2,8 +2,9 @@
 adr: 0015
 titulo: "Taxonomia roles × skills (e o lugar de workflows)"
 data: 2026-05-30
-status: Proposed
-decisores: humano-com-arquiteto
+atualizado: 2026-05-31
+status: Accepted
+decisores: humano-com-arquiteto-e-engenheiro-de-ia
 relacionado: [0004, 0005, 0007, 0011]
 supersedes: null
 superseded_by: null
@@ -11,7 +12,9 @@ superseded_by: null
 
 # ADR 0015 — Taxonomia roles × skills (e o lugar de workflows)
 
-> **Refina** ADR 0005 (sessões especializadas por papel) e ADR 0011 (adoção do arquiteto). Promove o item #10 do `docs/plans/BACKLOG-evolucao-workflow.md`. Materializado em `docs/skills/README.md` (spec da nova pasta) e refletido no `docs/roles/engenheiro-de-ia.md` (primeiro role escrito já com `skills:` e `skills_available:` no frontmatter).
+> **Refina** ADR 0005 (sessões especializadas por papel) e ADR 0011 (adoção do arquiteto). Promove o item #10 do `docs/plans/BACKLOG-evolucao-workflow.md`. Implementado na sprint 02b (kaizen) pelo engenheiro de IA.
+>
+> **Atualização 2026-05-31:** reescrita pós-implementação para refletir a realidade do que foi entregue. A versão original descrevia um design intermediário (`docs/skills/` como home das skills, `docs/roles/` como driver de comportamento). O eng-ia implementou no **formato canônico da Anthropic** (`.claude/agents/`, `.claude/skills/`), que é mais limpo e mais alinhado com o tooling. Esta versão registra o estado real.
 
 ---
 
@@ -19,13 +22,13 @@ superseded_by: null
 
 O ADR 0005 criou `docs/roles/<papel>.md` — arquivos-delta de instrução por papel, lidos no boot de cada sessão especializada. Funcionou: separou Reviewer do planner, deu identidade clara a cada agente.
 
-Pós-MVP, três sinais convergentes mostram que **a unidade "role"** está começando a sobrecarregar:
+Pós-MVP, três sinais convergentes mostraram que **a unidade "role"** estava começando a sobrecarregar:
 
-1. **Roles misturam três coisas diferentes.** `reviewer.md` hoje carrega (a) identidade ("quem é o Reviewer, postura"), (b) capacidade técnica ("como ler arquitetura hexagonal e detectar smells" — item #8 do backlog quer adicionar isso), (c) sequência operacional ("ordem dos checks numa revisão"). Cada dimensão tem público e ciclo de vida diferentes — inflar uma faz crescer todas.
-2. **Capacidades técnicas são reutilizáveis entre papéis.** "Ler arquitetura hexagonal" não é só do Reviewer — o Architect usa quando desenha, o planner usa quando aprova plano que toca camadas. Forçar dentro de um role limita reuso e duplica conteúdo se vários papéis precisarem.
-3. **~70% dos master-prompts de dispatch é boilerplate genérico** (item #10 do backlog, análise de 2026-05-29 dos `MASTER-PROMPT-overnight-*` e `DISPATCH-*`): boot sequence, regras duras de implementador, criação de branch, escrita de status, validação local. Repetido literal em cada dispatch. Atualizar o protocolo exige mexer em N lugares.
+1. **Roles misturavam três coisas diferentes.** `reviewer.md` carregava (a) identidade, (b) capacidade técnica ("como ler arquitetura hexagonal"), (c) sequência operacional. Cada dimensão tem público e ciclo de vida diferentes.
+2. **Capacidades técnicas são reutilizáveis entre papéis.** "Ler arquitetura hexagonal" não é só do Reviewer — Architect e planner também precisam. Forçar dentro de um role duplica conteúdo.
+3. **~70% dos master-prompts de dispatch era boilerplate genérico** (análise de 2026-05-29 dos `MASTER-PROMPT-overnight-*` e `DISPATCH-*`): boot sequence, regras duras, criação de branch, escrita de status. Repetido literal em cada dispatch.
 
-O estudo do humano com o Gandalf (IA de estudo, ChatGPT, 2026-05-30) propôs taxonomia formal **Agent / Role / Skill / Workflow** baseada no curso oficial da Anthropic sobre Subagents. O curso *Introduction to Agent Skills* (Anthropic Academy, lido em 2026-05-30 — ver `docs/aprendizado/curso-anthropic-agent-skills.md`) consolidou dois motivos pra existência de skill: **reuso** ("stop repeating yourself") **e** **gestão de contexto** ("progressive disclosure to keep context windows efficient" — carrega só quando o gatilho bate, mesmo que o consumidor seja único). Esta ADR adota o núcleo da taxonomia, calibrada pro nosso setup multi-sessão, incorporando ambos os motivos.
+O estudo do humano com o Gandalf (2026-05-30) e o curso *Introduction to Agent Skills* (Anthropic Academy) consolidaram a taxonomia formal. O engenheiro de IA implementou na sprint 02b usando o **formato canônico da Anthropic** para agents e skills.
 
 ---
 
@@ -33,165 +36,189 @@ O estudo do humano com o Gandalf (IA de estudo, ChatGPT, 2026-05-30) propôs tax
 
 ### 1. Taxonomia adotada
 
-Três conceitos persistidos no repo, com fronteiras explícitas:
+Três conceitos com fronteiras explícitas:
 
-- **Role** (`docs/roles/<papel>.md`) — *quem o agente é*. Identidade, território, postura, o que faz / o que NÃO faz, checklist do papel. Continua como ADR 0005 definiu.
-- **Skill** (`docs/skills/<skill>.md`) — *capacidade técnica reutilizável OU densa-mas-rara*, carregada sob demanda. Pode ser usada por múltiplos roles (caso de reuso) ou por um único role em situação específica (caso de gestão de contexto). **Novo** nesta ADR.
-- **Workflow / Runbook** (`docs/runbooks/<nome>.md`) — *sequência operacional repetível*. **Não criar pasta nova** `docs/workflows/`. Runbook já cumpre esse papel (PRE-MERGE-CHECKLIST, PREP-WA, ROTEIRO-TESTES-BACKEND). Critério: runbook = processo organizacional + agentes; skill = conhecimento técnico que o agente aplica.
+- **Agent** (`.claude/agents/<papel>.md`) — *quem o agente é + como é invocado*. Define identidade, território, ferramentas, model, skills disponíveis e `initialPrompt`. **É o driver ativo de comportamento**. Invocado via `--agent` flag na thread principal ou via `Agent()` tool como subagente.
+- **Skill** (`.claude/skills/<skill>/SKILL.md`) — *capacidade técnica reutilizável OU densa-mas-rara*, carregada sob demanda por progressive disclosure. Pode ser usada por múltiplos agentes (reuso) ou por um único agente em situação específica (gestão de contexto).
+- **Workflow / Runbook** (`docs/runbooks/<nome>.md`) — *sequência operacional repetível*. Runbook já cumpre esse papel (PRE-MERGE-CHECKLIST, PREP-WA, ROTEIRO-TESTES-BACKEND). Critério: runbook = processo organizacional; skill = conhecimento técnico que o agente aplica.
 
-### 2. Mapeamento Role/Sessão/Subagent (calibragem importante)
+**`docs/roles/<papel>.md`** continua existindo como **documentação de referência para o humano** — descreve o papel em linguagem natural, intenção, território, fronteiras. Não é lido pelo agente como instrução ativa; o driver ativo é `.claude/agents/<papel>.md`.
 
-O Gandalf trata "role" e "agent" como equivalentes. **No nosso setup, não são.** Três níveis distintos:
-
-- **Role** = conceito (Reviewer, Backend, Architect).
-- **Sessão especializada** = nossa implementação **atual**. Sessão Claude (Cowork desktop / Claude Code no IntelliJ) lendo `CLAUDE.md` + `docs/roles/<papel>.md` + doc da task no bootstrap. ADR 0005 §1 justificou.
-- **Subagent nativo** (`.claude/agents/<papel>.md`, invocado via Task tool dentro de uma sessão) = implementação **futura possível**, não substituto. Cowork não escreve em `.claude/`, setup é multi-sessão, role é lido sob demanda. Sem urgência de migrar.
-
-Esta ADR mantém o status quo do ADR 0005 §1 nesse ponto. Subagent nativo continua reservado pra evolução.
-
-### 3. Estrutura de `docs/skills/`
-
-Flat (sem sub-pastas). Um arquivo por skill em kebab-case. README na pasta com índice + convenções (espelho do `docs/aprendizado/`).
+### 2. Estrutura real de agents e skills
 
 ```
-docs/skills/
-  README.md                            ← índice + schema + convenções (a spec desta ADR)
-  leitura-arquitetura-hexagonal.md     ← skill piloto (extraída do item #8 do backlog)
-  agent-bootstrap.md                   ← (próxima, se as métricas justificarem)
-  escrita-status-report.md             ← (próxima, se as métricas justificarem)
-  criar-branch-worktree.md             ← (próxima, se as métricas justificarem)
-  validacao-local-por-stack.md         ← (próxima, se as métricas justificarem)
+.claude/
+  agents/
+    planner.md           ← agent ativo: tools, model, skills_available, initialPrompt
+    backend.md
+    frontend.md
+    reviewer.md
+    architect.md
+    engenheiro-de-ia.md
+  skills/
+    arquitetura-hexagonal/
+      SKILL.md           ← skill ativa: frontmatter YAML + corpo
+    ciclo-de-sprint/
+      SKILL.md
+    escrita-de-dispatch/
+      SKILL.md
+    escrita-de-plano-completo/
+      SKILL.md
+    ecossistema-spring/
+      SKILL.md
+    ... (16 skills no total ao encerrar sprint 02b)
+
+docs/
+  roles/
+    planner.md           ← documentação de referência (humano lê; agente NÃO carrega como instrução)
+    backend.md
+    ...
+  skills/
+    README.md            ← spec conceitual: quando criar skill, schema, critérios (humano consulta)
 ```
 
-Cada SKILL.md tem **frontmatter YAML obrigatório** seguido do corpo em markdown. Isso espelha o padrão do **Anthropic Skills system** (campos canônicos `name` + `description` são lidos pra decidir trigger via progressive disclosure) e alinha com a ADR 0007 (nossos status reports já usam frontmatter YAML).
+### 3. Como agents são invocados
 
-Campos do frontmatter (detalhe completo em `docs/skills/README.md`):
+Dois modos de uso:
 
-- **`name`** *(obrigatório, canônico Anthropic)* — kebab-case, idêntico ao nome do arquivo sem `.md`.
-- **`description`** *(obrigatório, canônico Anthropic)* — terceira pessoa, descreve **o que faz + quando carregar**. Esta string é o gatilho lido pelo agente; precisa ser específica.
-- **`load_pattern`** *(obrigatório, extensão nossa)* — **`shared`** (≥2 consumidores, motivo reuso) **ou** **`contextual`** (1 consumidor, motivo gestão de contexto — carrega só em situação específica). Veta `always` (se sempre carrega, fica no role). Esta classificação é o que governa a regra do 2x revisada (§4).
-- **`used_by`** *(obrigatório, extensão nossa)* — lista de roles que carregam a skill. Tamanho 1 só é válido com `load_pattern: contextual`.
-- **`created`**, **`adr`**, **`status`** — rastreabilidade e ciclo de vida.
+- **`--agent <papel>`** — lança o agente na **thread principal** da sessão Claude Code. O agente carrega seu `initialPrompt`, tools e skills_available. É o modo padrão pra trabalho de uma sessão dedicada (ex.: `--agent planner` abre o planner, `--agent backend` abre o backend).
+- **`Agent()` tool** — invoca um subagente a partir de outro agente (ex.: backend chama reviewer ao fim da implementação). O subagente recebe o prompt da chamada + seu próprio `initialPrompt`.
 
-Corpo do markdown (estrutura padrão): "Quando carregar" (expande o `description`), "Resumo da capacidade", "Pontos-chave / checklist", "Exemplos" (opcional), "Ler junto" (opcional). Limite duro: ~150 linhas (frontmatter + corpo).
-
-### 4. Critério de nascimento (regra do reuso OU regra do contexto raro)
-
-Esta ADR **expande** a regra do 2x original. Skill nasce quando **≥1 das duas condições** bate:
-
-- **(a) Reuso** — ≥2 roles usam a capacidade **ou** ≥2 dispatches/master-prompts repetem o mesmo bloco de instrução. `load_pattern: shared`. Exige `used_by` ≥ 2.
-- **(b) Contexto raro** — 1 role usa a capacidade, mas **só em contexto específico** (não em toda invocação do role), **e** o conteúdo é **não-trivial** (>30 linhas como heurística inicial, calibrar com o piloto). `load_pattern: contextual`. Aceita `used_by` = 1 desde que o `description` deixe o gatilho **literal e específico** ("carregar quando task toca camada X").
-
-Anti-pattern continua proibido: skill com tudo isso falhando = decoração; fica no role.
-
-**Operacionalização do "≥2 dispatches"** (motivo da regra (a)): a contagem precisa ser **citada literalmente no `description` da skill** (`"... carregar quando ... (extraído de DISPATCH-X, role Y)"`). Sem citação explícita, a skill não conta esses dispatches como consumidores — vira `used_by` tamanho 1 e cai no critério (b) `contextual`, ou viola a regra do 2x.
-
-Migração **forward-only**. Não reescrever roles existentes. Quando uma seção de role.md virar pesada (ex.: item #8 do backlog) **e** outro papel também precisar dela (caso (a)) **ou** ela só ser usada em situação específica e for densa (caso (b)), extrair pra skill.
-
-### 5. Carregamento de contexto (gatilho explícito) — fonte da verdade no frontmatter do role
-
-Cada role.md declara skills no **frontmatter YAML** do próprio role, seguindo o padrão Anthropic Skills + Claude Code subagent:
+### 4. Formato do agent file (`.claude/agents/<papel>.md`)
 
 ```yaml
 ---
 name: <papel>
-description: ...
-tools: ...
-skills: [<skill-always-on-1>, ...]              # carregadas no bootstrap (= padrão Anthropic canônico)
-skills_available: [<skill-on-demand-1>, ...]    # disponíveis pra carregar via progressive disclosure
+description: "Terceira pessoa, descreve o que faz + quando usar. Lido pelo orquestrador pra decidir se invoca."
+tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, ...
+model: sonnet
+memory: project
+skills_available: [skill-1, skill-2, ...]   # skills carregadas sob demanda (progressive disclosure)
+initialPrompt: |
+  Boot sequence obrigatório + regras específicas do papel
 ---
+
+# Papel: <Nome>
+...corpo em markdown (identidade, faz, não faz, checklist)...
 ```
 
-- **`skills:`** alinha com o canônico Anthropic (`skills:` no frontmatter de subagent é literalmente esse). Quando o role virar subagent nativo, esse campo migra direto sem ajuste.
-- **`skills_available:`** é extensão nossa (mesma classe que `used_by` na skill). Lista skills cujo metadata (frontmatter) o agente lê no boot; o **corpo da skill** só carrega quando o gatilho do `description` bate (progressive disclosure manual). Quando virar subagent nativo, este campo vira documentação ou regra de instrução no corpo (subagent nativo não tem on-demand interno).
+- **`description:`** — o orquestrador lê pra decidir qual agente invocar. Precisa ser específico.
+- **`skills_available:`** — lista de skills disponíveis. O agente carrega o frontmatter de cada uma no boot; o **corpo** da skill só é lido quando o gatilho do `description` da skill bate (progressive disclosure).
+- **`initialPrompt:`** — instrução de boot embutida no agent file. Substitui o dispatch externo pra sessões comuns.
 
-O corpo do role tem seção `## Skills` que **explica o porquê** de cada carregamento (gatilho esperado, motivação), mas a **lista canônica é o frontmatter** — atualiza num lugar só, parseável por script.
+### 5. Formato da skill file (`.claude/skills/<skill>/SKILL.md`)
 
-Esta é a versão manual do progressive disclosure do Skills system da Anthropic: por default, só metadata (frontmatter da skill) é considerada; corpo expande quando triggered. A fonte da verdade do gatilho é o `description` da própria skill — atualiza num lugar só.
+```yaml
+---
+name: <skill-kebab-case>
+description: "O que a skill faz + quando carregar. Gatilho literal e específico."
+allowed-tools: Read, Grep, Glob, Bash
+load_pattern: shared | contextual
+used_by: [agente-1, agente-2]
+created: YYYY-MM-DD
+status: ativa | draft | depreciada
+---
 
-### 6. Métricas de adoção (decidir baseline ANTES de migrar)
+# Skill — <Nome>
 
-Critério de "deu certo" pré-acordado, pra evitar adotar por estética:
+## Quando carregar
+...gatilho expandido...
+
+## Resumo da capacidade
+...
+
+## Pontos-chave / checklist
+...
+```
+
+- **`load_pattern: shared`** — ≥2 agentes consomem (motivo: reuso).
+- **`load_pattern: contextual`** — 1 agente, mas só em contexto específico (motivo: gestão de contexto). `used_by` tamanho 1 só é válido com `contextual`.
+- Limite: ~150 linhas (frontmatter + corpo). Se crescer além, considerar split.
+- Pasta por skill (não arquivo flat) — formato canônico Anthropic que permite adicionar arquivos auxiliares se necessário.
+
+### 6. Critério de nascimento de skill (regra do reuso OU regra do contexto raro)
+
+Skill nasce quando **≥1 das duas condições** bate:
+
+- **(a) Reuso** — ≥2 agentes usam a capacidade **ou** ≥2 dispatches/master-prompts repetem o mesmo bloco. `load_pattern: shared`.
+- **(b) Contexto raro** — 1 agente usa a capacidade, mas **só em contexto específico** e o conteúdo é **não-trivial** (>30 linhas como heurística). `load_pattern: contextual`.
+
+Anti-pattern: skill que não passa em nenhuma das duas = decoração; o conteúdo fica no agent file.
+
+Migração **forward-only**. Não reescrever agent files existentes. Extrair quando a dor aparecer.
+
+### 7. Feedback loop de skills (como sabemos se está funcionando)
+
+Não há log automático de "skill X foi carregada". Rastreamento é convencional:
+
+- **No dispatch:** lista explicitamente quais skills o agente deve carregar pra task. Aí o acionamento fica rastreável pelo artefato de planejamento.
+- **Na retro:** seção fixa `## Agents & Skills` com 3 perguntas:
+  1. Qual skill foi mais útil nesta sprint?
+  2. Qual falhou ou não foi ativada quando deveria?
+  3. Algum padrão se repetiu 2x e virou candidato a skill nova?
+- **Métrica de efeito (proxy):** frequência de drift detectado pelo humano que uma skill cobrente deveria ter pego. Se a skill funciona, esse número cai.
+
+Critério de parada: skill sem sinal de utilidade por 2 sprints consecutivas → deletar.
+
+### 8. Métricas de adoção
 
 | Métrica | Alvo | Como medir |
 |---|---|---|
-| Tamanho médio do role file | cair ≥20% após extrair 3 skills | `wc -l docs/roles/*.md`, baseline hoje vs 1 mês |
-| Tamanho médio do master-prompt | ~80 linhas → ~30 | `wc -l docs/sprints/*/plans/MASTER-PROMPT-*.md` e `DISPATCH-*.md` |
-| Drift detectado-pelo-humano que role/skill já cobriam | tendência queda | proxy: nº de `desvios` em status reports cobertos por texto em role/skill — auditoria manual mensal |
-| Skills duplicadas em 2+ roles | zero | grep cruzado role × skill, ou check manual na revisão de skill nova |
-| Skills com `used_by` tamanho 1 **e** `load_pattern: shared` | zero (sinal de violação da regra do reuso) | parser YAML do frontmatter (extensão do `metricas_status.py`) |
-| Bootstrap de sessão percebido | "menos correção inicial" | informal, anota no caderno do humano |
+| Tamanho médio do agent file | estável ou caindo com skills extraídas | `wc -l .claude/agents/*.md` |
+| Tamanho médio do dispatch | ~80 linhas → ~30 | `wc -l docs/sprints/*/plans/DISPATCH-*.md` |
+| Drift detectado-pelo-humano coberto por skill | tendência queda | auditoria manual na retro |
+| Skills com `load_pattern: shared` e `used_by` tamanho 1 | zero (violação da regra) | grep YAML |
+| Skills ativas com >150 linhas | zero (sinal de split necessário) | `wc -l .claude/skills/*/SKILL.md` |
 
-Skills com `used_by` tamanho 1 **e** `load_pattern: contextual` **não são violação** — são exatamente o caso da gestão de contexto da regra (b).
-
-Se em 1 mês: (a) acumulamos >8 skills **e** (b) nenhuma métrica mexeu → **paramos e auditamos**. Critério de parada explícito.
-
-### 7. Skill piloto
-
-**`docs/skills/leitura-arquitetura-hexagonal.md`** — extraída do que viraria o item #8 do backlog (smells de violação de dependência hexagonal, descoberto na BE-19a). É a melhor candidata porque:
-
-- Tem dor concreta documentada (BE-19a flagrou `MensagemProcessadaService` dependendo de `JdbcTemplate`).
-- Cabe no schema sem inflar (~80-120 linhas estimadas).
-- **Nasce como `load_pattern: contextual`** — só o Reviewer usa por ora, mas só em tasks que tocam `application/` ou `infra/` (gatilho específico). Não é toda revisão que precisa.
-- **Migrará pra `load_pattern: shared`** quando Architect adotar (cenário esperado quando a sprint trouxer mais tasks de camadas).
-
-Demonstra **as duas faces da regra revisada**: nasce sob (b), evolui pra (a). Documenta a migração na própria skill (campo `status` + nota).
-
-Resto das 4 skills propostas (#2–#5 da seção 3) ficam pra **depois do piloto bater as métricas** — não escalar antes de medir.
+Se em 1 mês: (a) >8 skills acumuladas **e** (b) nenhuma métrica mexeu → parar e auditar. Critério de parada explícito.
 
 ---
 
 ## Razões
 
-- **Separação por dimensão cognitiva** (quem × o que × como) bate com a estrutura natural do trabalho. É a mesma lógica que motivou separar Reviewer do planner (ADR 0005) e Architect do planner (ADR 0011), só num nível de granularidade menor.
-- **Dois motivos válidos pra skill** (reuso + gestão de contexto) — o curso *Introduction to Agent Skills* da Anthropic é categórico nos dois. Restringir a regra do 2x só ao reuso atropelava o segundo motivo legítimo (progressive disclosure pra capacidade densa-mas-rara).
-- **Reuso real** — capacidades como "ler arquitetura hex" servem múltiplos papéis. Forçar no role copia conteúdo ou priva o papel da capacidade.
-- **Análogo a context engineering / RAG** — skill carregada sob demanda evita inflar o role base. A intuição do Gandalf bate com o que a Anthropic publicou sobre o Skills system (progressive disclosure).
-- **Frontmatter YAML alinha com padrão Anthropic + ADR 0007** — mesma forma já usada em status reports; permite tooling (extensão do `metricas_status.py`) sem retrabalho.
-- **Sem inventar workflows/** — já temos runbook fazendo o papel. Não criar 5ª categoria sobreposta.
-- **Regra revisada + métricas + parada** controla overengineering. Sem isso, a separação vira fim em si.
-- **Forward-only** preserva o investimento em roles existentes. Migração nasce de dor, não de bonito.
+- **Formato canônico da Anthropic** (`.claude/agents/`, `.claude/skills/<skill>/SKILL.md`) garante compatibilidade nativa com Claude Code sem precisar de convenção paralela. O tooling já sabe onde olhar.
+- **`--agent` na thread principal** é o mecanismo mais simples pra sessão dedicada — sem dispatch externo, sem ler manualmente o role no boot.
+- **`docs/roles/` como documentação** preserva a legibilidade humana sem sobrecarregar o contexto do agente. Humano lê pra entender fronteiras; agente já carrega seu `initialPrompt`.
+- **Separação por dimensão cognitiva** (quem × o que × como) bate com a estrutura natural do trabalho.
+- **Dois motivos válidos pra skill** (reuso + gestão de contexto) — o curso Anthropic Skills é categórico nos dois. Restringir só ao reuso atropelava o caso da skill densa-mas-rara de uso único.
+- **Feedback loop convencional** (dispatch + retro) é realista — não existe log automático de skill carregada; tentar automatizar cria overhead sem ganho.
 
 ---
 
 ## Consequências
 
 **Positivas:**
-- Roles ficam enxutos (identidade + delta operacional), skills crescem por demanda.
-- Master-prompts encolhem ao referenciar skills/runbooks em vez de colar boilerplate.
-- Capacidades técnicas (ex.: arquitetura hex) ganham home de primeira classe, citáveis por qualquer papel.
-- Skills densas-mas-raras (uso único em contexto específico) deixam de inflar o role base — caso da gestão de contexto fica coberto.
-- Frontmatter YAML padroniza metadata, permite scripts (futuros) lerem skill sem parsear markdown.
-- Métricas pré-definidas dão sinal claro pra continuar/parar — não é fé.
+- Agent files em `.claude/agents/` são a fonte da verdade de comportamento. Um lugar só pra atualizar tools, model, skills.
+- Skills em `.claude/skills/` ficam no formato que o Claude Code já reconhece nativamente.
+- `docs/roles/` preservado como documentação sem virar gargalo de manutenção dupla.
+- Master-prompts encolhem ao referenciar skills em vez de colar boilerplate.
+- Feedback loop de retro + dispatch dá sinal de valor sem overhead de tooling.
 
 **Negativas / custos:**
-- Mais uma superfície de persistência (`docs/skills/`). Mitigado pelas duas regras (a)/(b) com critérios distintos.
-- Gatilho de skill exige disciplina nas descrições — `description` ruim (vago) anula o progressive disclosure.
-- Critério runbook vs skill pode ficar borrado em casos limítrofes — revisar caso a caso, registrar precedentes no `docs/skills/README.md`.
-- Skill `contextual` exige disciplina extra: gatilho do `description` precisa ser **literal**, senão vira lixo on-demand mal disparado.
-- Spec da skill (schema) é nova convenção — exige iteração nas primeiras 2–3 skills antes de estabilizar.
+- Dupla manutenção `docs/roles/` + `.claude/agents/` pra cada papel. Mitigado pela regra: `docs/roles/` não precisa ser atualizado a cada mudança funcional — só quando a descrição conceitual do papel mudar.
+- Gatilho de skill exige disciplina no `description` — vago anula o progressive disclosure.
+- `docs/roles/` e `.claude/agents/` podem divergir se não houver disciplina de sincronizar quando o papel muda estruturalmente.
 
 ---
 
 ## Alternativas consideradas
 
-- **Manter tudo no role (status quo):** descartado — é a dor que esta ADR endereça (item #8 + item #10 do backlog).
-- **Regra do 2x estrita (só reuso ≥2 consumidores):** descartado durante revisão — atropela o motivo "gestão de contexto" do curso Anthropic Skills. Capacidades densas-mas-raras de 1 role ficariam inline e pesariam toda invocação do role.
-- **Criar `docs/workflows/` como 4ª categoria:** descartado. Sobrepõe com `docs/runbooks/`. Critério runbook=processo / skill=capacidade já cobre.
-- **Migrar pra `.claude/agents/` (subagents nativos):** descartado por ora. ADR 0005 §1 explicou — Cowork não escreve em `.claude/`, setup é multi-sessão, role é lido sob demanda. Subagent nativo fica reservado.
-- **Skill sem frontmatter YAML (só markdown):** descartado. Quebra alinhamento com Anthropic Skills system + ADR 0007, e impede tooling sem parser de markdown.
-- **Reescrever role files inteiros nesta migração:** descartado. Forward-only é mais barato e respeita o que já funciona.
-- **Adotar todas as 5 skills propostas no item #10 de uma vez:** descartado. Piloto primeiro, mede, escala.
+- **`docs/skills/` como home das skills** (design original desta ADR antes da implementação): descartado pelo eng-ia em favor do formato canônico Anthropic. `.claude/skills/` é onde o Claude Code nativo lê skills; colocar em `docs/` exigiria referência explícita em cada dispatch.
+- **`docs/roles/` como driver ativo** (status quo pré-implementação): descartado — o `initialPrompt` embutido no `.claude/agents/` é mais direto e alinhado com o mecanismo nativo. Manter `docs/roles/` como doc é o melhor dos dois mundos.
+- **Arquivo flat `<skill>.md`** em vez de pasta `<skill>/SKILL.md`: descartado em favor do formato canônico Anthropic (pasta por skill permite arquivos auxiliares).
+- **Só `--agent`, sem `Agent()` tool**: os dois coexistem — `--agent` pra thread principal, `Agent()` pra subagentes (ex.: backend chama reviewer).
+- **Log automático de skills carregadas**: sem suporte nativo no Claude Code; overhead de instrumentação não justifica o ganho. Convencional (dispatch + retro) cobre.
 
 ---
 
 ## Referências
 
-- ADR 0005 (sessões especializadas) · ADR 0007 (status report com frontmatter YAML) · ADR 0011 (adoção do arquiteto) — esta ADR refina sem revogar.
-- `docs/plans/BACKLOG-evolucao-workflow.md` item #10 (input de 2026-05-29 com análise dos dispatches) e item #8 (skill piloto sai daí).
-- `docs/skills/README.md` (spec materializada por esta decisão).
-- `docs/roles/engenheiro-de-ia.md` (primeiro role escrito já com `skills:` e `skills_available:` no frontmatter — aplicação da §5).
-- `docs/aprendizado/taxonomia-agent-skill-workflow.md` (conceito formativo da discussão).
-- `docs/aprendizado/curso-anthropic-agent-skills.md` (notas do curso Introduction to Agent Skills da Anthropic Academy — fonte dos dois motivos pra skill nascer).
+- ADR 0005 (sessões especializadas) · ADR 0007 (frontmatter YAML) · ADR 0011 (adoção do arquiteto) — esta ADR refina sem revogar.
+- `docs/plans/BACKLOG-evolucao-workflow.md` itens #8 e #10 (inputs originais).
+- `.claude/agents/` — agent files ativos (fonte da verdade de comportamento por papel).
+- `.claude/skills/` — skills ativas (16 ao encerrar sprint 02b).
+- `docs/skills/README.md` — spec conceitual (quando criar skill, schema, critérios).
+- `docs/roles/` — documentação de referência humana por papel.
+- `docs/aprendizado/taxonomia-agent-skill-workflow.md` — conceito formativo.
+- `docs/aprendizado/curso-anthropic-agent-skills.md` — notas do curso Introduction to Agent Skills (Anthropic Academy).
 - Estudo com Gandalf (ChatGPT, 2026-05-30) — origem da taxonomia formal.
-- Anthropic Skills system (frontmatter `name` + `description`, progressive disclosure, `skills:` no subagent) — análogo conceitual e fonte do schema canônico.
