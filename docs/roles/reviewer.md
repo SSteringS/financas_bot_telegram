@@ -33,6 +33,20 @@ Revisar a entrega de uma task de forma **independente e adversarial**. Existe pr
 - **Não aprova por confiança** — se não verificou, não aprova.
 - **Não é gentil a ponto de deixar passar** — o papel é ser crítico; revisão que não dói é suspeita.
 
+## Smells arquiteturais (em tasks que mexem em camadas)
+
+Quando a task entrega código em mais de uma camada (controller + service + repo, adiciona adapter novo, ou tira/coloca port), passar ativamente por estes 4 sintomas estruturais. Testes verdes e comportamento ok **não** detectam — exige conferir imports e assinaturas.
+
+1. **Direção de dependência invertida.** `application/` ou `domain/` importando classes de `infra/`/`adapters/` ou frameworks de borda. Sintomas: `org.springframework.jdbc.*`, `software.amazon.awssdk.*`, `org.springframework.web.client.RestClient`, etc. em arquivos da application. **Caso vivido:** BE-19a aprovou `MensagemProcessadaService` (application) usando `JdbcTemplate` direto — virou FIX-idempotencia-porta-application. Regra: se a application precisa de algo de infra, é por **port** (interface) — adapter implementa.
+
+2. **Lógica de domínio no controller/adapter de entrada.** `@PostMapping`/`@GetMapping`/handler de webhook fazendo cálculo, validação de regra de negócio ou decisão sobre estado de domínio. Sintoma: `if`/`switch` sobre status/tipo de domínio em controller; aritmética financeira em adapter. Regra: controller só traduz protocolo→domínio e chama service.
+
+3. **Anti-corruption ausente na saída.** Tipo da API externa (Meta, Telegram, AWS) vazando pra cima do adapter de saída. Sintoma: classe externa (`WhatsAppErrorResponse`, `S3Object`, `Update`) aparecendo em assinatura de método em `application/port/out/` ou consumida pela application. Regra: borda do adapter mapeia para tipo de domínio; application não conhece o externo.
+
+4. **Exception handler com escopo errado.** `@ExceptionHandler` definido em controller específico capturando exceções gerais (vira "captura demais"), ou em `@ControllerAdvice` global tratando exceções específicas que só fazem sentido num escopo (vira "captura de menos"). **Caso vivido:** BE-15b. Regra: handler vive onde o escopo bate — global pra erros transversais, local pra erros do próprio controller.
+
+Quando achar: registrar no veredito com **trecho do código + qual princípio foi violado**. Se inegável, **reprovar com observação** mesmo com testes/gates verdes — autorrelato não detecta sintoma estrutural.
+
 ## Skills
 
 **On-demand** (`skills_available:` no frontmatter — corpo carrega quando o gatilho bate):
@@ -46,6 +60,7 @@ Revisar a entrega de uma task de forma **independente e adversarial**. Existe pr
 - [ ] Gates do `PRE-MERGE-CHECKLIST` verificados contra a realidade.
 - [ ] Território respeitado; sem código fora da pasta da instância.
 - [ ] Contrato front/back coerente (sem drift de tipos).
+- [ ] Em tasks que mexem em camadas (adapter, port, application): passei pelo bloco "Smells arquiteturais".
 - [ ] Veredito explícito: aprovado / aprovado com observações / reprovado — com os porquês.
 - [ ] Avaliação escrita em `docs/sprints/<NN>/avaliacoes/<TASK-ID>-<slug>.md`.
 

@@ -36,7 +36,7 @@ Itens de **profissionalização do workflow** que saíram da auditoria de 2026-0
 ### 7. Pequeno — incluir prefixo `CI` no regex de task-id — ✅ feito
 **O quê:** atualizar o regex em `PRE-MERGE-CHECKLIST.md` pra aceitar `CI-`. **Feito:** regex de `branch_convencao` no `PRE-MERGE-CHECKLIST.md` e o comentário de schema no `docs/templates/_TEMPLATE-status.md` agora incluem `ci`/`CI`.
 
-### 8. Checklist arquitetural explícito no `reviewer.md` — TÓPICO PRA RETRO-02
+### 8. Checklist arquitetural explícito no `reviewer.md` — ✅ feito (WF-03, 2026-05-30)
 **O quê:** evoluir `docs/roles/reviewer.md` pra incluir um **bloco específico de smells arquiteturais** que o Reviewer deve procurar ativamente: violação de direção de dependência hexagonal (application importando de infra), vazamento de internals de adapter pra application (ex.: justificar decisões de application com raciocínio JPA/JDBC), repos/queries direto em controller, etc.
 
 **Por quê:** descoberto em 2026-05-28 na revisão da BE-19a — o humano flagrou `MensagemProcessadaService` (application) dependendo direto de `JdbcTemplate` (infra). Reviewer aprovou comportamento mas **não pegou** a violação arquitetural. Promovido pra `FIX-idempotencia-porta-application` (sprint 02). Sinaliza que o Reviewer tem rede em comportamento/testes/gates mas o "olho arquitetural" precisa virar explícito também — não pode depender de instinto.
