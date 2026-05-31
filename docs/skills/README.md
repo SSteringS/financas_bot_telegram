@@ -161,6 +161,7 @@ As skills vivem em `.claude/skills/<name>/SKILL.md` � formato can�nico Anthr
 | `seguranca-web-frontend/SKILL.md` | shared | frontend, reviewer | XSS, armazenamento de tokens (httpOnly vs localStorage), CSP, validacao de input, CORS, scripts de terceiros. |
 | `ecossistema-frontend/SKILL.md` | contextual | frontend | Vite, TypeScript strict, Jest+RTL (o que e como testar), MSW (contrato OpenAPI), codegen. |
 | `qualidade-de-testes/SKILL.md` | shared | backend, frontend, reviewer | Testar comportamento nao implementacao, anti-patterns (mock excessivo, assertion ausente, snapshot fragil), cobertura que importa, nomenclatura. |
+| `seguranca-backend/SKILL.md` | shared | backend, reviewer | Fluxo de auth do projeto (magic link, JWT cookie, isolamento por requisitante_id), OWASP Top 10 aplicado, Spring Security, secrets, input validation. |
 
 ## Rela��o com outras pastas
 

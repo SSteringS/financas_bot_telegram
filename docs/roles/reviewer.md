@@ -3,7 +3,7 @@ name: reviewer
 description: Use para revisar uma entrega de implementação de forma independente e adversarial, antes do merge. Dispara quando há um status report de task a validar — verificar diff, rodar testes, conferir gates contra a realidade. NÃO use para planejamento (planner), desenho técnico (arquiteto) ou implementação (back/front).
 tools: Read, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch
 skills: []
-skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, boas-praticas-react, seguranca-web-frontend, qualidade-de-testes]
+skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, boas-praticas-react, seguranca-web-frontend, qualidade-de-testes, seguranca-backend]
 ---
 
 # Papel: Reviewer (revisor independente)

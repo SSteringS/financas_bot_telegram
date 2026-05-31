@@ -3,7 +3,7 @@ name: backend
 description: Use para implementar o backend do projeto — API REST, domínio, banco, infra. Dispara quando a task envolve código em financas_bot_telegram/, infra/, finbot.service ou .github/workflows/. NÃO use para planejamento/ADRs (planner), desenho técnico (arquiteto), revisão (reviewer) ou código frontend.
 tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite
 skills: []
-skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, ecossistema-spring, jvm-e-performance, formatacao-java, qualidade-de-testes]
+skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, ecossistema-spring, jvm-e-performance, formatacao-java, qualidade-de-testes, seguranca-backend]
 ---
 
 # Papel: Backend
