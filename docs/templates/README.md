@@ -1,16 +1,41 @@
 # Templates
 
-Pasta centraliza templates canônicos de documentos do projeto. Cada template carrega o schema obrigatório (parseável por script quando aplicável) e o esqueleto das seções esperadas.
+Pasta centraliza os templates canônicos dos 4 artefatos do workflow. Cada template carrega frontmatter YAML obrigatório (parseável por script) e o esqueleto das seções esperadas.
 
-## O que mora aqui
+## Os 4 templates
 
-- [`_TEMPLATE-status.md`](_TEMPLATE-status.md) — template de **status report** (schema do ADR 0007). Usar copiando pra `docs/sprints/<NN>/status/<TASK-ID>-<slug>.md` e preenchendo. **Não edite o template** — só atualize quando o schema mudar (e atualize também o ADR 0007).
+| Template | Artefato | Autor | Quando | Mora em |
+|---|---|---|---|---|
+| [`_TEMPLATE-plano.md`](_TEMPLATE-plano.md) | **Plano** — input contract da task | Planner | Antes da implementação | `docs/sprints/<NN>/plans/<TASK-ID>-<slug>.md` |
+| [`_TEMPLATE-status.md`](_TEMPLATE-status.md) | **Status report** — output contract do implementador (schema ADR 0007) | Implementador (back/front) | Ao terminar a implementação | `docs/sprints/<NN>/status/<TASK-ID>-<slug>.md` |
+| [`_TEMPLATE-avaliacao.md`](_TEMPLATE-avaliacao.md) | **Avaliação** — verificação adversarial contra a realidade (ADR 0005) | Reviewer | Após o status, antes do merge | `docs/sprints/<NN>/avaliacoes/<TASK-ID>-<slug>.md` |
+| [`_TEMPLATE-adr.md`](_TEMPLATE-adr.md) | **ADR** — decisão arquitetural canônica (ADR 0004) | Arquiteto/planner/engenheiro de IA propõe; humano homologa | Sempre que uma decisão cross-cutting é tomada | `docs/decisions/<NNNN>-<slug>.md` |
 
-## Não está aqui (ainda)
+## Workflow por task (visão integrada)
 
-Os templates de **ADR** (`docs/decisions/_TEMPLATE.md`) e de **plano** (`docs/plans/_TEMPLATE.md` se vier a existir) ficam por ora nas próprias pastas de destino. Centralizá-los aqui vira candidato a backlog de workflow — a decisão é se a redução de fricção (1 lugar pra atualizar schemas) compensa a quebra de localidade. Avaliar depois que `docs/templates/` tiver uso real.
+```
+                 Plano                  Status                 Avaliação
+              (input contract)      (output contract)        (verificação)
+                  ↑                       ↑                       ↑
+Autor:          Planner               Implementador             Reviewer
+Quando:         Antes                 Ao fim da                 Após status,
+                                      implementação             antes do merge
+Garante:        Reduz variância       Sintaxe (gates            Semântica (gates
+                do implementador      autorreportados)          verificados contra
+                                                                 a realidade)
+```
+
+ADR é ortogonal — nasce quando uma decisão atravessa tasks (não é por task).
 
 ## Convenções
 
-- Nome do arquivo: `_TEMPLATE-<tipo>.md` (prefixo `_` mantém no topo da listagem alfabética; sufixo deixa explícito qual template é).
-- Schema declarado em comentário no frontmatter; mudanças no schema = mudança no ADR correspondente.
+- **Nome do arquivo de instância:** `<TASK-ID>-<slug>.md` (planos, status, avaliações) ou `<NNNN>-<slug>.md` (ADRs). Slug em kebab-case, descritivo, curto.
+- **Prefixo `_` no nome do template:** mantém no topo da listagem alfabética; sufixo deixa explícito qual artefato é.
+- **Não edite o template diretamente** — copie pra a pasta de destino, preencha frontmatter + seções, e instale o resultado lá. Mudança no schema só vale com atualização do ADR correspondente (0004 / 0005 / 0007).
+- **Frontmatter YAML obrigatório em todos os 4** — parseável por script (`docs/scripts/metricas_status.py` extensível). Forward-only: artefatos antigos sem frontmatter ficam como estão.
+
+## Relação com outros mecanismos do projeto
+
+- Os 4 templates são o esqueleto **escrito**; os gates verificáveis (`build`, `testes`, `lint`, `branch_convencao`, `territorio`) ficam no `docs/runbooks/PRE-MERGE-CHECKLIST.md`.
+- ADR 0007 fixa o status como output contract; ADR 0005 define o Reviewer (autor da avaliação); ADR 0004 define ADR como decisão canônica imutável após `Accepted`.
+- Roles (`docs/roles/`) carregam estes templates por referência — backend.md/frontend.md/reviewer.md/planner.md/architect.md citam quais artefatos cada papel escreve.

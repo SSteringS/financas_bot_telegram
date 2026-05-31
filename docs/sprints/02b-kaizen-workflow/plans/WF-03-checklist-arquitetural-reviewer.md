@@ -6,7 +6,7 @@
 > - **Prioridade:** alta. Toda task que mexer em camada nova arrisca repetir o tipo de drift até o "olho arquitetural" virar explícito.
 > - **Esforço:** baixo (~30min). Edita um arquivo (`reviewer.md`) — texto, sem código.
 > - **Território / quem executa:** `docs/roles/reviewer.md` → **Claude do planejamento** (meta-workflow).
-> - **Branch:** `feature/wf-03-checklist-arquitetural-reviewer` a partir de `develop`. (Padrão antigo até WF-04 mergear.)
+> - **Fluxo de git:** commit direto em `develop` (regra do planner — CLAUDE.md §Instâncias). **Sem branch de feature, sem PR.** Humano revisa diff via `git show HEAD` antes do `git push`.
 > - **Dependências:** nenhuma. Independente das outras WF-NN. Pode mergear em qualquer ordem.
 > - **Riscos:** baixos — só doc. Risco residual: lista de 4 smells pode estar incompleta; ajustar em retros futuras.
 
@@ -95,9 +95,8 @@ Anotar na retro:
 - [ ] Caso vivido (BE-19a) citado no bullet 1 e (BE-15b) citado no bullet 4 — sem isso a seção vira teoria.
 - [ ] `docs/plans/BACKLOG-evolucao-workflow.md` item #8 marcado ✅ feito com link pra esta task.
 - [ ] Status report `docs/sprints/02b-kaizen-workflow/status/WF-03.md` com frontmatter válido.
-- [ ] Branch `feature/wf-03-checklist-arquitetural-reviewer` saiu de `develop`.
 - [ ] Território só `docs/`.
-- [ ] Humano aprovou (Reviewer dispensado pra sprint kaizen — exceção registrada em `docs/sprints/02b-kaizen-workflow/README.md`). **Meta:** o próprio Reviewer aprovar uma task que muda como ele opera é fechamento de loop.
+- [ ] Humano revisou o diff do commit (`git show HEAD`) e aprovou antes de `git push`. **Meta:** o próprio Reviewer aprovar uma task que muda como ele opera é fechamento de loop.
 
 ## Fora de escopo (explicitamente)
 
@@ -127,7 +126,7 @@ Anotar na retro:
 
 ## Definição de pronto
 
-Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report com frontmatter válido, revisão direta do humano (Reviewer dispensado nesta sprint). PR pra `develop`.
+Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report com frontmatter válido, revisão direta do humano (Reviewer dispensado nesta sprint). Commit direto em `develop`; humano revisa `git show HEAD` antes do push.
 
 ## Referências
 

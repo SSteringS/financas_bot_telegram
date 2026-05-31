@@ -6,7 +6,7 @@
 > - **Prioridade:** alta. Sem isso o `metricas_status.py` precisa de lógica de dedupe (já adicionada na sessão da RETRO-02, mas é band-aid), e qualquer agente novo se confunde com a duplicação. ADR 0010 só vira verdade quando essa task termina.
 > - **Esforço:** médio (~1.5h, sessão única do planner + 1 rodada de comandos no terminal Windows do humano). Mecânico depois de inventariado.
 > - **Território / quem executa:** `docs/` inteiro → **Claude do planejamento** escreve + edita; **humano** executa os `mv`/`rm` no terminal Windows (sandbox não deleta).
-> - **Branch:** `feature/wf-02-completar-migracao-adr-0010` a partir de `develop`. (Padrão antigo até WF-04 mergear.)
+> - **Fluxo de git:** commit direto em `develop` (regra do planner — CLAUDE.md §Instâncias). **Sem branch de feature, sem PR.** Humano revisa diff via `git show HEAD` antes do `git push`.
 > - **Dependências:** nenhuma — independente de WF-01. Pode rodar em paralelo.
 > - **Riscos:** baixos (movimentação de docs sem código). Risco residual: alguma referência fora do scan (commits antigos, PRs no GitHub) vira link quebrado.
 
@@ -117,9 +117,8 @@ Lista validada por grep (sessão 2026-05-30; conferir e reexecutar antes do PR):
 - [ ] ADR 0010 ganhou seção "Execução" datada 2026-05-30 listando o que foi feito.
 - [ ] `python3 docs/scripts/metricas_status.py` roda sem erro, total de reports cai de 55 pra ~49-50 (eliminação das duplicatas + DEP-07 contabilizado uma vez só).
 - [ ] Status report `docs/sprints/02b-kaizen-workflow/status/WF-02.md` com frontmatter válido conforme `docs/templates/_TEMPLATE-status.md` (já usando o novo path no próprio report — meta).
-- [ ] Branch `feature/wf-02-completar-migracao-adr-0010` saiu de `develop`.
 - [ ] Território só `docs/`.
-- [ ] Humano aprovou (Reviewer dispensado pra sprint kaizen — exceção registrada em `docs/sprints/02b-kaizen-workflow/README.md`).
+- [ ] Humano revisou o diff do commit (`git show HEAD`) e aprovou antes de `git push`.
 
 ## Fora de escopo (explicitamente)
 
@@ -148,7 +147,7 @@ Lista validada por grep (sessão 2026-05-30; conferir e reexecutar antes do PR):
 
 ## Definição de pronto
 
-Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report com frontmatter válido, revisão direta do humano (Reviewer dispensado nesta sprint). PR pra `develop`. **Não mergear sem confirmação do humano de que rodou o bloco de `rm` no terminal Windows** e validou via `ls docs/ | grep status` que sumiu.
+Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report com frontmatter válido, revisão direta do humano (Reviewer dispensado nesta sprint). Commit direto em `develop`; humano revisa `git show HEAD` antes do push. **Não mergear sem confirmação do humano de que rodou o bloco de `rm` no terminal Windows** e validou via `ls docs/ | grep status` que sumiu.
 
 ## Runbook do humano (bloco final pra Git Bash)
 

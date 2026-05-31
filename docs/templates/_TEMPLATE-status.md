@@ -24,7 +24,7 @@ pendencias_humano: 0              # int — decisões aguardando humano (detalha
 
 # [TASK-ID] — Título curto da tarefa
 
-> **Não edite este arquivo.** Copie pra `<TASK-ID>-titulo-curto.md` (ex: `BE-05-listar-pedidos.md`), preencha o frontmatter acima e as seções abaixo.
+> **Não edite este arquivo.** Copie pra `<TASK-ID>-<slug>.md` (ex: `BE-05-listar-pedidos.md`), preencha o frontmatter acima e as seções abaixo.
 >
 > **Regra de "concluído":** `estado: concluido` só é válido se TODOS os gates relevantes estiverem `ok` (ou `na` quando não se aplica) e `pendencias_humano: 0`. Se algum gate falhar ou houver pendência, use `parcial` ou `bloqueado`. Ver `docs/runbooks/PRE-MERGE-CHECKLIST.md`.
 

@@ -47,3 +47,8 @@ application-dev.properties
 
 # Claude Code local settings
 .claude/settings.local.json
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/

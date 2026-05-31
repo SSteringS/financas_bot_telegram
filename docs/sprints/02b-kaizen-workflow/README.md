@@ -26,24 +26,23 @@ A refinar depois desta leva mergear:
 
 WF-01 → WF-02 → WF-03 numa sessão executora única (~3h total). Independentes entre si — ordem é pra continuidade narrativa (WF-01 estabelece a regra de escrita defensiva que WF-02 e WF-03 já podem aplicar).
 
-## Exceção do ADR 0005 (Reviewer dispensado nesta sprint)
+## Fluxo de git desta sprint
 
-Decisão da discovery 2026-05-30: **as WF-NN da sprint kaizen não passam pelo Reviewer**. Justificativa:
+Como todas as WF-NN são **meta-workflow do planner** (tocam só `docs/`, `CLAUDE.md`, `docs/roles/`), o fluxo segue a regra natural do planner (CLAUDE.md §Instâncias):
 
-- Tasks são **meta-workflow puro** (tocam só `docs/`, `CLAUDE.md`, `docs/roles/`) — sem código de produto.
-- Risco é baixo (mudanças textuais; reversíveis via `git revert`).
-- O **humano revisa diretamente** cada PR antes do merge.
+- **Commit direto em `develop`** — sem branch de feature, sem PR.
+- **Humano revisa o diff** (`git show HEAD`) **antes de cada `git push`**.
+- **Reviewer não entra** — papel do Reviewer é pra entregas de implementador (back/front/infra). Planner natural já trabalha sem Reviewer; humano é a revisão.
 
-**ADR 0005 segue valendo pra todo o resto.** Sprint 03 (EVO-09) volta ao fluxo normal com Reviewer obrigatório.
+Isso difere das tasks de produto da sprint 02 (BE-/FE-/FIX-/HOTFIX-, todas em branch + PR + Reviewer). Sprint 03 (EVO-09) volta ao fluxo normal de produto.
 
 ## Estrutura
 
-`plans/` · `status/` · `avaliacoes/` desta sprint estão aqui (ADR 0010). Retro do ciclo (junto da RETRO-03 da sprint 03 ou separada?) decidir no fim.
+`plans/` · `status/` · `avaliacoes/` desta sprint estão aqui (ADR 0010). `avaliacoes/` provavelmente fica vazia (sem Reviewer). Retro do ciclo (junto da RETRO-03 da sprint 03 ou separada?) decidir no fim.
 
 ## Próximos passos
 
-1. Sessão nova executora pega `DISPATCH-KAIZEN-sessao-executora.md` (a criar) e executa WF-01 → WF-02 → WF-03.
-2. Humano revisa cada PR (sem Reviewer).
-3. PRs mergeados em `develop`.
-4. Sprint kaizen continua com refinamento das 5 restantes (WF-04..WF-08) na sessão do planner.
-5. Quando todas mergearem, fecha a sprint kaizen e abre a sprint 03 (EVO-09).
+1. Sessão nova executora pega `DISPATCH-KAIZEN-sessao-executora.md` e executa WF-01 → WF-02 → WF-03 (commit direto em develop, parar entre tasks).
+2. Humano revisa cada `git show HEAD` e dá push quando aprovar.
+3. Sprint kaizen continua com refinamento das 5 restantes (WF-04..WF-08) na sessão do planner.
+4. Quando todas commitadas e pushadas, fecha a sprint kaizen e abre a sprint 03 (EVO-09).

@@ -6,7 +6,7 @@
 > - **Prioridade:** alta. Sem isso, qualquer sessão de planejamento pode gerar commits truncados em arquivos críticos (CLAUDE.md, STATE.md, planos, ADRs, retros). Já aconteceu (`2c20dd9` "documentação recuperada para ser puxada" foi commit truncado real).
 > - **Esforço:** baixo (~1h, sessão única do planner). Mecânico depois das decisões fechadas.
 > - **Território / quem executa:** `docs/aprendizado/` + `docs/roles/planner.md` + `CLAUDE.md` → **Claude do planejamento** (esta task é meta-workflow, o próprio planner executa).
-> - **Branch:** `feature/wf-01-investigar-truncamento-cowork` a partir de `develop`. (Convenção de branch nova `WF-NN` — confirmada na sprint kaizen; a normalização zero-padded geral é a WF-04, então o id `wf-01` ainda usa o padrão antigo único-dígito até a WF-04 mergear.)
+> - **Fluxo de git:** commit direto em `develop` (regra do planner — CLAUDE.md §Instâncias). **Sem branch de feature, sem PR.** Humano revisa diff via `git show HEAD` antes do `git push`.
 > - **Dependências:** nenhuma; rodável a qualquer momento da sprint kaizen.
 > - **Riscos:** baixos — não muda código de produto, só documentação + regras. Risco residual: regra pode ser ignorada por sessões futuras se não estiver na boot sequence.
 
@@ -98,7 +98,7 @@ Esta task entrega **três saídas defensivas** + **um bug report rascunho**. Sem
 - [ ] Status report `docs/sprints/02b-kaizen-workflow/status/WF-01.md` com frontmatter válido conforme `docs/status/_TEMPLATE.md`.
 - [ ] Branch `feature/wf-01-investigar-truncamento-cowork` saiu de `develop` (fluxo novo do CLAUDE.md §Worktrees git).
 - [ ] Território só `docs/` (sem código de produto).
-- [ ] Humano aprovou (Reviewer dispensado pra sprint kaizen — exceção registrada em `docs/sprints/02b-kaizen-workflow/README.md`).
+- [ ] Humano revisou o diff do commit (`git show HEAD`) e aprovou antes de `git push`.
 
 ## Fora de escopo (explicitamente)
 
@@ -127,7 +127,7 @@ Esta task entrega **três saídas defensivas** + **um bug report rascunho**. Sem
 
 ## Definição de pronto
 
-Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report com frontmatter válido, revisão direta do humano (Reviewer dispensado nesta sprint) (foco em: bug report está autocontido? regras do planner.md são acionáveis? CLAUDE.md ficou consistente?). PR pra `develop`; **não mergear sozinho**.
+Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report com frontmatter válido, revisão direta do humano (Reviewer dispensado nesta sprint) (foco em: bug report está autocontido? regras do planner.md são acionáveis? CLAUDE.md ficou consistente?). **Commit direto em `develop`** seguindo a regra do planner; **sem push até humano revisar `git show HEAD`** e confirmar.
 
 ## Referências
 
