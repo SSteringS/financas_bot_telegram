@@ -80,3 +80,11 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 ## Como adicionar
 
 O Claude de planejamento cria/atualiza arquivos aqui automaticamente quando uma discussão técnica acontece. Se você quiser puxar um tópico específico pra registrar, basta pedir explicitamente: "registra o aprendizado de X em `docs/aprendizado/`". Se sentir que um arquivo está incompleto, peça pra eu adicionar mais detalhe ou exemplos.
+
+### Banco de dados / SQL
+
+- [`yearmonth-para-date-sql.md`](yearmonth-para-date-sql.md) — como representar YearMonth (Java) como DATE no banco; convenção "primeiro dia do mês"; uso nos boundaries de query e no UNIQUE INDEX de idempotência (EVO-09)
+
+### Telegram / bot
+
+- [`telegram-conversas-multi-turno.md`](telegram-conversas-multi-turno.md) — estado multi-turno no bot (Map vs banco), CallbackQuery, padrao CommandRouter; contexto do EVO-09 (ADR 0016)
