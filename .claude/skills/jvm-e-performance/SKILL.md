@@ -1,10 +1,11 @@
 ---
 name: jvm-e-performance
 description: >
-  Tuning de JVM para o projeto — sizing de heap para o t4g.micro (1 GB RAM), seleção de
-  GC, flags obrigatórias, diagnóstico com thread dump e Micrometer, implicações de virtual
-  threads em performance. Carregar quando a task envolve parâmetros de JVM, análise de
-  latência/throughput, sizing de infra ou spec que define requisitos de performance.
+  Tuning de JVM — sizing de heap e selecao de GC para o ambiente alvo (instancia EC2,
+  container, qualquer perfil de memoria/CPU), flags obrigatorias, diagnostico com thread
+  dump e Micrometer, implicacoes de virtual threads em performance. Carregar quando a
+  task envolve parametros de JVM, analise de latencia/throughput, sizing de infra ou
+  spec que define requisitos de performance.
 load_pattern: shared
 used_by: [backend, architect]
 created: 2026-05-30
@@ -16,87 +17,83 @@ status: ativa
 
 ## Quando carregar (gatilho explícito)
 
-- **Backend:** task configura `finbot.service` ou `application.properties` com flags de JVM;
+- **Backend:** task configura JVM flags (`finbot.service`, `application.properties`, Dockerfile);
   aparece `OOMKilled`, latência alta, ou thread pool no contexto.
-- **Architect:** spec define SLA de latência, sizing de instância, ou compara opções de infra
-  que afetam JVM footprint.
+- **Architect:** spec define SLA de latência, sizing de instância/container, ou compara
+  opções de infra que afetam JVM footprint.
 - **Sinal concreto:** aparece `-Xmx`, `GC`, `heap`, `OOM`, `thread dump`, `Micrometer`,
   `actuator`, `virtual threads` no contexto.
+- **Pré-requisito:** ler a spec de infra do projeto (`docs/architecture/especificacao-tecnica.md`)
+  antes de calcular qualquer valor — RAM disponível e tipo de ambiente (EC2, container, cgroup)
+  determinam todos os parâmetros.
 
 ## Resumo da capacidade
 
-Provê as configurações de JVM adequadas pra t4g.micro, explica o porquê de cada flag,
-e indica como diagnosticar problemas de memória/concorrência sem precisar de ferramentas
-externas pesadas.
+Provê os princípios e o raciocínio de tuning de JVM para qualquer ambiente. O agente
+aplica as fórmulas e critérios lendo a infra declarada — sem hardcode de valores.
 
-## Contexto de infra — t4g.micro
+## Princípio de sizing de heap
 
-| Recurso | Valor |
-|---|---|
-| RAM total | 1 GB |
-| vCPU | 2 (AWS Graviton2 ARM) |
-| JVM heap seguro | **≤ 700 MB** |
-| Sobra pra OS + metaspace + off-heap | ~300 MB |
-
-Heap acima de 700 MB → risco de OOMKill pelo kernel quando o OS precisar de buffer.
-
-## Flags JVM recomendadas
-
-```bash
-JAVA_OPTS="-Xms256m \
-           -Xmx700m \
-           -XX:+UseG1GC \
-           -XX:MaxGCPauseMillis=200 \
-           -XX:MaxMetaspaceSize=128m \
-           -XX:+HeapDumpOnOutOfMemoryError \
-           -XX:HeapDumpPath=/opt/finbot/heapdump.hprof \
-           -Djava.security.egd=file:/dev/./urandom"
+```
+heap_max = RAM_total - overhead_fixo
+overhead_fixo = OS + Metaspace + off-heap (NIO, direct buffers) + margem de segurança
 ```
 
-| Flag | Motivo |
-|---|---|
-| `-Xms256m` | Evita resize de heap no startup (latência inicial menor) |
-| `-Xmx700m` | Teto seguro pro t4g.micro |
-| `-XX:+UseG1GC` | Melhor equilíbrio throughput/pause em heap médio |
-| `-XX:MaxGCPauseMillis=200` | Meta de pausa; G1GC ajusta regiões pra bater |
-| `-XX:MaxMetaspaceSize=128m` | Limita metaspace — evita leak de classloader |
-| `-XX:+HeapDumpOnOutOfMemoryError` | Dump automático em OOM — diagnóstico sem acesso em tempo real |
-| `java.security.egd` | Evita bloqueio em `/dev/random` no startup do Tomcat |
+- **EC2 (processo direto):** overhead típico 250–400 MB — ajustar pela RAM da instância.
+- **Container:** overhead similar, mas o teto é o `cgroup memory.limit`, não a RAM do host.
+  Usar `-XX:+UseContainerSupport` (on por default, Java 11+) que lê o cgroup automaticamente;
+  ainda assim, definir `-Xmx` explicitamente como teto de segurança.
+- **Regra prática:** `-Xms` = 1/3 a 1/2 do `-Xmx` — reduz resize de heap no startup sem
+  travar RAM.
+
+## Flags JVM — template comentado
+
+```bash
+JAVA_OPTS="-Xms<calculado>       # 1/3 do Xmx — startup rápido
+           -Xmx<calculado>       # heap_max = RAM - overhead; ver spec de infra
+           -XX:+UseG1GC          # padrão para heap médio (256 MB – 4 GB)
+           -XX:MaxGCPauseMillis=200
+           -XX:MaxMetaspaceSize=128m   # limita metaspace — evita leak de classloader
+           -XX:+HeapDumpOnOutOfMemoryError
+           -XX:HeapDumpPath=<path>/heapdump.hprof
+           -Djava.security.egd=file:/dev/./urandom"  # evita bloqueio no startup Tomcat
+```
 
 ## Seleção de GC
 
 | GC | Quando usar | Cuidado |
 |---|---|---|
-| **G1GC** (padrão recomendado) | Heap 256 MB – 700 MB, mix de throughput + pause | Baseline certo para o projeto |
-| SerialGC | Heap ≤ 256 MB, single-thread | Boa opção em ambientes muito restritos |
-| ZGC | Pauses ultra-baixas (<1ms) | Overhead de memória maior — não vale no t4g.micro |
+| **G1GC** (padrão) | Heap 256 MB – 4 GB, mix throughput + pause | Baseline correto para a maioria |
+| SerialGC | Heap <= 256 MB, container mínimo, single-thread | Menos overhead em RAM muito restrita |
+| ZGC | Pauses < 1 ms, heap grande, latência crítica | Overhead de RAM maior |
 | ShenandoahGC | Similar ZGC | Mesmo problema de footprint |
 
 ## Virtual threads e performance (Java 21)
 
-- **IO-bound tasks** (JDBC, HTTP): virtual threads reduzem overhead de contexto significativamente — ativar com `spring.threads.virtual.enabled=true`.
+- **IO-bound tasks** (JDBC, HTTP): virtual threads reduzem overhead de contexto — ativar
+  com `spring.threads.virtual.enabled=true`.
 - **CPU-bound tasks**: virtual threads não ajudam; usar thread pool dedicado.
-- **Carrier thread pinning** (bug mais comum): `synchronized` em código de framework segura o carrier thread OS.
-  - Diagnóstico: `-Djdk.tracePinnedThreads=full` → imprime stack quando pinning ocorre.
-  - Solução: substituir `synchronized` por `ReentrantLock` no código próprio; libs bem atualizadas (HikariCP 5.1+, Tomcat 10.1.25+) já corrigiram.
-- **Monitoramento de virtual threads**: `jstack` lista carrier threads, não virtual threads individuais — usar `Thread.getAllStackTraces()` ou Micrometer.
+- **Carrier thread pinning** (bug mais comum): `synchronized` segura o carrier thread OS.
+  - Diagnóstico: `-Djdk.tracePinnedThreads=full`.
+  - Correção: `ReentrantLock` no código próprio; libs atualizadas (HikariCP 5.1+,
+    Tomcat 10.1.25+) já corrigiram do lado delas.
+- **Em container:** virtual threads funcionam normalmente — a JVM conta vCPUs do cgroup.
 
 ## Diagnóstico rápido sem ferramentas externas
 
 ```bash
 # Thread dump — deadlock / liveness
-kill -3 $(pgrep -f finbot)   # sinal SIGQUIT → dump em stdout do processo
-# ou
-jstack $(pgrep -f finbot) > /tmp/tdump.txt
+kill -3 $(pgrep -f <processo>)
+jstack $(pgrep -f <processo>) > /tmp/tdump.txt
 
-# Heap usage em runtime
-curl http://localhost:8080/actuator/metrics/jvm.memory.used
+# Heap usage via Actuator
+curl http://localhost:<porta>/actuator/metrics/jvm.memory.used
 
-# GC stats
-curl http://localhost:8080/actuator/metrics/jvm.gc.pause
+# GC pause stats
+curl http://localhost:<porta>/actuator/metrics/jvm.gc.pause
 ```
 
-## Métricas Micrometer úteis (Spring Boot Actuator)
+## Métricas Micrometer úteis
 
 | Métrica | O que indica |
 |---|---|
@@ -108,15 +105,16 @@ curl http://localhost:8080/actuator/metrics/jvm.gc.pause
 
 ## Checklist de sizing / tuning
 
-- [ ] `-Xmx` ≤ 700 MB no `finbot.service` ou `JAVA_OPTS`.
-- [ ] `-XX:MaxMetaspaceSize` definido (previne leak silencioso).
-- [ ] `-XX:+HeapDumpOnOutOfMemoryError` ativo com path válido e espaço em disco.
-- [ ] GC selecionado explicitamente (não default da JVM).
-- [ ] Se virtual threads: verificou carrier thread pinning em libs usadas.
-- [ ] Actuator habilitado e ao menos `metrics` e `health` expostos.
+- [ ] Leu a spec de infra (tipo de ambiente, RAM disponível, número de vCPUs).
+- [ ] `-Xmx` calculado a partir da fórmula: RAM menos overhead estimado.
+- [ ] `-XX:MaxMetaspaceSize` definido.
+- [ ] `-XX:+HeapDumpOnOutOfMemoryError` com path válido e espaço em disco.
+- [ ] GC selecionado explicitamente — não depender do default da JVM.
+- [ ] Container: `-Xmx` dentro do cgroup limit; `UseContainerSupport` ativo.
+- [ ] Virtual threads: verificou carrier thread pinning nas libs usadas.
+- [ ] Actuator exposto: ao menos `metrics` e `health`.
 
 ## Ler junto
 
 - Skill `ecossistema-spring` — virtual threads afetam HikariCP sizing e threading model.
-- `finbot.service` — onde os JVM flags vivem no projeto.
-- `docs/architecture/especificacao-tecnica.md` — infra declarada (t4g.micro, Graviton2 ARM).
+- `docs/architecture/especificacao-tecnica.md` — infra declarada do projeto (ler antes de calcular).
