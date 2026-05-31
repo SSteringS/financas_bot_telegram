@@ -1,6 +1,6 @@
 ---
 name: frontend
-description: Implementa o frontend do projeto — UI, componentes, hooks, chamadas à API. Use quando uma task de front estiver pronta pra execução: código em frontend/. Use proativamente ao receber uma task FE-*.
+description: "Implementa o frontend do projeto — UI, componentes, hooks, chamadas à API. Use quando uma task de front estiver pronta pra execução: código em frontend/. Use proativamente ao receber uma task FE-*."
 tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite, Agent(reviewer)
 model: sonnet
 memory: project

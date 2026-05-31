@@ -49,6 +49,7 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 
 - [`cowork-write-truncamento.md`](cowork-write-truncamento.md) — Cowork `Write`/`Edit` truncam silenciosamente; mount FUSE serve view defasada e não permite delete; workaround via bash heredoc + `wc -l && tail`; bug report rascunho em inglês pra colar no feedback
 - [`piloto-vscode-claude-code.md`](piloto-vscode-claude-code.md) — resultados do piloto de migração Cowork → VS Code + Claude Code (2026-05-30): escrita sem trunc confirmada, `.claude/` desbloqueado, multi-sessão nativa, lacunas (Office docs); implicações pro projeto
+- [`yaml-compact-mapping-colon.md`](yaml-compact-mapping-colon.md) — `: ` (colon-space) dentro de plain scalar YAML causa "Nested mappings" no frontmatter de agent/skill files; sempre usar `".."` no campo `description`
 
 ### IA / engenharia de modelos
 
