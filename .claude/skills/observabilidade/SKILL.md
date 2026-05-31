@@ -3,9 +3,9 @@ name: observabilidade
 description: >
   Estrategia de observabilidade — comparativo de plataformas (CloudWatch, Grafana Cloud,
   Datadog, New Relic, Prometheus self-hosted, Splunk), os tres pilares (metrics/logs/traces),
-  OpenTelemetry como padrao aberto, decisao baseada em custo e escala. Carregar quando a
-  proposta envolve monitoring strategy, plataforma de observabilidade, ou custo de CloudWatch
-  esta em discussao.
+  OpenTelemetry como padrao aberto, criterios de decisao por custo e escala. Carregar
+  quando a proposta envolve monitoring strategy, plataforma de observabilidade, alertas,
+  logging centralizado, ou custo de CloudWatch esta em discussao.
 load_pattern: contextual
 used_by: [architect]
 created: 2026-05-31
@@ -20,77 +20,80 @@ status: ativa
 - Proposta envolve monitoring, alertas, dashboards ou logging centralizado.
 - Custo de CloudWatch está sendo questionado.
 - Nova integração externa que precisa de tracing distribuído.
-- **Sinal concreto:** aparecem "CloudWatch", "Datadog", "Grafana", "Prometheus", "Splunk",
+- **Sinal concreto:** "CloudWatch", "Datadog", "Grafana", "Prometheus", "Splunk",
   "New Relic", "OpenTelemetry", "traces", "dashboards", "alertas" no contexto.
 
 ## Os três pilares — o que cada plataforma precisa cobrir
 
-| Pilar | O que é | No projeto atual |
+| Pilar | O que é | Exemplo de coleta em Spring Boot |
 |---|---|---|
-| **Metrics** | Séries temporais (CPU, heap, latência, pool JDBC) | Micrometer já configurado — só mudar o exporter |
-| **Logs** | Eventos estruturados com contexto (JSON) | stdout do Spring Boot → precisa de coletor e destino |
-| **Traces** | Rastreamento de um request de ponta a ponta | Não implementado — OpenTelemetry quando necessário |
+| **Metrics** | Séries temporais (CPU, heap, latência, pool JDBC) | Micrometer + exporter (CloudWatch, Prometheus, Datadog) |
+| **Logs** | Eventos estruturados com contexto (JSON) | stdout JSON → coletor → plataforma |
+| **Traces** | Rastreamento de um request de ponta a ponta | OpenTelemetry agent + backend (Grafana Tempo, Jaeger, Datadog) |
 
-**Vantagem do projeto:** Spring Boot Actuator + Micrometer já existem. A instrumentação está feita. A decisão é só **qual exporter usar** — uma linha de dependência Maven.
+**Vantagem de Spring Boot + Micrometer:** instrumentação de métricas é desacoplada do backend.
+Trocar de CloudWatch para Grafana = mudar a dependência Maven do exporter, não o código da aplicação.
 
 ## Comparativo de plataformas
 
 | Plataforma | Custo | Setup | Lock-in | Melhor para |
 |---|---|---|---|---|
-| **CloudWatch** | $$: custom metrics $0.30/métrica/mês; logs $0.50/GB | Zero (nativo AWS) | Alto | Alertas de infra nativos (EC2, RDS) — esses são grátis |
-| **Grafana Cloud** (free tier) | **$0** até 10k séries, 50 GB logs, 50 GB traces/mês | Médio | Baixo | **Melhor custo/esforço para o projeto atual** |
-| **Prometheus + Grafana** self-hosted | Custo de CPU/RAM no EC2 | Alto | Nenhum | Dados sensíveis que não podem sair do ambiente |
+| **CloudWatch** | $$: custom metrics $0.30/métrica/mês; logs $0.50/GB | Zero (nativo AWS) | Alto | Alertas de infra nativos (EC2, RDS) — gratuitos |
+| **Grafana Cloud** (free tier) | **$0** até 10k séries, 50 GB logs, 50 GB traces/mês | Médio | Baixo | Melhor custo/esforço para serviços de baixo tráfego |
+| **Prometheus + Grafana** self-hosted | CPU/RAM da instância onde roda | Alto | Nenhum | Dados sensíveis que não podem sair do ambiente |
 | **New Relic** | $0 até 100 GB/mês de dados ingeridos; depois caro | Baixo | Médio | Time pequeno que quer setup fácil com tier generoso |
 | **Datadog** | $15–23/host/mês (Standard) | Baixo | Alto | Time > 5 pessoas, compliance enterprise, SLA formal |
 | **Splunk** | Enterprise — muito caro | Alto | Alto | Compliance regulatório pesado (banco, saúde) |
 
-## Recomendação para o projeto atual — Grafana Cloud free
+## Critério de decisão por contexto
 
-**Por quê:**
-- Micrometer já presente → adicionar `micrometer-registry-prometheus` + configurar remote write.
-- Limite de 10k séries ativas é suficiente para o projeto (< 50 séries reais em uso).
-- 50 GB de logs/mês é suficiente para um serviço de baixo tráfego.
-- Custo: $0. Se o projeto crescer além do free tier, reavaliar.
+**Budget < $20/mês:** Grafana Cloud free tier (métricas + logs + traces).
+Adicionar `micrometer-registry-prometheus` + remote write → zero código de aplicação.
 
-**Como implementar (fluxo de dados):**
+**Dados sensíveis não podem sair do ambiente:** Prometheus + Grafana self-hosted
+(adiciona ~10% de uso de CPU/RAM na instância que hospedar).
+
+**Time cresceu para 5+ pessoas, precisa de alerting avançado e colaboração:** 
+New Relic (free tier generoso) ou Datadog (mais caro, melhor UX).
+
+**Compliance regulatório (LGPD, PCI, SOC2):** self-hosted ou Datadog/Splunk com DPA assinado.
+
+**Armadilha do CloudWatch + Micrometer:** `micrometer-registry-cloudwatch2` emite uma série
+por combinação de tags. Um endpoint com 3 tags = 10+ séries = ~$3/mês por endpoint.
+Escala mal — preferir Grafana Cloud para métricas de aplicação, CloudWatch apenas para
+alertas de infra nativos (CPU, storage) que são gratuitos.
+
+## Fluxo de dados — Spring Boot com Grafana Cloud
+
 ```
 Spring Boot Actuator → Micrometer → Prometheus exporter (scrape local)
                                   → Grafana Alloy → Grafana Cloud (remote write)
 
 stdout (JSON logs) → Grafana Alloy → Grafana Loki (Cloud)
+
+OpenTelemetry agent → Grafana Tempo (Cloud)
 ```
 
-**O que CloudWatch ainda faz sentido manter:**
-- Alertas de infra nativos: `CPUUtilization`, `FreeStorageSpace` (RDS), `StatusCheckFailed` (EC2) — são **gratuitos** e sem configuração.
-- Não mover métricas de aplicação (Micrometer) para CloudWatch — esse é o custo que explode.
-
-## Critério de decisão por contexto
-
-**Budget < $20/mês:** Grafana Cloud free tier (métricas + logs + traces).
-
-**Dados sensíveis não podem sair do ambiente:** Prometheus + Grafana self-hosted na própria EC2 (adicionar ~10% de uso de CPU/RAM).
-
-**Time cresceu para 5+ pessoas e precisa de features de colaboração/alerting avançado:** New Relic (free tier generoso) ou Datadog (mais caro, mas melhor UX para times).
-
-**Compliance regulatório (LGPD, PCI, SOC2):** self-hosted ou Datadog/Splunk com DPA assinado.
+O que continuar usando o CloudWatch nativo:
+- Alertas de infra: CPU, FreeStorageSpace (RDS), StatusCheckFailed (EC2) — gratuitos.
+- Não mover métricas de aplicação (Micrometer) para CloudWatch.
 
 ## OpenTelemetry — o padrão aberto para traces
 
-**Por que OTel e não vendor-specific SDK:**
-- Instrumentação uma vez → dados vão para qualquer backend (Grafana Tempo, Jaeger, Datadog, New Relic).
+**Por que OTel e não SDK vendor-specific:**
+- Instrumentar uma vez → dados vão para qualquer backend (Grafana Tempo, Jaeger, Datadog, New Relic).
 - Sem lock-in: trocar de plataforma não exige reinstrumentar a aplicação.
-- Spring Boot 3+ tem auto-instrumentação OTel via `spring-boot-starter-actuator` + dependência `opentelemetry-spring-boot-starter`.
+- Spring Boot 3+ tem auto-instrumentação via `opentelemetry-spring-boot-starter`.
 
-**Quando adicionar traces:** quando houver múltiplos serviços ou quando latência de endpoint específico é difícil de diagnosticar só com métricas.
-
-**Para o projeto atual (single service):** traces são opcionais. Métricas + logs cobrem 90% dos casos de diagnóstico.
+**Quando adicionar traces:** múltiplos serviços, ou latência de endpoint difícil de diagnosticar só com métricas.
+Para serviço único, métricas + logs cobrem 90% dos casos de diagnóstico.
 
 ## Logs — structured logging como base
 
-Independente da plataforma, logs em JSON são mais fáceis de ingerir e consultar:
+Independente da plataforma, logs em JSON são mais fáceis de ingerir:
 
 ```xml
-<!-- logback-spring.xml — formato JSON pra prod -->
+<!-- logback-spring.xml — formato JSON em produção -->
 <springProfile name="prod">
   <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
     <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
@@ -98,9 +101,9 @@ Independente da plataforma, logs em JSON são mais fáceis de ingerir e consulta
 </springProfile>
 ```
 
-**O que nunca logar:** tokens, JWTs, senhas, CPF, dados financeiros brutos — independente da plataforma.
-
-**Retenção:** definir política antes de escolher plataforma. Grafana Cloud free guarda 14 dias; CloudWatch Logs mantém indefinidamente se não configurado (= custo crescente).
+**Nunca logar:** tokens, JWTs, senhas, CPF, dados financeiros brutos.
+**Retenção:** definir política antes de escolher plataforma. Grafana Cloud free guarda 14 dias;
+CloudWatch mantém indefinidamente se não configurado (custo crescente).
 
 ## Checklist para ADR de observabilidade
 
@@ -114,6 +117,6 @@ Independente da plataforma, logs em JSON são mais fáceis de ingerir e consulta
 
 ## Ler junto
 
-- Skill `otimizacao-custos-aws` — decisão de plataforma impacta diretamente o custo.
-- Skill `jvm-e-performance` — Micrometer e Actuator: instrumentação já em place.
-- `docs/architecture/especificacao-tecnica.md` — stack atual (Spring Boot 3, Actuator).
+- Skill `otimizacao-custos-aws` — decisão de plataforma impacta diretamente o custo AWS.
+- Skill `jvm-e-performance` — Micrometer e Actuator: instrumentação de métricas da JVM.
+- `docs/architecture/especificacao-tecnica.md` — stack atual do projeto (ler para saber qual instrumentação já existe antes de propor mudança).

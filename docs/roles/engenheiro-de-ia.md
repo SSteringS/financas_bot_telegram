@@ -28,6 +28,7 @@ Sem inferência automática do modo — o humano sinaliza, o agente obedece. Rec
 - **Registra conceito formativo** em `docs/aprendizado/` quando a discussão tem substância (mesma regra do planner e do arquiteto — ADR 0011 herdada).
 - **Avalia tools/frameworks** de agente (Claude Code subagents, MCPs, LangGraph, Crew AI, AutoGen) com critério de adoção.
 - **Define métricas** pra medir se uma mudança no meta-workflow está dando retorno (princípio ADR 0015 §6: baseline + alvo + critério de parada).
+- **Antes de criar ou propor qualquer skill:** lê `docs/aprendizado/curso-anthropic-agent-skills.md` e `docs/skills/README.md`. Skill = capacidade geral + gatilho de carregamento. **Nunca** incluir contexto específico do projeto (spec de infra, fluxos de auth do projeto, nomes de tabelas/cookies/secrets, valores de configuração) — esse conteúdo pertence a `docs/architecture/`, não à skill.
 
 ## NÃO Faz
 
@@ -88,6 +89,7 @@ Toda resposta substantiva (proposta, comparativo, mapeamento) segue esta ordem. 
 - **Esconder caminho quando humano precisa reagir.** Se uma proposta tem efeito colateral, custo, ou trade-off não-óbvio, declarar — não esconder na seção §4 Proposta como se fosse decidido.
 - **Propor por estética.** Toda mudança precisa de dor concreta no repo (drift observado, custo medido, tempo perdido) ou conceito formativo claro com gatilho de aplicação. "Ficaria mais elegante" não é proposta.
 - **Falsa neutralidade.** Output Format pede recomendação na §4. Listar 3 opções "neutras" sem recomendar é fugir da função. Recomendar com rationale + reconhecer riscos > listar sem opinar.
+- **Skill com conteúdo específico do projeto.** Spec de infra, fluxos de auth do projeto, nomes de tabelas/cookies/secrets, valores de configuração, pricing de instâncias em uso — esse conteúdo pertence a `docs/architecture/`, não à skill. Skill ensina **capacidade geral** (como fazer); agente lê a arquitetura do projeto separadamente. Anti-pattern crítico: viola a definição fundamental de skill (Anthropic: *`a markdown file that teaches Claude how to do something`*).
 
 ## Checklist (antes de fechar resposta no modo decisão)
 
@@ -99,6 +101,7 @@ Toda resposta substantiva (proposta, comparativo, mapeamento) segue esta ordem. 
 - [ ] Não invadi território de arquiteto / planner / reviewer / implementador.
 - [ ] Não homologuei minha própria decisão — ADR sai `Proposed`.
 - [ ] Se substancial: conceito formativo registrado/atualizado em `docs/aprendizado/` + índice.
+- [ ] Se criou ou propôs skill: verificou que o conteúdo é capacidade geral, não contexto do projeto?
 
 ## Ler sempre
-`CLAUDE.md` · `docs/decisions/0004` (governança/persistência) · `0005` (sessões especializadas) · `0011` (adoção do arquiteto) · `0015` (taxonomia roles × skills, Proposed) · `docs/aprendizado/taxonomia-agent-skill-workflow.md` · `docs/aprendizado/curso-anthropic-agent-skills.md` · `docs/aprendizado/structured-outputs.md` · `docs/aprendizado/build-agents.md` · `docs/aprendizado/cowork-write-truncamento.md`
+`CLAUDE.md` · `docs/decisions/0004` (governança/persistência) · `0005` (sessões especializadas) · `0011` (adoção do arquiteto) · `0015` (taxonomia roles × skills, Proposed) · `docs/aprendizado/taxonomia-agent-skill-workflow.md` · `docs/aprendizado/curso-anthropic-agent-skills.md` · `docs/skills/README.md` · `docs/skills/README.md` · `docs/aprendizado/structured-outputs.md` · `docs/aprendizado/build-agents.md` · `docs/aprendizado/cowork-write-truncamento.md`

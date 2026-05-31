@@ -1,4 +1,4 @@
-﻿---
+---
 name: seguranca-web-frontend
 description: >
   Seguranca em aplicacoes web SPA — XSS, armazenamento de tokens (httpOnly cookie vs
@@ -22,14 +22,14 @@ status: ativa
 - Task configura headers HTTP no lado do cliente ou discute CSP.
 - **Sinal concreto:** aparece `localStorage`, `sessionStorage`, `token`, `Authorization`,
   `dangerouslySetInnerHTML`, `eval`, script de terceiro, CORS error no console.
-- **Reviewer:** ao avaliar PR que toca auth, tokens, formularios com dados sensiveis, integracao
-  com servico externo ou script de terceiro â€” verificar que o caminho inseguro nao foi escolhido.
+- **Reviewer:** ao avaliar PR que toca auth, tokens, formulários com dados sensíveis,
+  integração com serviço externo ou script de terceiro — verificar que o caminho inseguro não foi escolhido.
 
 ## Resumo da capacidade
 
-Identifica os vetores de ataque relevantes pra SPAs e provê as decisões de mitigação
-prontas pro contexto do projeto — sem paranoia de checklist de segurança corporativo,
-focado no que realmente acontece em apps React + REST API.
+Identifica os vetores de ataque relevantes para SPAs e provê as decisões de mitigação
+prontas — sem paranoia de checklist corporativo, focado no que realmente acontece em
+apps React + REST API com autenticação por cookie ou token.
 
 ## Armazenamento de Tokens — httpOnly Cookie vs localStorage
 
@@ -38,11 +38,13 @@ focado no que realmente acontece em apps React + REST API.
 | XSS pode roubar o token? | **Não** — JS não acessa | **Sim** — `localStorage.getItem('token')` |
 | CSRF pode usar o token? | Sim (mitigar com SameSite) | Não |
 | Suporte a `SameSite=Strict` | Sim — bloqueia CSRF cross-site | N/A |
-| Risco principal | CSRF se SameSite não configurado | XSS roba token, persiste sessão |
+| Risco principal | CSRF se SameSite não configurado | XSS rouba token, persiste sessão |
 | Quando usar | **Padrão recomendado** para auth | Tokens de curta duração e não-auth (ex.: preferências de UI) |
 
-**Decisão do projeto:** verificar `docs/architecture/especificacao-tecnica.md` — se já
-definido, seguir sem propor mudança. Se não definido, recomendar httpOnly + SameSite=Strict.
+**Recomendação: httpOnly + SameSite=Strict** — o padrão mais seguro para tokens de auth.
+Se o fluxo envolver redirect externo (ex.: magic link, OAuth), usar `SameSite=Lax` que
+permite redirect enquanto bloqueia CSRF iniciado por terceiros.
+Verificar se já há decisão registrada na arquitetura do projeto antes de propor mudança.
 
 **Anti-pattern crítico:** guardar JWT em `localStorage` em app financeira. XSS lê, exfiltra,
 e o atacante tem sessão válida até expirar — sem como revogar sem blacklist no servidor.
@@ -88,7 +90,7 @@ Validação no front é UX, não segurança — o backend valida novamente.
 | Formato (email, CPF, data) | Regex ou biblioteca (zod, yup) |
 | Limites de tamanho | `maxLength` no input + validação de schema |
 | Sanitização antes de enviar | Trim de espaços; nunca `eval` de input |
-| Dados financeiros (valor) | Parsear pra `number` / `Decimal` antes de enviar — nunca enviar string formatada com vírgula |
+| Dados financeiros (valor) | Parsear para `number` / `Decimal` antes de enviar — nunca enviar string formatada com vírgula |
 
 ## CORS — O Que o Frontend Controla
 
@@ -132,5 +134,4 @@ server: {
 ## Ler junto
 
 - Skill `ecossistema-frontend` — configuração de proxy Vite pra dev.
-- `docs/architecture/fluxo-autenticacao.md` — fluxo de auth do projeto (httpOnly cookie, refresh).
-- `docs/architecture/especificacao-tecnica.md` — decisões de auth já tomadas.
+- `docs/architecture/fluxo-autenticacao.md` — fluxo de auth do projeto (ler para aplicar estes princípios ao contexto concreto).
