@@ -1,12 +1,12 @@
----
+﻿---
 name: seguranca-web-frontend
 description: >
   Seguranca em aplicacoes web SPA — XSS, armazenamento de tokens (httpOnly cookie vs
   localStorage), Content Security Policy, validacao de input, CORS da perspectiva do
   front, riscos de scripts de terceiros. Carregar quando a task toca autenticacao, tokens,
   formularios com dados sensiveis, ou integracao com servicos externos.
-load_pattern: contextual
-used_by: [frontend]
+load_pattern: shared
+used_by: [frontend, reviewer]
 created: 2026-05-30
 adr: 0015
 status: ativa
@@ -22,6 +22,8 @@ status: ativa
 - Task configura headers HTTP no lado do cliente ou discute CSP.
 - **Sinal concreto:** aparece `localStorage`, `sessionStorage`, `token`, `Authorization`,
   `dangerouslySetInnerHTML`, `eval`, script de terceiro, CORS error no console.
+- **Reviewer:** ao avaliar PR que toca auth, tokens, formularios com dados sensiveis, integracao
+  com servico externo ou script de terceiro â€” verificar que o caminho inseguro nao foi escolhido.
 
 ## Resumo da capacidade
 

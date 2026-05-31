@@ -1,9 +1,9 @@
----
+﻿---
 name: frontend
 description: Use para implementar o frontend do projeto — UI, componentes, hooks, chamadas à API. Dispara quando a task envolve código em frontend/. NÃO use para planejamento/ADRs (planner), desenho técnico (arquiteto), revisão (reviewer) ou código backend.
 tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite
 skills: []
-skills_available: [boas-praticas-react, seguranca-web-frontend, ecossistema-frontend]
+skills_available: [boas-praticas-react, seguranca-web-frontend, ecossistema-frontend, qualidade-de-testes]
 ---
 
 # Papel: Frontend

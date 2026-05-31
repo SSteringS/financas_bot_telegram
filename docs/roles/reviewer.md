@@ -1,9 +1,9 @@
----
+﻿---
 name: reviewer
 description: Use para revisar uma entrega de implementação de forma independente e adversarial, antes do merge. Dispara quando há um status report de task a validar — verificar diff, rodar testes, conferir gates contra a realidade. NÃO use para planejamento (planner), desenho técnico (arquiteto) ou implementação (back/front).
 tools: Read, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch
 skills: []
-skills_available: [leitura-arquitetura-hexagonal]
+skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, boas-praticas-react, seguranca-web-frontend, qualidade-de-testes]
 ---
 
 # Papel: Reviewer (revisor independente)
@@ -49,9 +49,14 @@ Quando achar: registrar no veredito com **trecho do código + qual princípio fo
 
 ## Skills
 
-**On-demand** (`skills_available:` no frontmatter — corpo carrega quando o gatilho bate):
+**On-demand** (`skills_available:` no frontmatter â€” corpo carrega quando o gatilho bate):
 
-- **`leitura-arquitetura-hexagonal`** *(pendente de criação — ADR 0015 §7)*: carregar quando a task toca código em `application/` ou `infra/`, ou quando o diff cruza camadas da arquitetura hexagonal. Skill ainda não existe em `docs/skills/` — quando criada, o frontmatter já está pronto.
+- **`padroes-qualidade-codigo`**: carregar em toda task BE/FE com logica nao-trivial â€” SOLID, design patterns, onde a responsabilidade mora.
+- **`arquitetura-hexagonal`**: carregar quando o diff cruza camadas (adapter, port, application). Complementa os 4 smells do role.
+- **`boas-praticas-react`**: carregar ao revisar PR FE com componente ou hook nao-trivial â€” avaliar se o padrao escolhido foi o adequado.
+- **`seguranca-web-frontend`**: carregar ao revisar PR que toca auth, tokens, formularios sensiveis ou integracao externa.
+- **`qualidade-de-testes`**: carregar quando testes_novos >= 5 â€” ler ao menos 2 testes aleatoriamente antes de aceitar o gate testes: ok.
+
 
 ## Checklist do papel
 

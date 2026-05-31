@@ -1,4 +1,4 @@
----
+﻿---
 name: boas-praticas-react
 description: >
   Boas praticas e padroes de projeto React — regras de hooks, TypeScript em componentes,
@@ -7,8 +7,8 @@ description: >
   Justificativa tecnica com referencia canonica para o relatorio done. Carregar quando a task
   cria componente nao-trivial, hook com logica de negocio, ou envolve decisao de composicao
   ou gerenciamento de estado.
-load_pattern: contextual
-used_by: [frontend]
+load_pattern: shared
+used_by: [frontend, reviewer]
 created: 2026-05-30
 adr: 0015
 status: ativa
@@ -24,6 +24,8 @@ status: ativa
 - Task toca performance (rerenders, listas grandes, lazy loading).
 - **Sinal concreto:** aparece `useEffect`, `useState` com lógica derivada, `useContext`,
   `React.memo`, `useMemo`, `useCallback`, `children as function`, tipos de props complexos.
+- **Reviewer:** ao avaliar PR FE que cria componente ou hook nao-trivial â€” verificar se o padrao
+  escolhido (composicao, estado, hook) foi o adequado ao problema e se ha justificativa no relatorio done.
 
 ## Regras de Hooks
 

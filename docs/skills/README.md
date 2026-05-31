@@ -157,9 +157,10 @@ As skills vivem em `.claude/skills/<name>/SKILL.md` � formato can�nico Anthr
 | `ecossistema-spring/SKILL.md` | shared | backend, architect | Decis�es de biblioteca Spring Boot � Spring Data JDBC vs JPA, RestClient/WebClient/Feign, eventos, virtual threads, HikariCP sizing. |
 | `jvm-e-performance/SKILL.md` | shared | backend, architect | JVM flags para t4g.micro (heap = 700 MB), GC, Micrometer, diagn�stico de thread dump e virtual threads. |
 | `formatacao-java/SKILL.md` | contextual | backend | Naming por camada, ordering de imports/anota��es, records para DTOs, var, Javadoc m�nimo. |
-| `boas-praticas-react/SKILL.md` | contextual | frontend | Padroes React (hooks, TypeScript, composicao, estado, performance, a11y) + justificativa tecnica para relatorio done. |
-| `seguranca-web-frontend/SKILL.md` | contextual | frontend | XSS, armazenamento de tokens (httpOnly vs localStorage), CSP, validacao de input, CORS, scripts de terceiros. |
+| `boas-praticas-react/SKILL.md` | shared | frontend, reviewer | Padroes React (hooks, TypeScript, composicao, estado, performance, a11y) + justificativa tecnica para relatorio done. Reviewer usa ao avaliar PR FE. |
+| `seguranca-web-frontend/SKILL.md` | shared | frontend, reviewer | XSS, armazenamento de tokens (httpOnly vs localStorage), CSP, validacao de input, CORS, scripts de terceiros. |
 | `ecossistema-frontend/SKILL.md` | contextual | frontend | Vite, TypeScript strict, Jest+RTL (o que e como testar), MSW (contrato OpenAPI), codegen. |
+| `qualidade-de-testes/SKILL.md` | shared | backend, frontend, reviewer | Testar comportamento nao implementacao, anti-patterns (mock excessivo, assertion ausente, snapshot fragil), cobertura que importa, nomenclatura. |
 
 ## Rela��o com outras pastas
 

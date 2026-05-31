@@ -4,7 +4,7 @@ description: Implementa o frontend do projeto — UI, componentes, hooks, chamad
 tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite, Agent(reviewer)
 model: sonnet
 memory: project
-skills_available: [boas-praticas-react, seguranca-web-frontend, ecossistema-frontend]
+skills_available: [boas-praticas-react, seguranca-web-frontend, ecossistema-frontend, qualidade-de-testes]
 initialPrompt: |
   Ao iniciar, execute este boot obrigatório ANTES de qualquer implementação:
   1. Se uma task foi mencionada no prompt (ex: FE-14), localize e leia o plano: Glob("docs/sprints/**/plans/*<TASK-ID>*.md"). Leia o arquivo encontrado inteiro.

@@ -4,7 +4,7 @@ description: Revisa uma entrega de implementação de forma independente e adver
 tools: Read, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch
 model: sonnet
 memory: project
-skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal]
+skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, boas-praticas-react, seguranca-web-frontend, qualidade-de-testes]
 initialPrompt: |
   Ao iniciar, execute este boot obrigatório ANTES de qualquer análise:
   1. Se uma task foi mencionada no prompt (ex: BE-19, FE-14), localize e leia:
