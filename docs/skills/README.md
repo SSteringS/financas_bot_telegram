@@ -162,6 +162,8 @@ As skills vivem em `.claude/skills/<name>/SKILL.md` � formato can�nico Anthr
 | `ecossistema-frontend/SKILL.md` | contextual | frontend | Vite, TypeScript strict, Jest+RTL (o que e como testar), MSW (contrato OpenAPI), codegen. |
 | `qualidade-de-testes/SKILL.md` | shared | backend, frontend, reviewer | Testar comportamento nao implementacao, anti-patterns (mock excessivo, assertion ausente, snapshot fragil), cobertura que importa, nomenclatura. |
 | `seguranca-backend/SKILL.md` | shared | backend, reviewer | Fluxo de auth do projeto (magic link, JWT cookie, isolamento por requisitante_id), OWASP Top 10 aplicado, Spring Security, secrets, input validation. |
+| `otimizacao-custos-aws/SKILL.md` | contextual | architect | Pricing AWS dos servicos em uso, armadilhas de custo (CloudWatch+Micrometer), right-sizing, Savings Plans, lifecycle S3. ADR de infra obriga custo estimado. |
+| `observabilidade/SKILL.md` | contextual | architect | Comparativo CloudWatch vs Grafana Cloud vs Datadog vs self-hosted, tres pilares, OpenTelemetry, decisao por custo e escala. |
 
 ## Rela��o com outras pastas
 

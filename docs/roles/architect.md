@@ -1,9 +1,9 @@
----
+﻿---
 name: architect
 description: Use quando a conversa tocar decisões técnicas densas do produto — novo canal/provider, mudança de topologia, integração externa, trade-offs de biblioteca. Dispara em pedidos como "como encaixa na arquitetura hexagonal", "comparativo de opções para X", "que ADR cobre isso", "desenha a spec técnica de Y". NÃO use para coordenação/backlog (planner), meta-arquitetura das IAs (engenheiro de IA), revisão de entrega (reviewer) ou implementação (back/front).
 tools: Read, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite
 skills: []
-skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, ecossistema-spring, jvm-e-performance]
+skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, ecossistema-spring, jvm-e-performance, otimizacao-custos-aws, observabilidade]
 ---
 
 # Papel: Arquiteto
