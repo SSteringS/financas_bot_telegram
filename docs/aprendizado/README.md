@@ -29,7 +29,6 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 - [`jjwt-3-artefatos.md`](jjwt-3-artefatos.md) — por que a lib JWT tem 3 dependências
 - [`argument-resolver-vs-requestparam.md`](argument-resolver-vs-requestparam.md) — por que `@RequisitanteId` ignora query param do mesmo nome
 - [`eventos-in-process-spring.md`](eventos-in-process-spring.md) — `ApplicationEvents`, `@TransactionalEventListener(AFTER_COMMIT)`, `@Async`, trade-off de durabilidade; base do ADR 0014 (EVO-02)
-- [`eventos-in-process-spring.md`](eventos-in-process-spring.md) — `ApplicationEvents`, `@TransactionalEventListener(AFTER_COMMIT)`, `@Async`, trade-off de durabilidade; base do ADR 0014 (EVO-02)
 
 ### React / TypeScript fundamentos
 
@@ -49,10 +48,12 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 ### Ferramental / ambiente
 
 - [`cowork-write-truncamento.md`](cowork-write-truncamento.md) — Cowork `Write`/`Edit` truncam silenciosamente; mount FUSE serve view defasada e não permite delete; workaround via bash heredoc + `wc -l && tail`; bug report rascunho em inglês pra colar no feedback
+- [`piloto-vscode-claude-code.md`](piloto-vscode-claude-code.md) — resultados do piloto de migração Cowork → VS Code + Claude Code (2026-05-30): escrita sem trunc confirmada, `.claude/` desbloqueado, multi-sessão nativa, lacunas (Office docs); implicações pro projeto
 
 ### IA / engenharia de modelos
 
 - [`structured-outputs.md`](structured-outputs.md) — saídas estruturadas de LLM (schema mode, semântica vs. sintaxe), aplicação no parser do bot e no workflow de Claudes
+- [`taxonomia-agent-skill-workflow.md`](taxonomia-agent-skill-workflow.md) — fronteiras Agent/Role/Skill/Workflow em sistemas multi-agente; calibragens pro nosso setup multi-sessão; skill como context engineering / RAG; base da ADR 0015
 
 ### Infra / deploy / AWS
 

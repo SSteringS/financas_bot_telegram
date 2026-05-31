@@ -68,7 +68,13 @@ Itens de **profissionalização do workflow** que saíram da auditoria de 2026-0
 - Migrar histórico ou só daqui pra frente? (Vot pessoal: forward-only; legado fica.)
 - Como descobrir o "próximo número" sem race: script `docs/scripts/next-task-id.sh BE` que varre `docs/sprints/*/plans/` + `docs/plans/` e devolve o próximo. Custo baixo, evita colisão entre sessões paralelas.
 
-### 10. Separar configurações dos agentes em roles × skills × workflows — TÓPICO PRA RETRO-02
+### 10. Separar configurações dos agentes em roles × skills × workflows — ✅ promovido pra ADR 0015 (`Proposed`, 2026-05-30)
+
+**Status:** virou ADR `0015-taxonomia-roles-skills-workflows.md` (Proposed) + spec em `docs/skills/README.md` + aprendizado em `docs/aprendizado/taxonomia-agent-skill-workflow.md`. Decisões da ADR: (a) adota roles × skills, runbook fica como workflow; (b) regra do 2x + métricas + critério de parada controlam overengineering; (c) skill piloto = `leitura-arquitetura-hexagonal` (cobre o item #8 deste backlog); (d) forward-only — roles existentes não são reescritos; (e) `.claude/agents/` segue reservado (ADR 0005 §1 vigente). **Pendente:** homologação humana (`Proposed → Accepted`) + tarefa pra escrever a skill piloto. Discussão original preservada abaixo pra rastreabilidade.
+
+---
+
+
 
 **O quê:** explorar se vale dividir o que hoje é "tudo dentro de `docs/roles/`" em três dimensões conceituais:
 
