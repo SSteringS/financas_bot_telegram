@@ -2,7 +2,7 @@
 
 > **Doc vivo de orientação.** Existe pra uma sessão que começa fria (planner, back, front ou reviewer) se situar em 1 minuto, sem re-derivar contexto. **Curto de propósito.** Detalhe mora nos planos (`docs/plans/`), status reports (`docs/sprints/<NN>/status/`) e ADRs (`docs/decisions/`).
 >
-> **Última atualização:** 2026-05-31 (sprint 02b kaizen **fechada** — 7/8 WF tasks concluídas, 16 skills, ADR 0015; RETRO-02b publicada; **sprint 03 a abrir**).
+> **Última atualização:** 2026-06-01 (sprint 03 em execução — BE-023 implementada e aprovada, aguarda merge; 9 dispatches escritos para BE-024..FE-017).
 > **Fonte:** este resumo é derivado dos status reports em `docs/sprints/<NN>/status/` e `docs/sprints/02-canal-whatsapp/status/`. O **estado real de merge em `develop` é do humano** (ele é o integrador — ADR 0004). Quando um status diz "aguardando revisão / não mergeado", está marcado abaixo.
 
 ---
@@ -11,7 +11,9 @@
 
 **Sprint 03 — Folha de pagamento** (`docs/sprints/03-folha-pagamento/README.md`).
 
-**Modo:** 🟡 **em planejamento** — 10 tasks planejadas (BE-023..BE-029, FE-015..FE-017). Spec técnica e ADR 0016 (`Proposed`) disponíveis. Decisão pendente §7 (vales na lista do Pedro) não bloqueia a maioria das tasks.
+**Modo:** 🟠 **em execução** — BE-023 implementada e aprovada pelo Reviewer (2026-06-01). Aguardando merge do PR `feature/be-023-migracao-v6-folha-pagamento → develop`. Após merge: despachar BE-024.
+
+Dispatches disponíveis para todas as 10 tasks em `docs/sprints/03-folha-pagamento/plans/DISPATCH-*.md`.
 
 **Sprint 02b — Kaizen (workflow/processo)** ✅ **fechada** em 2026-05-31. Retro em `docs/retrospectivas/RETRO-02b-kaizen-workflow.md`. Push de 4 commits locais pendente (humano executa).
 
@@ -56,12 +58,51 @@ A Fase 3 (MVP de visualização) está **concluída** desde 2026-05-27 — hist�
 
 ---
 
-## Próximos passos prováveis
+## Sprint 03 — estado das tasks
 
-1. **Despachar FE-14** pro front (única task de produto pendente na sprint 02).
-2. **Abrir PR `develop → main`** pra deploy em prod do canal WhatsApp inerte + BE-17b (rota Telegram simétrica) + BE-22 (Micrometer) + FIX-001 (defaults defensivos). **Já desbloqueado** pelos merges de hoje.
-3. **RETRO-02** — escrever retrospectiva da sprint 02 incluindo itens #8/#9/#10 do `docs/plans/BACKLOG-evolucao-workflow.md` + lições aprendidas (sync gremlin do OneDrive, dois worktrees, convenção FIX-NNN).
-4. **Abrir sprint 03** — decidir escopo: EVO-09 (folha de pagamento — refinar com PO/arquiteto), BE-22b/c/d (alarmes + timers), itens de workflow não cobertos na retro. Estrutura nova: `docs/sprints/03-<slug>/`.
+### PR aberto / aguardando merge
+
+- **BE-023** — V6 DDL folha de pagamento. Branch `feature/be-023-migracao-v6-folha-pagamento`. Implementada + Reviewer **aprovado** (2026-06-01). ⚠️ Pendência humano: após merge, rodar `SHOW CREATE TABLE` no banco dev pra confirmar DDL.
+
+### Habilitada após merge da BE-023
+
+- **BE-024** — Entidades JPA + repositórios. Dispatch em `plans/DISPATCH-BE-024-*.md`.
+
+### Habilitadas após merge da BE-024 (em paralelo)
+
+- **BE-025** — CRUD funcionários (dispatch pronto). Habilita → FE-015.
+- **BE-026** — CadastrarVale (dispatch pronto). ⚠️ Deve mergear ANTES de BE-027 (cria FolhaController).
+
+### Serializada após BE-026
+
+- **BE-027** — CadastrarAdiantamento (dispatch pronto). Adiciona endpoints no FolhaController criado por BE-026.
+
+### Habilitada após BE-024 + BE-026 + BE-027
+
+- **BE-028** — FecharMesUseCase (dispatch pronto). ⚠️ `requisitante_id NOT NULL DEFAULT 1` confirmado — BE-028 vai precisar de V6b migration ou workaround.
+
+### Habilitadas após BE-028 (em paralelo entre si)
+
+- **BE-029** — Testes FecharMes (dispatch pronto). Última task de back.
+- **FE-016** — Tela Folha Funcionário (dispatch pronto). Também depende de FE-015.
+- **FE-017** — Modal Fechamento (dispatch pronto). Também depende de FE-016.
+
+### Habilitada após BE-025
+
+- **FE-015** — Tela Funcionários (dispatch pronto). Habilita → FE-016.
+
+### Decisão pendente
+
+- **§7 — vales na lista do Pedro:** Opção A (filtrar GET /api/pedidos) ou B (tag visual VALE/FOLHA). Não bloqueia nenhuma task BE ou FE da sprint — resolve como FIX separado depois.
+
+---
+
+## Próximos passos imediatos
+
+1. **Mergear PR BE-023** → `develop`. Validar DDL com SHOW CREATE TABLE (pendência humano).
+2. **Despachar BE-024** imediatamente após o merge (`--agent backend` + DISPATCH-BE-024-*.md).
+3. **ADR 0016:** ainda `Proposed` — homologar antes de despachar BE-025+ (tasks de código Java).
+4. **PR `develop → main`** (deploy sprint 02): ainda não aberto — não bloqueante.
 
 ---
 
