@@ -60,8 +60,11 @@ Criar 4 arquivos em frontend/e2e/fixtures/:
 ### payloads-telegram.ts
 - telegramUpdateTextoPuro({ fromUserId: number, text: string }): TelegramUpdate
 - telegramUpdateSticker({ fromUserId: number }): TelegramUpdate
-- NÃO criar telegramUpdateFotoLegenda — comentar:
-  // TODO Fase 1.1: adicionar após decisão de mock de download de mídia Telegram (ADR 00XX)
+- telegramUpdateFotoLegenda({ fromUserId: number, caption: string, fileId: string }): TelegramUpdate
+  → payload com message.photo[] (array com 1 PhotoSize onde file_id = fileId) + message.caption
+  → conforme Telegram Bot API schema: https://core.telegram.org/bots/api#update
+- Exportar constante: export const E2E_MOCK_FILE_ID = 'E2E_MOCK_001'
+  → usada nos testes para referência ao arquivo servido pelo mock Telegram (QA-002)
 
 ## REGRAS DURAS
 
@@ -78,7 +81,7 @@ Criar 4 arquivos em frontend/e2e/fixtures/:
 2. limparDadosE2E() — rodar SELECT count(*) WHERE requisitante_id=1 ANTES e DEPOIS. Deve ser IGUAL.
 3. loginE2E — testar que page.goto('/') após login não redireciona para tela de login.
 4. global-setup.ts sem .env.e2e — deve lançar Error com mensagem clara.
-5. Verificar que payloads-telegram.ts exporta EXATAMENTE 2 factories (grep export).
+5. Verificar que payloads-telegram.ts exporta EXATAMENTE 3 factories + constante E2E_MOCK_FILE_ID (grep export).
 
 ## SE QUEBRAR
 

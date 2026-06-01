@@ -1,6 +1,6 @@
 ---
 task: QA-004
-titulo: "3 specs MVP — fluxo feliz, webhook, a11y"
+titulo: "3 specs MVP — fluxo feliz, webhook (3 cenarios), a11y"
 sprint: 03-folha-pagamento
 data_planejamento: 2026-06-01
 branch_alvo: feature/qa-004-specs-mvp-3-cenarios
@@ -23,7 +23,7 @@ lote: B
 - **Origem:** spec QA Fase 1 §4 (QA-004). **Lote B — depende de QA-002 e QA-003.**
 - **Por quê agora:** é o entregável final da Fase 1. Substitui ~80% do ROTEIRO-INTEGRACAO-FRONT-BACK manual.
 - **Esforço:** médio (~3-4h) — 3 specs, 4 `test()` no total, integração com fixtures, asserção via axe-core.
-- **Riscos resumidos:** ⚠️ Cenário foto+caption do webhook **não entra nesta Fase 1** (decisão bloqueadora §3 da spec — aguarda ADR de mock de mídia). Implementar apenas os 2 cenários: texto puro + sticker. Deixar comentário TODO na tabela de cenários.
+- **Riscos resumidos:** 3 cenários no webhook (texto puro + sticker + foto+caption). Mock Telegram (QA-002) resolve o download de arquivo — `TELEGRAM_API_URL` apontado para `:9090` via `.env.e2e`. S3 usa bucket dev real (credenciais `~/.aws`).
 
 ---
 
@@ -33,9 +33,9 @@ Após QA-001 (config) + QA-002 (scripts de stack) + QA-003 (fixtures), a infra e
 
 Contagem de `test()` nesta task (critério "testes E2E novos"):
 - `site-fluxo-feliz.spec.ts` → 1 test
-- `webhook-cenarios.spec.ts` → 2 tests (parametrizado: texto puro + sticker)
+- `webhook-cenarios.spec.ts` → 3 tests (parametrizado: texto puro + sticker + foto+caption)
 - `a11y-home.spec.ts` → 1 test
-**Total: 4 testes novos.**
+**Total: 5 testes novos.**
 
 ---
 
@@ -50,18 +50,18 @@ Três specs em `frontend/e2e/specs/`:
 4. Clicar em "ver comprovante" → verificar que modal/preview abre.
 5. Bonus inline a11y: `checkA11y(page, { includedImpacts: ['serious', 'critical'] })`.
 
-**`webhook-cenarios.spec.ts`** — parametrizado com 2 cenários:
+**`webhook-cenarios.spec.ts`** — parametrizado com 3 cenários:
 ```typescript
 const cenarios = [
   { nome: 'texto puro', payload: telegramUpdateTextoPuro({ fromUserId: 99, text: 'Oi' }) },
   { nome: 'sticker', payload: telegramUpdateSticker({ fromUserId: 99 }) },
-  // TODO Fase 1.1: adicionar cenário foto+caption após decisão de mock (ADR 00XX)
+  { nome: 'foto com caption', payload: telegramUpdateFotoLegenda({ fromUserId: 99, fileId: E2E_MOCK_FILE_ID, caption: 'comprovante fev' }) },
 ];
 for (const c of cenarios) {
   test(`webhook recebe e processa: ${c.nome}`, async ({ request }) => { ... });
 }
 ```
-Cada cenário: POST para `E2E_BACKEND_URL/webhook/telegram` com payload + header HMAC simulado → verificar 200 + pedido criado no banco (via `querySql`).
+Cada cenário: POST para `E2E_BACKEND_URL/webhook/telegram` com payload + header HMAC simulado → verificar 200 + pedido criado no banco (via `querySql`). O cenário foto+caption depende do mock Telegram (QA-002) rodando em `:9090` — `TELEGRAM_API_URL=http://localhost:9090` no `.env.e2e` faz o back baixar do mock em vez do Telegram real.
 
 **`a11y-home.spec.ts`** — standalone:
 1. `loginE2E(page)`, navega para home.
@@ -96,15 +96,16 @@ Atualizar `playwright.config.ts` (de QA-001): adicionar `reporter: [['html'], ['
 
 Critério de estabilidade: `npm run e2e:full` verde **3 vezes consecutivas** em ambiente limpo (sem flakiness).
 
-`testes_novos: 4` (1 fluxo feliz + 2 webhook + 1 a11y).
+`testes_novos: 5` (1 fluxo feliz + 3 webhook + 1 a11y).
 
 ---
 
 ## Critérios de aceitação
 
-- [ ] `npm run e2e:full` verde com 3 specs ativas (4 testes no total).
+- [ ] `npm run e2e:full` verde com 3 specs ativas (5 testes no total).
 - [ ] `npm run e2e:full` verde 3 vezes seguidas em ambiente limpo — sem flakiness.
-- [ ] `webhook-cenarios.spec.ts` tem comentário `// TODO Fase 1.1: adicionar cenário foto+caption após decisão de mock (ADR 00XX)` na tabela `cenarios`.
+- [ ] `webhook-cenarios.spec.ts` tem os 3 cenários na tabela: texto puro, sticker e foto+caption.
+- [ ] Cenário foto+caption usa `telegramUpdateFotoLegenda({ fromUserId: 99, fileId: E2E_MOCK_FILE_ID, caption: 'comprovante fev' })`.
 - [ ] `a11y-home.spec.ts` usa threshold `serious+critical` (não `moderate` ou `minor`).
 - [ ] Após spec com falha intencional: `playwright-report/index.html` mostra screenshot + trace navegável.
 - [ ] `playwright-report/` **não** commitado (`.gitignore`).
@@ -117,7 +118,6 @@ Critério de estabilidade: `npm run e2e:full` verde **3 vezes consecutivas** em 
 
 ## Fora de escopo
 
-- Cenário foto+caption do webhook — aguarda ADR de mock de mídia (decisão §3 da spec QA).
 - Filtros, paginação, regressões de bugs FE-12 → Fase 2.
 - Schemathesis (contract test) → Fase 2.
 - Relatório HTML commitado — `.gitignore`.

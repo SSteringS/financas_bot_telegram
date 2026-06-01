@@ -1,10 +1,8 @@
 # DISPATCH — QA-004-specs-mvp-3-cenarios (single-task)
 
 > **Lote B — despachar somente após QA-002 E QA-003 mergeadas na integration branch.**
-> É o entregável final da Fase 1.
->
-> ⚠️ Cenário foto+caption do webhook NÃO entra nesta task (bloqueador §3 da spec QA).
-> Implementar apenas texto puro + sticker. Deixar comentário TODO.
+> É o entregável final da Fase 1. **Inclui os 3 cenários de webhook: texto puro + sticker + foto+caption.**
+> O mock Telegram (QA-002) resolve o download de arquivo via `TELEGRAM_API_URL=http://localhost:9090`.
 
 ---
 
@@ -45,11 +43,13 @@ Criar 3 specs em frontend/e2e/specs/.
 4. Clicar em "ver comprovante" → verificar modal/preview abre
 5. checkA11y inline: import { checkA11y } from '@axe-core/playwright'; checkA11y(page, { includedImpacts: ['serious', 'critical'] })
 
-### webhook-cenarios.spec.ts (2 tests — estrutura parametrizada)
+### webhook-cenarios.spec.ts (3 tests — estrutura parametrizada)
+import { telegramUpdateTextoPuro, telegramUpdateSticker, telegramUpdateFotoLegenda, E2E_MOCK_FILE_ID } from '../fixtures/payloads-telegram';
+
 const cenarios = [
   { nome: 'texto puro', payload: telegramUpdateTextoPuro({ fromUserId: 99, text: 'Oi bot' }) },
   { nome: 'sticker', payload: telegramUpdateSticker({ fromUserId: 99 }) },
-  // TODO Fase 1.1: adicionar cenário foto+caption após decisão de mock de download de mídia Telegram (ADR 00XX)
+  { nome: 'foto com caption', payload: telegramUpdateFotoLegenda({ fromUserId: 99, fileId: E2E_MOCK_FILE_ID, caption: 'comprovante fev' }) },
 ];
 
 for (const c of cenarios) {
@@ -86,9 +86,9 @@ Adicionar:
 
 1. Branch: `feature/qa-004-specs-mvp-3-cenarios` saindo de `origin/integration/03-folha-pagamento`.
 2. Território: SÓ `frontend/`. Zero `financas_bot_telegram/`. Zero frontend/src/.
-3. ⚠️ Cenário foto+caption: NÃO implementar. Só texto puro + sticker. Comentário TODO obrigatório.
+3. Os 3 cenários de webhook DEVEM estar na tabela: texto puro, sticker, foto+caption.
 4. playwright-report/ NÃO commitado — verificar .gitignore.
-5. 1 commit: `feat(QA-004): 3 specs MVP — fluxo feliz, webhook (2 cenarios), a11y`.
+5. 1 commit: `feat(QA-004): 3 specs MVP — fluxo feliz, webhook (3 cenarios), a11y`.
 6. PR: `feature/qa-004-specs-mvp-3-cenarios → integration/03-folha-pagamento`.
 
 ## VALIDAÇÃO DE ESTABILIDADE (obrigatória)
@@ -102,7 +102,7 @@ Quando uma spec falhar intencionalmente (alterar assert para forçar erro): abri
 
 `docs/sprints/03-folha-pagamento/status/QA-004-specs-mvp-3-cenarios.md`
 
-testes_novos: 4 (1 fluxo feliz + 2 webhook + 1 a11y).
+testes_novos: 5 (1 fluxo feliz + 3 webhook + 1 a11y).
 Anotar resultado das 3 execuções consecutivas (timestamp, duração, resultado).
 
 ## SE QUEBRAR
@@ -127,15 +127,16 @@ Pare ao final. PR para integration. Reviewer deve rodar manualmente antes de apr
 
 - **Rodar `npm run e2e:full` manualmente** antes de aprovar.
 - Verificar que `playwright-report/` **não está no diff** do PR.
-- Confirmar comentário TODO para foto+caption no `webhook-cenarios.spec.ts`.
+- Confirmar que `webhook-cenarios.spec.ts` tem os 3 cenários: texto puro, sticker **e foto+caption**.
+- Verificar que o cenário foto+caption usa `E2E_MOCK_FILE_ID` (não file_id hardcoded).
 - Verificar que cleanup não afeta dados com `requisitante_id=1`.
 
 ---
 
 ## Notas pro humano
 
-- **Fase 1 da suíte E2E entregue após o merge desta.** Registrar na retro da sprint 03.
-- **ADR de mock de mídia:** abrir sessão com arquiteto para decidir. Vira ADR Proposed separado. Depois disso, QA-004 pode ser estendida com o 3º cenário em 30 min (1 linha na tabela `cenarios`).
+- **Fase 1 da suíte E2E entregue após o merge desta.** Inclui os 3 cenários de webhook. Registrar na retro da sprint 03.
+- **Mock Telegram:** o cenário foto+caption depende do mock server (QA-002) estar rodando. Se o teste falhar com erro de conexão recusada em `:9090`, verificar se `subir-stack.ts` subiu o mock corretamente.
 - **Estimativa:** 2-3h.
 
 ## Referências
