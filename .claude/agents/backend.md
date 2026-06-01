@@ -1,7 +1,7 @@
 ---
 name: backend
 description: "Implementa o backend do projeto — API REST, dominio, banco, infra. Use quando uma task de back estiver pronta pra execução: código em financas_bot_telegram/, infra/, finbot.service ou .github/workflows/. Use proativamente ao receber uma task BE-*."
-tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite, Agent(reviewer)
+tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite, Agent(reviewer), Agent(qa-test-specialist)
 model: sonnet
 memory: project
 skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, ecossistema-spring, jvm-e-performance, formatacao-java, qualidade-de-testes, seguranca-backend]
