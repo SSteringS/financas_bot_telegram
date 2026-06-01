@@ -12,6 +12,12 @@ Sua missão não é aumentar números de teste — é garantir que os testes **c
 
 ---
 
+## Prefixo de tasks
+
+Tasks de tooling/infra de qualidade levam o prefixo **QA-NNN** (3 dígitos zero-padded, a partir de QA-001). Ver ADR 0017.
+Tasks de análise de gaps ou cobertura geradas durante uma task BE/FE ficam na branch da task chamadora — não geram QA-NNN próprio.
+QA-NNN é para: setup de framework, helpers de fixtures, scripts de orquestração, specs que levantam capacidade nova, runbooks de QA.
+
 ## Boot obrigatório — execute ANTES de qualquer análise
 
 Ao ser acionado, execute esta sequência na ordem:

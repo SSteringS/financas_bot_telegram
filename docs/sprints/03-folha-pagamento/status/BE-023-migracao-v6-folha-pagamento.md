@@ -9,7 +9,7 @@ gates:
   build: ok
   lint: na
   testes: ok
-  testes_total: 262
+  testes_total: 288
   testes_novos: 0
   cobertura_pct: na
   branch_convencao: ok
@@ -18,7 +18,7 @@ commits:
   - d01cf2f
 pr: null
 desvios: 1
-pendencias_humano: 1
+pendencias_humano: 0
 ---
 
 # BE-023 — Migração V6 — DDL folha de pagamento
@@ -35,7 +35,7 @@ Criado `V6__folha_pagamento.sql` com o SQL exato da spec §2 revisado pelo DBA (
 
 **Build:** `mvn -DskipTests package` → sucesso (código 0).
 
-**Testes:** 262 testes unitários verdes. 26 testes de integração (`*IntegrationTest`) falham por `Could not find a valid Docker environment` — condição pré-existente em `develop` (Testcontainers/Docker indisponível no ambiente local de CI). Os testes V6 específicos (Flyway + schema) requerem TestContainers e serão validados pelo Reviewer no CI.
+**Testes:** 288/288 verdes após `mvn clean test` (com Docker disponível). 262 unitários + 26 integração (Testcontainers/MySQL). O `mvn test` sem clean falhava com `Found more than one migration with version 4` — artifact stale no `target/` de antes do V5 ser renomeado. `mvn clean` resolveu. Flyway aplicou V1→V6 com sucesso no MySQL via Testcontainers.
 
 ---
 
@@ -57,7 +57,7 @@ Criado `V6__folha_pagamento.sql` com o SQL exato da spec §2 revisado pelo DBA (
 
 ## Decisões pendentes (esperando humano)
 
-1. **Validar a migração com `SHOW CREATE TABLE`** no banco de dev/prod após o PR mergear. O ambiente local de CI não tem Docker; a validação DDL real (Flyway rodando + SHOW CREATE TABLE) precisa ser feita manualmente ou via CI com Testcontainers. O Reviewer deve confirmar no relatório se o CI verde basta ou se validação manual adicional é necessária.
+Nenhuma — tarefa fechada. Flyway V6 aplicado com sucesso no MySQL via Testcontainers; 288/288 testes verdes.
 
 ---
 

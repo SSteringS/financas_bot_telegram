@@ -1,6 +1,6 @@
 ---
 # ─── Frontmatter (schema obrigatório — parseável) ───
-task: BE-19                                # ^(BE|FE|DEP|FIX|HOTFIX|EVO|CI|WF)-\d+[a-z]?$ (FIX/HOTFIX = 3 dígitos zero-padded a partir de 2026-05-29)
+task: BE-19                                # ^(BE|FE|DEP|FIX|HOTFIX|EVO|CI|WF|QA)-\d+[a-z]?$ (FIX/HOTFIX = 3 dígitos zero-padded a partir de 2026-05-29; QA = tooling de qualidade, a partir de 2026-06-01 — ADR 0017)
 titulo: "Adapter de entrada WhatsApp"
 sprint: 02-canal-whatsapp                  # NN-slug
 data_planejamento: 2026-05-30              # YYYY-MM-DD

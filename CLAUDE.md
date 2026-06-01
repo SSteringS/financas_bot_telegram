@@ -145,7 +145,7 @@ main (protegida — só via PR)
 
 - Back e front sempre criam branch a partir de `integration/<NN>-<slug>` da sprint (ver "Worktrees git" pro fluxo correto). FIX e HOTFIX saem direto de `develop`.
 - **Padrão de nome de branch:**
-  - `feature/<id>-<slug>` para tarefas planejadas — id de **3 dígitos zero-padded**: `be-NNN`, `fe-NNN`, `dep-NNN`, `evo-NNN`, `ci-NNN`. Ex: `feature/be-017-nova-feature`. Convenção **forward-only desde 2026-05-31**: tasks BE/FE/DEP/EVO/CI anteriores ficam no formato legado (`be-17`, `fe-14`) e **não** são renomeadas.
+  - `feature/<id>-<slug>` para tarefas planejadas — id de **3 dígitos zero-padded**: `be-NNN`, `fe-NNN`, `dep-NNN`, `evo-NNN`, `ci-NNN`, `qa-NNN`. Ex: `feature/be-017-nova-feature`, `feature/qa-001-setup-playwright`. Convenção **forward-only desde 2026-05-31** (BE/FE/DEP/EVO/CI) e **desde 2026-06-01** (QA). `QA-NNN` = tooling/infra de qualidade que não modifica comportamento de feature (ver ADR 0017).
   - `fix/NNN-<slug>` para FIXes — id de **3 dígitos zero-padded** (`001`, `002`, ..., `099`, `100`). Ex: `fix/001-whatsapp-defaults-deploy-safe`. Convenção **forward-only desde 2026-05-29**: FIXes anteriores ficam com slug-only (`fix/idempotencia-porta-application`, `fix/gitattributes-eol`) e **não** são renomeados.
   - `hotfix/NNN-<slug>` para HOTFIXes — mesma regra de 3 dígitos zero-padded. Ex: `hotfix/001-document-vs-photo`. Convenção forward-only — hotfixes anteriores ficam com nome legado.
   - `integration/<NN>-<slug>` para branch intermediária de sprint — NN-slug deve bater com o identificador da sprint (`docs/sprints/<NN>-<slug>/`). Ex: `integration/03-evo-09`. Criada pelo **planner** ao abrir a sprint; deletada após o merge integration→develop ser aceito pelo humano.

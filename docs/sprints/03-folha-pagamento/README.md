@@ -1,6 +1,6 @@
 # Sprint 03 — Folha de Pagamento
 
-**Status:** 🟡 em planejamento (2026-05-31)
+**Status:** 🟡 em andamento (2026-06-01)
 
 **Objetivo:** entregar a gestão de folha de pagamento doméstica — cadastro de funcionários, vales, adiantamentos parcelados e fechamento mensal.
 
@@ -13,35 +13,64 @@
 
 ### Backend (7 tasks)
 
-| ID | Slug | Porte | Depende de |
-|----|------|-------|------------|
-| BE-023 | migracao-v6-folha-pagamento | P | — |
-| BE-024 | entidades-jpa-repositorios-folha | M | BE-023 |
-| BE-025 | crud-funcionario | M | BE-024 |
-| BE-026 | cadastrar-vale | P | BE-024 |
-| BE-027 | cadastrar-adiantamento | P | BE-024 |
-| BE-028 | fechar-mes | M | BE-024, BE-026, BE-027 |
-| BE-029 | testes-fechar-mes | M | BE-028 |
+| ID | Slug | Porte | Depende de | Estado |
+|----|------|-------|------------|--------|
+| BE-023 | migracao-v6-folha-pagamento | P | — | ✅ concluido |
+| BE-024 | entidades-jpa-repositorios-folha | M | BE-023 | aguarda dispatch |
+| BE-025 | crud-funcionario | M | BE-024 | aguarda dispatch |
+| BE-026 | cadastrar-vale | P | BE-024 | aguarda dispatch |
+| BE-027 | cadastrar-adiantamento | P | BE-024 | aguarda dispatch |
+| BE-028 | fechar-mes | M | BE-024, BE-026, BE-027 | aguarda dispatch |
+| BE-029 | testes-fechar-mes | M | BE-028 | aguarda dispatch |
 
 ### Frontend (3 tasks)
 
-| ID | Slug | Porte | Depende de |
-|----|------|-------|------------|
-| FE-015 | tela-funcionarios | M | BE-025 |
-| FE-016 | tela-folha-funcionario | G | BE-026, BE-027, BE-028 |
-| FE-017 | modal-fechamento | M | BE-028 |
+| ID | Slug | Porte | Depende de | Estado |
+|----|------|-------|------------|--------|
+| FE-015 | tela-funcionarios | M | BE-025 | aguarda dispatch |
+| FE-016 | tela-folha-funcionario | G | BE-026, BE-027, BE-028 | aguarda dispatch |
+| FE-017 | modal-fechamento | M | BE-028 | aguarda dispatch |
+
+### QA — Suíte E2E Fase 1 (6 tasks)
+
+Branch de integração: `integration/03-folha-pagamento` (feature branches QA-NNN vão para cá).
+Spec completa: `docs/sprints/03-folha-pagamento/specs/qa-suite-e2e-fase1.md`.
+ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
+
+#### Lote A — independente de produto (despachar já)
+
+| ID | Slug | Porte | Depende de | Território | Estado |
+|----|------|-------|------------|-----------|--------|
+| QA-001 | setup-playwright-base | P | — | frontend | aguarda dispatch |
+| QA-002 | scripts-orquestracao-stack | M | QA-001 (integration) | frontend | aguarda dispatch |
+| QA-005 | doc-roteiro-e2e | P | — | plan | ✅ executado (planner) |
+| QA-006 | pre-merge-add-e2e-gate | P | QA-005 | plan | ✅ executado (planner) |
+
+#### Lote B — aguarda BE-023 em develop + QA-001..002 em integration
+
+| ID | Slug | Porte | Depende de | Estado |
+|----|------|-------|------------|--------|
+| QA-003 | fixtures-banco-auth-payloads | M | BE-023 (develop) + QA-001 (integration) | aguarda dispatch |
+| QA-004 | specs-mvp-3-cenarios | M | QA-002 + QA-003 (integration) | aguarda dispatch |
+
+> ⚠️ **QA-004 cenário foto+caption bloqueado** — aguarda sessão com arquiteto para decidir estratégia de mock de download de mídia Telegram (vira ADR Proposed separado). Texto puro + sticker implementados normalmente.
 
 ---
 
 ## Ordem de despacho sugerida
 
-1. **BE-023** (habilita tudo)
-2. **BE-024** (habilita todos os BE seguintes)
-3. **BE-025 + BE-026 + BE-027** (paralelos)
-4. **BE-028** (depende de 024, 026, 027)
-5. **BE-029** (depende de 028)
-6. **FE-015** (pode iniciar em paralelo com BE-025)
-7. **FE-016 + FE-017** (dependem de BE-028)
+1. **BE-023** ✅ já mergeada em develop
+2. **QA-001** (Lote A — dispatch imediato, vai para `integration/03-folha-pagamento`)
+3. **BE-024** (após BE-023 em develop)
+4. **QA-002** (após QA-001 em integration)
+5. **BE-025 + BE-026 + BE-027** (paralelos, após BE-024)
+   - ⚠️ BE-026 e BE-027 NÃO podem ser paralelas — ambas tocam FolhaController.java. BE-026 cria, BE-027 adiciona após merge.
+6. **QA-003** (Lote B — após BE-023 em develop + QA-001 em integration)
+7. **BE-028** (após BE-024 + BE-026 + BE-027)
+8. **BE-029** (após BE-028)
+9. **QA-004** (após QA-002 + QA-003 em integration)
+10. **FE-015** (pode iniciar em paralelo com BE-025)
+11. **FE-016 + FE-017** (após BE-028 e FE-015)
 
 ---
 
@@ -53,7 +82,8 @@
 
 ## Fluxo de git desta sprint
 
-Padrão normal de produto: `feature/be-NNN-<slug>` e `feature/fe-NNN-<slug>`, PR pra `develop`, Reviewer obrigatório antes do merge.
+- **BE/FE:** `feature/be-NNN-<slug>` e `feature/fe-NNN-<slug>`, PR pra `develop`, Reviewer obrigatório antes do merge.
+- **QA:** `feature/qa-NNN-<slug>`, PR pra `integration/03-folha-pagamento` (implementador pode aceitar o próprio PR). Merge de `integration → develop` é gate do humano ao final da sprint.
 
 ---
 

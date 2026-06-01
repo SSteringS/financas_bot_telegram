@@ -39,10 +39,23 @@ O gate `territorio` falha quando uma instância altera **código fora** do seu t
 - [ ] Todo componente/classe com lógica não-trivial tem ao menos 1 teste (regra do CLAUDE.md)
 - [ ] `branch_convencao` ok (nome correto + saiu de develop)
 - [ ] `territorio` ok (não vazou pra fora da pasta da instância)
+- [ ] Se o plano declara `exige_e2e_full: true`: `npm run e2e:full` verde, e campo `e2e_full` preenchido no status report (ver `docs/architecture/desenho-testes-automatizados.md` §9.2 para schema).
 - [ ] Status report criado em `docs/sprints/<NN>/status/<TASK-ID>-*.md` com frontmatter válido
 - [ ] `desvios` e `pendencias_humano` no frontmatter batem com as seções em prosa
 - [ ] `estado` coerente com os gates (só `concluido` se tudo ok e sem pendência)
 - [ ] **Não** fez push pra `develop` — parou pra revisão (salvo instrução explícita)
+
+## Checklist do Reviewer (auditoria independente)
+
+Executar **numa sessão separada** depois que o implementador abre o PR. Gates bloqueantes impedem o merge se inconsistentes.
+
+- [ ] `build` e `testes` verdes no CI (ou verificação local equivalente)
+- [ ] `territorio` ok — diff do PR não vaza pra fora do território da instância
+- [ ] Status report presente em `docs/sprints/<NN>/status/<TASK-ID>-*.md` com frontmatter válido
+- [ ] `testes_novos` condiz com os arquivos adicionados/alterados
+- [ ] `desvios` e `pendencias_humano` declarados — sem omissão intencional
+- [ ] Se `exige_e2e_full: true` no plano: confirmar que `e2e_full.executado: true` e `e2e_full.status: verde` no status report (ver `docs/architecture/desenho-testes-automatizados.md` §9.2). Caso contrário, **rejeitar** com pendência bloqueante.
+- [ ] `playwright-report/` **não** está no diff do PR (não deve ser commitado)
 
 ## Agregação (o ganho de ter schema)
 

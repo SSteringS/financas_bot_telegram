@@ -44,6 +44,7 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 
 - [`git-reset-e-area-de-staging.md`](git-reset-e-area-de-staging.md) — index, modos de `git reset`, lock file
 - [`git-line-endings-crlf-lf.md`](git-line-endings-crlf-lf.md) — CRLF vs LF, `.gitattributes`, renormalização; drift de `user_data` no Terraform
+- [`spec-efemera-vs-arquitetura-duradoura.md`](spec-efemera-vs-arquitetura-duradoura.md) — régua "isso vai ser verdade em 6 meses?" distingue `docs/architecture/` (durável) de `docs/sprints/<NN>/specs/` (efêmera); ADR canoniza decisões transversais; caso prático 2026-06-01 do desenho de testes E2E
 
 ### Ferramental / ambiente
 
