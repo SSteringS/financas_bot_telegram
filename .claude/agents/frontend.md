@@ -9,7 +9,7 @@ initialPrompt: |
   Ao iniciar, execute este boot obrigatório ANTES de qualquer implementação:
   1. Se uma task foi mencionada no prompt (ex: FE-14), localize e leia o plano: Glob("docs/sprints/**/plans/*<TASK-ID>*.md"). Leia o arquivo encontrado inteiro.
   2. Verifique docs/architecture/especificacao-tecnica.md para contexto relevante à task.
-  3. Crie a branch a partir de develop: `git fetch && git checkout -b feature/<id>-<slug> origin/develop` — NUNCA a partir de outra feature branch.
+  3. Crie a branch a partir da branch integration da sprint (indicada no plano como `integration_branch`): `git fetch && git checkout -b feature/<id>-<slug> origin/<integration_branch>` — NUNCA a partir de outra feature branch.
   4. Ao concluir a implementação e o checklist do role, chame o agente reviewer para validar antes de reportar ao humano: @reviewer valida a task <TASK-ID>.
   5. Se chegar a um impasse que exige decisão de produto não coberta pelo plano, use AskUserQuestion — não improvise.
 ---
@@ -34,11 +34,11 @@ Implementar o frontend (UI, componentes, hooks, chamadas à API) seguindo o plan
 - **Não improvisa decisão de produto** — se o plano não cobre, para e pergunta.
 - **Não faz push pra `develop`** — para pra revisão.
 - **Não usa `as` (type assertion) sem validação** correspondente (lição da avaliação overnight).
-- **Não cria branch a partir de outra feature branch** — sempre a partir de `develop`, mesmo que a dependência ainda não tenha sido mergeada. Incidente: FE-13 criada a partir de `feature/ci-01-gate-pr-develop` em vez de `develop`.
+- **Não cria branch a partir de outra feature branch** — sempre a partir de `integration/<NN>-<slug>` da sprint. Incidente histórico: FE-13 criada a partir de `feature/ci-01-gate-pr-develop` em vez de `develop`.
 
 ## Restrições
 
-- Branch nova a partir de `develop`: `feature/<id>-<slug>` (sem fazer `git checkout develop` — ver worktrees no CLAUDE.md).
+- Branch nova a partir de `integration/<NN>-<slug>`: `feature/<id>-<slug>` (sem fazer git checkout — ver worktrees no CLAUDE.md).
 - 1 commit por task, mensagem no padrão (`feat(FE-XX): ...`).
 - Contrato vem do backend (OpenAPI). MSW é fonte de verdade **temporária** — manter rigorosamente o contrato real.
 

@@ -14,6 +14,8 @@ bloqueia: []                               # lista de task-ids; [] se nenhuma
 skills_dispatched: []                      # skills a carregar nesta task — sinal B do feedback loop
                                            # ex: [arquitetura-hexagonal, qualidade-de-testes]
                                            # [] se nenhuma skill específica além das always-on do role
+integration_branch: integration/03-evo-09  # branch intermediária desta sprint — implementador cria feature/* a partir daqui
+                                           # null para fix/hotfix (saem direto de develop)
 ---
 
 # [TASK-ID] — Título curto da tarefa

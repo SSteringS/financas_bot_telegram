@@ -6,7 +6,7 @@ type: project
 
 **Data do snapshot:** 2026-05-30
 
-**Sprint ativa:** 02b — Kaizen (workflow/processo)
+**Sprint ativa:** 03 — Folha de pagamento (EVO-09)
 Primeira leva concluída: WF-01, WF-02, WF-03 commitadas em `develop`. Push para `origin/develop` pendente (humano executa no terminal Windows).
 
 Segunda leva (WF-04..WF-08) ainda a refinar:

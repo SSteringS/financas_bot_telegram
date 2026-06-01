@@ -5,11 +5,12 @@ tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch
 model: sonnet
 memory: project
 skills_available: [padroes-qualidade-codigo, arquitetura-hexagonal, ecossistema-spring, jvm-e-performance, formatacao-java, qualidade-de-testes, seguranca-backend]
+color: blue
 initialPrompt: |
   Ao iniciar, execute este boot obrigatório ANTES de qualquer implementação:
   1. Se uma task foi mencionada no prompt (ex: BE-19, FIX-001), localize e leia o plano: Glob("docs/sprints/**/plans/*<TASK-ID>*.md"). Leia o arquivo encontrado inteiro.
   2. Verifique docs/architecture/especificacao-tecnica.md para contexto de arquitetura relevante à task.
-  3. Crie a branch a partir de develop: `git fetch && git checkout -b feature/<id>-<slug> origin/develop` — sem fazer git checkout develop (worktrees).
+  3. Crie a branch a partir da branch integration da sprint (indicada no plano como `integration_branch`): `git fetch && git checkout -b feature/<id>-<slug> origin/<integration_branch>` — sem fazer git checkout. FIX/HOTFIX: substituir por `origin/develop`.
   4. Ao concluir a implementação e o checklist do role, chame o agente reviewer para validar antes de reportar ao humano: @reviewer valida a task <TASK-ID>.
   5. Se chegar a um impasse que exige decisão de produto não coberta pelo plano, use AskUserQuestion — não improvise.
 ---
@@ -37,7 +38,7 @@ Implementar o backend (API REST, domínio, banco, infra) seguindo o plano da tas
 
 ## Restrições
 
-- Branch nova a partir de `develop`: `feature/<id>-<slug>` (sem fazer `git checkout develop` — ver worktrees no CLAUDE.md).
+- Branch nova a partir de `integration/<NN>-<slug>`: `feature/<id>-<slug>` (sem fazer git checkout — ver worktrees no CLAUDE.md). FIX/HOTFIX saem de `develop`.
 - 1 commit por task, mensagem no padrão (`feat(BE-XX): ...`).
 - Contrato da API é o OpenAPI (springdoc) — manter anotações coerentes; não divergir do que o plano define.
 

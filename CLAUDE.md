@@ -95,12 +95,14 @@ O repo opera com **dois worktrees git compartilhando o mesmo `.git/`**, pra perm
 **Consequências práticas:**
 
 - `develop` está **checado no worktree do planner** — ninguém mais pode dar `git checkout develop` em outro worktree (git recusa: "is already checked out").
-- Implementadores criam branch a partir de `develop` **sem** fazer `git checkout develop` antes:
+- Implementadores criam branch a partir da **branch `integration/<NN>-<slug>` da sprint** sem fazer `git checkout` antes:
 
 ```
 git fetch
-git checkout -b feature/<id>-<slug> develop
+git checkout -b feature/<id>-<slug> origin/integration/<NN>-<slug>
 ```
+
+- A branch `integration/<NN>-<slug>` é criada pelo planner no início de cada sprint (commit direto em develop, depois pusha). O implementador recebe o nome dela no dispatch.
 
 - O Cowork do humano (sessão de planejamento) **deve estar apontando pro worktree do planner**. Se Cowork for aberto no worktree do implementador por engano, writes em arquivos novos podem se perder quando o implementador trocar de branch. **Confirmar isso no início de qualquer sessão de planejamento.**
 - **Escrita defensiva é obrigatória pro planner.** As tools `Write`/`Edit` do Cowork podem truncar arquivos silenciosamente e o mount FUSE do sandbox serve view defasada do disco — diagnóstico em `docs/aprendizado/cowork-write-truncamento.md`, regras operacionais em `docs/roles/planner.md` §"Escrita defensiva de arquivos (workaround Cowork)".
@@ -133,22 +135,29 @@ Se houver sessão do Claude do back/front ativa no worktree do implementador (tr
 ```
 main (protegida — só via PR)
  └── develop  ← planejamento commita aqui direto (no worktree planner)
-      ├── feature/be-017-renomear-rota-telegram   ← back
-      ├── feature/fe-014-botao-ver-arquivo-original ← front
-      ├── fix/001-whatsapp-defaults-deploy-safe   ← back (padrão novo zero-padded)
-      └── hotfix/NNN-<slug>                       ← emergências
+      ├── integration/03-evo-09                        ← criada pelo planner no início da sprint
+      │    ├── feature/be-017-renomear-rota-telegram   ← back  ┐ PR feature→integration:
+      │    └── feature/fe-014-botao-ver-arquivo-original ← front ┘ implementador abre e aceita
+      ├── fix/001-whatsapp-defaults-deploy-safe        ← back → develop direto (padrão zero-padded)
+      └── hotfix/NNN-<slug>                            ← emergências → develop direto
 ```
+> **PR integration→develop:** Claude (planner) abre ao fim da sprint; humano revisa e aceita. Este é o único gate humano no fluxo de features.
 
-- Back e front sempre criam branch a partir de `develop` (ver "Worktrees git" pro fluxo correto sem `git checkout develop`).
+- Back e front sempre criam branch a partir de `integration/<NN>-<slug>` da sprint (ver "Worktrees git" pro fluxo correto). FIX e HOTFIX saem direto de `develop`.
 - **Padrão de nome de branch:**
   - `feature/<id>-<slug>` para tarefas planejadas — id de **3 dígitos zero-padded**: `be-NNN`, `fe-NNN`, `dep-NNN`, `evo-NNN`, `ci-NNN`. Ex: `feature/be-017-nova-feature`. Convenção **forward-only desde 2026-05-31**: tasks BE/FE/DEP/EVO/CI anteriores ficam no formato legado (`be-17`, `fe-14`) e **não** são renomeadas.
   - `fix/NNN-<slug>` para FIXes — id de **3 dígitos zero-padded** (`001`, `002`, ..., `099`, `100`). Ex: `fix/001-whatsapp-defaults-deploy-safe`. Convenção **forward-only desde 2026-05-29**: FIXes anteriores ficam com slug-only (`fix/idempotencia-porta-application`, `fix/gitattributes-eol`) e **não** são renomeados.
   - `hotfix/NNN-<slug>` para HOTFIXes — mesma regra de 3 dígitos zero-padded. Ex: `hotfix/001-document-vs-photo`. Convenção forward-only — hotfixes anteriores ficam com nome legado.
-- **Uma tarefa = uma branch nova** a partir de `develop`, nomeada com o padrão acima. Não reaproveitar branch guarda-chuva de outra tarefa.
+  - `integration/<NN>-<slug>` para branch intermediária de sprint — NN-slug deve bater com o identificador da sprint (`docs/sprints/<NN>-<slug>/`). Ex: `integration/03-evo-09`. Criada pelo **planner** ao abrir a sprint; deletada após o merge integration→develop ser aceito pelo humano.
+- **Uma tarefa = uma branch nova** a partir de `integration/<NN>-<slug>` (features) ou de `develop` (fix/hotfix), nomeada com o padrão acima. Não reaproveitar branch guarda-chuva de outra tarefa.
 - **Precedência:** estas convenções prevalecem sobre qualquer plano de tarefa em `docs/plans/`. Um plano **não** deve sobrescrevê-las silenciosamente. Se uma tarefa exigir exceção (ex.: depende de código que só existe numa branch ainda não mergeada), o plano deve declarar `> EXCEÇÃO DE BRANCH:` com a justificativa — e o caminho preferido é mergear a dependência em `develop` antes de começar.
-- **PR no caminho pra `develop` (decisão 2026-05-26):** feature branches entram em `develop` via **Pull Request**. O CI (CI-01) roda no PR e mostra verde/vermelho. **Branch protection NÃO está ligada por ora** (decisão do humano de adiar) — ou seja, o gate é **informativo, não bloqueante**: nada impede tecnicamente o merge com CI vermelho; a disciplina é manual até ligar a proteção. PR `develop → main` dispara o deploy. Ver `docs/plans/CI-01-gate-pr-develop.md` e ADR 0004 §5. Quando a branch protection for ligada, o gate passa a travar o merge (e o commit direto de docs do planner em `develop` também passará a exigir PR).
+- **Fluxo de PR em dois níveis (atualizado 2026-06-01):**
+  - **feature → integration:** implementador abre o PR e pode aceitá-lo sem revisão humana. Permite que features sequenciais se encadeiem sem conflito.
+  - **integration → develop:** Claude (planner) abre o PR ao fim da sprint; **humano revisa e aceita** — este é o gate de qualidade humano.
+  - **fix/hotfix → develop:** PR direto (não passam pela integration branch).
+  O CI (CI-01) roda nos PRs e mostra verde/vermelho. **Branch protection NÃO está ligada por ora** — gate é informativo, não bloqueante. PR `develop → main` dispara o deploy. Ver `docs/plans/CI-01-gate-pr-develop.md` e ADR 0004 §5.
 - **Definição de pronto / pré-merge:** antes de mergear, (1) passar pelos gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` (build, lint, testes, convenção de branch, território); (2) escrever o status report com frontmatter válido conforme `docs/templates/_TEMPLATE-status.md`; (3) **revisão independente pelo Reviewer** — sessão separada (ADR 0005), obrigatória pra toda task antes do merge (decisão 2026-05-26). `estado: concluido` só vale com todos os gates ok e zero pendência.
-- Back e front devem fazer merge de `develop` na feature branch regularmente para pegar atualizações de docs
+- Back e front devem fazer merge de `integration/<NN>-<slug>` na feature branch regularmente para pegar código de features anteriores já integradas
 
 ## CI/CD
 

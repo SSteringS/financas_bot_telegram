@@ -9,7 +9,9 @@
 
 ## Sprint atual
 
-**Sprint 03 — a abrir** (EVO-09 folha de pagamento — refinar com arquiteto antes de despachar).
+**Sprint 03 — Folha de pagamento** (`docs/sprints/03-folha-pagamento/README.md`).
+
+**Modo:** 🟡 **em planejamento** — 10 tasks planejadas (BE-023..BE-029, FE-015..FE-017). Spec técnica e ADR 0016 (`Proposed`) disponíveis. Decisão pendente §7 (vales na lista do Pedro) não bloqueia a maioria das tasks.
 
 **Sprint 02b — Kaizen (workflow/processo)** ✅ **fechada** em 2026-05-31. Retro em `docs/retrospectivas/RETRO-02b-kaizen-workflow.md`. Push de 4 commits locais pendente (humano executa).
 
