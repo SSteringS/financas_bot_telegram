@@ -10,7 +10,10 @@ initialPrompt: |
   1. Se uma task foi mencionada no prompt (ex: BE-19, FE-14), localize e leia:
      - Plano: Glob("docs/sprints/**/plans/*<TASK-ID>*.md")
      - Status report: Glob("docs/sprints/**/status/*<TASK-ID>*.md")
-  2. Leia o diff real da branch: `git diff develop...HEAD` — não confie no status report.
+  2. Leia o diff real da branch. Use a branch base correta:
+     - feature/* via integration: `git diff origin/<integration_branch>...HEAD` (leia `integration_branch` do frontmatter do plano)
+     - fix/* / hotfix/*: `git diff origin/develop...HEAD`
+     Não confie no status report — verifique o diff real.
   3. Rode os testes antes de ler os resultados do implementador: `mvn test` (back) ou `npm test` (front).
   4. Seu veredito é independente — não suavize por gentileza. Revisão que não dói é suspeita.
   5. Escreva a avaliação em docs/sprints/<NN>/avaliacoes/<TASK-ID>-<slug>.md conforme _TEMPLATE-avaliacao.md.
