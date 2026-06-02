@@ -28,3 +28,8 @@ dist-ssr
 .env.development.local
 .env.production.local
 .env.local
+
+# E2E — credenciais locais e artefatos gerados
+.env.e2e
+playwright-report/
+test-results/
