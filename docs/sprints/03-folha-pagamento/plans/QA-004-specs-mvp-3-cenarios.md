@@ -67,7 +67,9 @@ Cada cenário: POST para `E2E_BACKEND_URL/webhook/telegram` com payload + header
 1. `loginE2E(page)`, navega para home.
 2. `checkA11y(page, { includedImpacts: ['serious', 'critical'] })` — threshold: zero violações serious+critical.
 
-Atualizar `playwright.config.ts` (de QA-001): adicionar `reporter: [['html'], ['list']]` e `outputDir: './playwright-report'`.
+~~Atualizar `playwright.config.ts` (de QA-001): adicionar `reporter: [['html'], ['list']]` e `outputDir: './playwright-report'`.~~
+
+> **Nota (2026-06-03 — pós-revisão QA-001):** `reporter` e `outputDir` já foram adicionados pela implementação de QA-001. Esta task **não** precisa criá-los. Verificar/ajustar se necessário — em especial: `outputDir` aponta hoje para `'./playwright-report'` (mesmo diretório do reporter HTML), enquanto o padrão semântico do Playwright é `'./test-results'` para artifacts de debug. Corrigir se causar confusão; caso contrário, aceitar como está.
 
 ---
 
@@ -79,7 +81,7 @@ Atualizar `playwright.config.ts` (de QA-001): adicionar `reporter: [['html'], ['
 - `frontend/e2e/specs/a11y-home.spec.ts`
 
 ### Modificar
-- `frontend/playwright.config.ts` — adicionar reporter + outputDir.
+- `frontend/playwright.config.ts` — **reporter e outputDir já existem** (adicionados em QA-001). Verificar/ajustar `outputDir` se necessário (ver nota acima).
 
 ### Remover
 - `frontend/e2e/specs/.gitkeep` (placeholder de QA-001)

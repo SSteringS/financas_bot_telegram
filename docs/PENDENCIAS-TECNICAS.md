@@ -208,6 +208,40 @@ Resultado: a API expõe um campo que **mente** (`null` quando deveria ter dado).
 
 ---
 
+### Scripts E2E fora do type-check estático do TypeScript (QA-002 Obs 3)
+
+**Contexto:** `frontend/e2e/tsconfig.json` existe mas não é referenciado em `frontend/tsconfig.json` (que só referencia `tsconfig.app.json` e `tsconfig.node.json`). Consequência: `npm run build` / `tsc -b` **não** verifica os scripts de E2E (`subir-stack.ts`, `aguardar-saude.ts`, `derrubar-stack.ts`). O `tsx` (via esbuild) os executa corretamente em runtime — mas erros de tipo só aparecem quando o script falha durante a execução dos testes, não na fase de build.
+
+Adicionalmente, rodar `tsc -p e2e/tsconfig.json` isolado falha com TS5097 porque `e2e/tsconfig.json` herda de `tsconfig.app.json` (que tem `moduleResolution: bundler` com `allowImportingTsExtensions: true`) mas **desabilita** `allowImportingTsExtensions` — enquanto `subir-stack.ts` usa importações com extensão `.ts`.
+
+**Identificado:** revisão QA-002 (Obs 3, 2026-06-01).
+
+**Fix sugerido (duas opções):**
+- **(a) Remover `e2e/tsconfig.json`** e aceitar que os scripts rodam via `tsx` sem type-check estático (mais honesto com a realidade atual).
+- **(b) Corrigir `e2e/tsconfig.json`** para herdar de `tsconfig.node.json` em vez de `tsconfig.app.json`, e adicionar a referência em `tsconfig.json` — dá type-check real mas requer calibração das opções.
+
+**Esforço:** baixo (~30 min).
+
+**Prioridade:** baixa. Pode ser feito em QA-003, QA-004, ou como FIX separado pós-sprint 03.
+
+---
+
+### `playwright.config.ts`: `outputDir` e `outputFolder` do reporter HTML apontam pro mesmo diretório (QA-001 Obs 2)
+
+**Contexto:** a implementação de QA-001 definiu `outputDir: './playwright-report'` e `reporter: [['html', { outputFolder: 'playwright-report' }]]`. O `outputDir` é onde o Playwright grava artifacts de debug (traces, vídeos, screenshots de falha) — o padrão semântico é `'./test-results'`. O `outputFolder` é onde o reporter HTML grava o relatório. Misturar os dois no mesmo diretório (`playwright-report/`) cria confusão ao inspecionar falhas: artifacts de debug e HTML ficam juntos.
+
+O `.gitignore` já ignora `test-results/` separadamente — esse diretório será criado pelo Playwright de toda forma, ficando fora do `.gitignore` se `outputDir` permanecer em `playwright-report`.
+
+**Identificado:** revisão QA-001 (Obs 2, 2026-06-01).
+
+**Fix sugerido:** restaurar `outputDir` para `'./test-results'` (já no `.gitignore`) e manter `playwright-report/` apenas para o relatório HTML. Alteração de 1 linha em `frontend/playwright.config.ts`.
+
+**Esforço:** baixíssimo (1 linha).
+
+**Prioridade:** baixa. Não quebra nenhum teste. Ideal corrigir em QA-004 (já nota no plano) antes de a suíte estar em uso ativo.
+
+---
+
 ## Itens resolvidos
 
 ### ~~Esconder `@RequisitanteId` do Swagger UI~~

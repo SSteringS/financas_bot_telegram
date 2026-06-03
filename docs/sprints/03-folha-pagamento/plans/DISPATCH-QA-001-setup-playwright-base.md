@@ -43,7 +43,7 @@ Criar a infraestrutura base do Playwright. ZERO specs, ZERO fixtures, ZERO mudan
 Arquivos a criar:
 1. frontend/playwright.config.ts (baseURL via E2E_FRONTEND_URL, globalSetup path, use: trace+screenshot+video, projects: Chromium only)
 2. frontend/e2e/tsconfig.json (estende ../tsconfig.json)
-3. frontend/.env.e2e.example (template versionado — mínimo 8 variáveis: E2E_FRONTEND_URL, E2E_BACKEND_URL, E2E_DB_HOST, E2E_DB_PORT, E2E_DB_NAME, E2E_DB_USER, E2E_DB_PASSWORD, E2E_ADMIN_SECRET)
+3. frontend/.env.e2e.example (template versionado — mínimo 8 variáveis: E2E_FRONTEND_URL, E2E_BACKEND_URL, E2E_DB_HOST, E2E_DB_PORT, E2E_DB_NAME, E2E_DB_USER, E2E_DB_PASSWORD, E2E_ADMIN_KEY)
 4. frontend/e2e/specs/.gitkeep
 5. frontend/e2e/fixtures/.gitkeep
 

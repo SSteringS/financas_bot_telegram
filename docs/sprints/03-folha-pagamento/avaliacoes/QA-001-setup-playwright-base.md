@@ -5,7 +5,7 @@ data: 2026-06-01
 avaliador: claude-reviewer
 status_report: docs/sprints/03-folha-pagamento/status/QA-001-setup-playwright-base.md
 veredito_codigo: aprovado_com_observacoes
-veredito_final: pendente
+veredito_final: aprovado_com_observacoes
 observacoes_count: 3
 roteiro_executado: false
 gates_verificados_contra_realidade: divergente
@@ -118,3 +118,11 @@ Sem observacao de skills nesta task. Task de configuracao declarativa sem camada
 3. **Observacao 2 (`outputDir` vs `outputFolder`):** baixa prioridade, mas registrar como pendencia tecnica ou incluir no escopo de QA-004 corrigir `outputDir` para `./test-results` (padrao semantico do Playwright).
 
 4. **Ordem de despacho:** QA-002 pode ser despachado em paralelo (nao depende desta correcao). QA-003 deve aguardar a resolucao da Observacao 1 alem de BE-023.
+
+---
+
+> **Ação do planner (2026-06-03):**
+> - **Obs 1 resolvida:** decisão de nomenclatura tomada — **`E2E_ADMIN_KEY` é o nome canônico** (alinhado com `desenho-testes-automatizados.md` e com a implementação de QA-001). Propagado para: `ROTEIRO-E2E.md` linha 42, `QA-001-setup-playwright-base.md` linha 57, `DISPATCH-QA-001` linha 46.
+> - **Obs 2 registrada:** `outputDir`/`outputFolder` no mesmo diretório → `docs/PENDENCIAS-TECNICAS.md`. QA-004 tem nota para verificar/corrigir.
+> - **Obs 3 resolvida:** plano `QA-004-specs-mvp-3-cenarios.md` atualizado — `reporter` e `outputDir` já existem, task não precisa criá-los.
+> - Veredito final atualizado para `aprovado_com_observacoes`.
