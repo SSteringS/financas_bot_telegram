@@ -2,12 +2,13 @@ name: CI Gate (develop)
 
 on:
   pull_request:
-    branches: [develop]
+    branches: [develop, 'integration/**']
   push:
     branches:
       - 'feature/**'
       - 'fix/**'
       - 'hotfix/**'
+      - 'integration/**'
 
 jobs:
   # Detecta o que mudou pra rodar só o necessário
@@ -34,8 +35,8 @@ jobs:
         run: |
           REF="${{ github.head_ref || github.ref_name }}"
           echo "Branch: $REF"
-          if [[ ! "$REF" =~ ^(feature|fix|hotfix)/[a-z0-9]+(-[a-z0-9.]+)*$ ]]; then
-            echo "::error::Branch '$REF' fora da convenção (feature/<slug>, fix/<slug>, hotfix/<slug>)."
+          if [[ ! "$REF" =~ ^(feature|fix|hotfix|integration)/[a-z0-9]+(-[a-z0-9.]+)*$ ]]; then
+            echo "::error::Branch '$REF' fora da convenção (feature/<slug>, fix/<slug>, hotfix/<slug>, integration/<slug>)."
             exit 1
           fi
 
