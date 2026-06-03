@@ -1,12 +1,16 @@
 # DISPATCH — BE-024-entidades-jpa-repositorios-folha (single-task)
 
-> **Quando usar:** após o PR da BE-023 ser mergeado em `develop`. BE-024 precisa do V6 SQL no classpath pra que os testes de integração com Flyway funcionem.
+> **Quando usar:** após BE-023 mergeada em `develop` (V6 SQL no classpath) e ADR 0016 homologada.
+>
+> ⚠️ **Fluxo de branch desta sprint (2026-06-03):** todas as tasks BE/FE saem de `integration/03-folha-pagamento` e fazem PR de volta para `integration`. Develop só aceita de integration, ao final da sprint (gate do humano). Não abrir PR direto para develop.
 
 ---
 
 ## Pré-condições (git)
 
-- **`feature/be-023-migracao-v6-folha-pagamento` mergeada em `develop`** — V6__folha_pagamento.sql deve estar em `develop` antes de criar esta branch. Confirmar com `git log origin/develop --oneline | grep be-023`.
+- **`feature/be-023-migracao-v6-folha-pagamento` mergeada em `develop`** ✅ (PR #81). V6__folha_pagamento.sql presente.
+- **ADR 0016 homologada** — confirmar antes de implementar código Java.
+- Confirmar que integration está atualizada com develop: `git log origin/integration/03-folha-pagamento --oneline | grep be-023`.
 - Nenhuma outra task de BE em voo que mexa em `PedidoPagamentoEntity` ou `PedidoRepositoryPortOut`.
 
 ---
@@ -42,13 +46,16 @@ Camadas a criar:
 
 ## REGRAS DURAS
 
-1. Branch: `feature/be-024-entidades-jpa-repositorios-folha` saindo de `origin/develop`
-   (develop já tem V6 SQL mergeado de BE-023).
+1. Branch: `feature/be-024-entidades-jpa-repositorios-folha` saindo de `origin/integration/03-folha-pagamento`
+   (integration contém BE-023 via develop — V6 SQL está disponível).
+   git fetch
+   git checkout -b feature/be-024-entidades-jpa-repositorios-folha origin/integration/03-folha-pagamento
 2. Território: SÓ `financas_bot_telegram/`. Zero `frontend/`.
 3. Nenhuma anotação JPA no domain (Funcionario.java, Adiantamento.java são POJOs puros).
 4. Ports são interfaces puras: zero @Autowired, zero @Repository, zero Spring no pacote application/port/.
 5. 1 commit: `feat(BE-024): entidades JPA + repositorios + ports folha de pagamento`.
-6. NÃO mergeie. PR pra develop após status report + Reviewer.
+6. NÃO mergeie. PR pra `integration/03-folha-pagamento` após status report + Reviewer.
+   ⚠️ PR alvo é INTEGRATION, não develop. Develop só aceita de integration (gate do humano no fim da sprint).
 
 ## VERIFICAÇÃO ANTES DE IMPLEMENTAR
 
@@ -97,7 +104,8 @@ Pare ao final do status report. Não mergeie.
 
 ## Notas pro humano
 
-- **Pré-condição crítica:** BE-023 mergeada antes de despachar esta. O agente vai criar a branch de `origin/develop` — se V6 não estiver lá, os testes de integração vão falhar misteriosamente.
+- **Pré-condição crítica:** BE-023 em develop ✅ e ADR 0016 homologada antes de despachar.
+- **Fluxo:** branch de `origin/integration/03-folha-pagamento`, PR para `integration`. O V6 SQL chega via develop (integration herda do mesmo .git, o Flyway acha o script).
 - **Estimativa:** 1-2h. Volume de classes é grande, mas nenhuma lógica complexa.
 - **Após merge:** despachar BE-025 E BE-026 em paralelo (ambas dependem só desta).
   ⚠️ BE-026 e BE-027 NÃO devem rodar em paralelo (conflito em FolhaController.java) — ver DISPATCH-BE-026 e DISPATCH-BE-027.

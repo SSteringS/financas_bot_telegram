@@ -44,7 +44,7 @@ Implementar o frontend (UI, componentes, hooks, chamadas à API) seguindo o plan
 
 ## Checklist do papel (antes de chamar o reviewer)
 
-- [ ] Branch saiu de `develop`: `git merge-base --is-ancestor origin/develop HEAD` retorna exit 0.
+- [ ] Branch saiu de `integration/<NN>-<slug>` (ou `develop` para fix/hotfix): `git merge-base --is-ancestor origin/develop HEAD` retorna exit 0 (develop é ancestral de toda branch de feature, direta ou via integration).
 - [ ] `npm test` verde · `npm run lint` limpo · `npm run build` sem erro TS.
 - [ ] Componentes/hooks com lógica não-trivial testados.
 - [ ] Mobile conferido (viewport ~390px).

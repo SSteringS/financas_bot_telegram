@@ -54,7 +54,9 @@ O `loginE2E` usa o fluxo de magic link existente: chama admin API pra gerar conv
 `payloads-telegram.ts` — factories de `Update` válidos conforme Telegram Bot API:
 - `telegramUpdateTextoPuro({ fromUserId, text })` — Update com `message.text`.
 - `telegramUpdateSticker({ fromUserId })` — Update com `message.sticker`.
-- **NÃO incluir** `telegramUpdateFotoLegenda` — bloqueado pela decisão de mock de mídia (§3 da spec QA). Deixar comentário `// TODO Fase 1.1: adicionar após decisão de mock (ADR 00XX)`.
+- `telegramUpdateFotoLegenda({ fromUserId, caption, fileId })` — Update com `message.photo[]` e `message.caption`. O `fileId` recebido é passado direto no payload — o mock Telegram (QA-002) responde para qualquer `file_id`. Em testes, usar `fileId: 'E2E_MOCK_001'`.
+
+O `fileId` padrão para testes deve ser uma constante exportada: `export const E2E_MOCK_FILE_ID = 'E2E_MOCK_001'`.
 
 ---
 
@@ -89,7 +91,7 @@ Não aplicável: fixtures validadas por smoke da QA-004. Testes unitários de he
 - [ ] `limparDadosE2E()` deleta APENAS rows com `requisitante_id=99`. Validar: `SELECT count(*)` de pedidos com `requisitante_id=1` deve ser IGUAL antes e depois do cleanup.
 - [ ] `loginE2E(page)` injeta cookie `finbot_session`; chamada subsequente `page.goto('/')` resolve sem redirecionar para login.
 - [ ] `global-setup.ts` com `.env.e2e` ausente → mensagem de erro clara com instrução de copiar o exemplo.
-- [ ] `payloads-telegram.ts` exporta exatamente 2 factories no MVP (texto puro, sticker); comentário TODO para foto+caption presente.
+- [ ] `payloads-telegram.ts` exporta exatamente 3 factories (texto puro, sticker, foto+caption) + a constante `E2E_MOCK_FILE_ID`.
 - [ ] Banco usa credenciais de `.env.e2e` (zero hardcoded no código).
 - [ ] `npm test` (Vitest) continua verde.
 - [ ] Branch: `feature/qa-003-fixtures-banco-auth-payloads` saindo de `integration/03-folha-pagamento` (que já contém código da QA-001).
@@ -99,9 +101,9 @@ Não aplicável: fixtures validadas por smoke da QA-004. Testes unitários de he
 
 ## Fora de escopo
 
-- `telegramUpdateFotoLegenda` — bloqueado (decisão §3 da spec QA, aguarda ADR de mock de mídia).
 - Testes unitários dos helpers de banco.
 - Mudanças no back (admin API para gerar convite deve existir; se não existir, abrir FIX separado).
+- Limpeza de S3 — objetos de foto de teste acumulam no bucket dev; aceito para Fase 1 (ver QA-002 §Fora de escopo).
 
 ---
 

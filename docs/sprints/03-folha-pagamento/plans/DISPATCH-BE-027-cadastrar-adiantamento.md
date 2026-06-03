@@ -1,6 +1,6 @@
 # DISPATCH — BE-027-cadastrar-adiantamento (single-task)
 
-> **Quando usar:** após BE-026 mergeada em `develop` (não em paralelo com ela).
+> **Quando usar:** após BE-026 mergeada em `integration/03-folha-pagamento` (não em paralelo com ela).
 > O `FolhaController.java` foi criado por BE-026 — esta task apenas adiciona endpoints nele.
 > ⚠️ Serialização intencional: o plano original dizia "paralelo com BE-026", mas como ambas tocam
 > `FolhaController.java`, o dispatch resolve serializando para evitar conflito de merge.
@@ -9,9 +9,9 @@
 
 ## Pré-condições (git)
 
-- **`feature/be-024-entidades-jpa-repositorios-folha` mergeada em `develop`** — ports de Adiantamento precisam existir.
-- **`feature/be-026-cadastrar-vale` mergeada em `develop`** — FolhaController.java deve existir para esta task adicionar endpoints nele sem conflito.
-  Confirmar ambas: `git log origin/develop --oneline | grep -E "be-024|be-026"`.
+- **`feature/be-024-entidades-jpa-repositorios-folha` mergeada em `integration/03-folha-pagamento`** — ports de Adiantamento precisam existir.
+- **`feature/be-026-cadastrar-vale` mergeada em `integration/03-folha-pagamento`** — FolhaController.java deve existir para esta task adicionar endpoints nele sem conflito.
+  Confirmar ambas: `git log origin/integration/03-folha-pagamento --oneline | grep -E "be-024|be-026"`.
 
 ---
 
@@ -43,7 +43,7 @@ Modificar:
 
 ## REGRAS DURAS
 
-1. Branch: `feature/be-027-cadastrar-adiantamento` saindo de `origin/develop`
+1. Branch: `feature/be-027-cadastrar-adiantamento` saindo de `origin/integration/03-folha-pagamento`
    (develop já tem BE-026 com FolhaController.java).
 2. Território: SÓ `financas_bot_telegram/`. Zero `frontend/`.
 3. FolhaController.java JÁ EXISTE — apenas adicionar os 3 endpoints de adiantamento. Não reescrever.
@@ -51,7 +51,7 @@ Modificar:
    |valor_total - valor_parcela * num_parcelas| <= 0.01 → se falhar, rejeitar com 400.
 5. DELETE de adiantamento: soft (ativo=false). Se já quitado (parcelas_pagas == num_parcelas) → 409.
 6. 1 commit: `feat(BE-027): CadastrarAdiantamento + endpoints adiantamentos`.
-7. NÃO mergeie. PR pra develop após status report + Reviewer.
+7. NÃO mergeie. PR pra `integration/03-folha-pagamento` após status report + Reviewer.
 
 ## DECISÃO A TOMAR
 

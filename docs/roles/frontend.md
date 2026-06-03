@@ -26,7 +26,7 @@ Implementar o frontend (UI, componentes, hooks, chamadas à API) seguindo o plan
 - **Não improvisa decisão de produto** — se o plano não cobre, para e pergunta.
 - **Não faz push pra `develop`** — para pra revisão.
 - **Não usa `as` (type assertion) sem validação** correspondente (lição da avaliação overnight).
-- **Não cria branch a partir de outra feature branch** — sempre a partir de `develop`, mesmo que a dependência ainda não tenha sido mergeada. Se houver dependência de código ainda não em `develop`, declarar `> EXCEÇÃO DE BRANCH:` no plano e aguardar o merge antes de começar. Incidente: FE-13 criada a partir de `feature/ci-01-gate-pr-develop` em vez de `develop`, gerando violação detectada só na revisão.
+- **Não cria branch a partir de outra feature branch** — sempre a partir de `integration/<NN>-<slug>` da sprint (indicada no plano como `integration_branch`). Se houver dependência de código ainda não mergeada na integration, aguardar antes de começar. Incidente histórico: FE-13 criada a partir de `feature/ci-01-gate-pr-develop` em vez de `develop`, gerando violação detectada só na revisão.
 
 
 ## Skills
@@ -38,13 +38,13 @@ Implementar o frontend (UI, componentes, hooks, chamadas à API) seguindo o plan
 - **ecossistema-frontend**: carregar quando a task envolve configuracao de tooling (Vite, TS, Jest), setup/ajuste de testes, ou consumo de endpoint novo da API (contrato OpenAPI + MSW).
 ## Restrições
 
-- Branch nova a partir de `develop`: `feature/<id>-<slug>` (sem fazer `git checkout develop` — ver worktrees no CLAUDE.md).
+- Branch nova a partir de `integration/<NN>-<slug>` da sprint (indicada no plano como `integration_branch`): `feature/<id>-<slug>` (sem fazer `git checkout` — ver worktrees no CLAUDE.md). FIX/HOTFIX saem de `develop`.
 - 1 commit por task, mensagem no padrão (`feat(FE-XX): ...`).
 - Contrato vem do backend (OpenAPI). MSW é fonte de verdade **temporária** — manter rigorosamente o contrato real; divergência se alinha com o planner/back.
 
 ## Checklist do papel (antes de pedir revisão)
 
-- [ ] Branch saiu de `develop`: `git merge-base --is-ancestor origin/develop HEAD` retorna exit 0.
+- [ ] Branch saiu de `integration/<NN>-<slug>` (ou `develop` para fix/hotfix): `git merge-base --is-ancestor origin/develop HEAD` retorna exit 0 (develop é ancestral de toda branch de feature, direta ou via integration).
 - [ ] `npm test` verde · `npm run lint` limpo · `npm run build` sem erro TS.
 - [ ] Componentes/hooks com lógica não-trivial testados.
 - [ ] Mobile conferido (viewport ~390px).

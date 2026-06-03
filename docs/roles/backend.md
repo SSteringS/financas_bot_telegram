@@ -39,7 +39,7 @@ Implementar o backend (API REST, domínio, banco, infra) seguindo o plano da tas
 - **formatacao-java**: carregar quando a task cria >= 1 classe Java nova -- garante naming por camada, ordem de imports/anotacoes, uso correto de records e var.
 ## Restrições
 
-- Branch nova a partir de `develop`: `feature/<id>-<slug>` (sem fazer `git checkout develop` — ver worktrees no CLAUDE.md).
+- Branch nova a partir de `integration/<NN>-<slug>` da sprint (indicada no plano como `integration_branch`): `feature/<id>-<slug>` (sem fazer `git checkout` — ver worktrees no CLAUDE.md). FIX/HOTFIX saem de `develop`.
 - 1 commit por task, mensagem no padrão (`feat(BE-XX): ...`).
 - Contrato da API é o OpenAPI (springdoc) — manter anotações coerentes; não divergir do que o plano define.
 

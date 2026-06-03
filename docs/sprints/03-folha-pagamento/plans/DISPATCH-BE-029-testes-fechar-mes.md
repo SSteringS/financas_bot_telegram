@@ -1,6 +1,6 @@
 # DISPATCH — BE-029-testes-fechar-mes (single-task)
 
-> **Quando usar:** após BE-028 mergeada em `develop` e o Reviewer ter aprovado a implementação.
+> **Quando usar:** após BE-028 mergeada em `integration/03-folha-pagamento` e o Reviewer ter aprovado a implementação.
 > O objetivo desta task é escrever testes que validam a implementação do FecharMesUseCase — não mudar o use case.
 > Por isso ela vem DEPOIS da revisão: evita que testes validem comportamento errado sem contestar.
 
@@ -8,8 +8,8 @@
 
 ## Pré-condições (git)
 
-- **`feature/be-028-fechar-mes` mergeada em `develop`** — FecharMesUseCase, FechamentoDuplicadoException e o endpoint precisam existir.
-  Confirmar: `git log origin/develop --oneline | grep be-028`.
+- **`feature/be-028-fechar-mes` mergeada em `integration/03-folha-pagamento`** — FecharMesUseCase, FechamentoDuplicadoException e o endpoint precisam existir.
+  Confirmar: `git log origin/integration/03-folha-pagamento --oneline | grep be-028`.
 
 ---
 
@@ -51,13 +51,13 @@ Se encontrar bug na implementação durante os testes: documentar no status repo
 
 ## REGRAS DURAS
 
-1. Branch: `feature/be-029-testes-fechar-mes` saindo de `origin/develop`.
+1. Branch: `feature/be-029-testes-fechar-mes` saindo de `origin/integration/03-folha-pagamento`.
 2. Território: SÓ `financas_bot_telegram/src/test/`. Zero `src/main/`. Zero `frontend/`.
 3. NÃO alterar FecharMesUseCase.java nem FolhaController.java — só escrever testes.
 4. Integração deve usar banco real (Testcontainers MySQL OU H2 com compatibilidade MySQL 8).
    Se H2: verificar que CHECK constraints da V6 estão desabilitadas ou emuladas no perfil de teste.
 5. 1 commit: `test(BE-029): cobertura FecharMesUseCase — unitario + integracao endpoint`.
-6. NÃO mergeie. PR pra develop após status report + Reviewer.
+6. NÃO mergeie. PR pra `integration/03-folha-pagamento` após status report + Reviewer.
 
 ## TESTES
 

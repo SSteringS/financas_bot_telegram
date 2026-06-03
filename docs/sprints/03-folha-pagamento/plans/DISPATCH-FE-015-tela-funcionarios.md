@@ -1,6 +1,6 @@
 # DISPATCH — FE-015-tela-funcionarios (single-task)
 
-> **Quando usar:** após BE-025 mergeada em `develop`.
+> **Quando usar:** após BE-025 mergeada em `integration/03-folha-pagamento`.
 > Os endpoints de funcionário precisam estar em `develop` para testar contra a API real.
 > ⚠️ **FE-016 não deve iniciar antes desta mergear** — FE-016 depende de `src/types/folha.ts`
 > e `src/api/folha.ts` que são criados aqui.
@@ -9,8 +9,8 @@
 
 ## Pré-condições (git)
 
-- **`feature/be-025-crud-funcionario` mergeada em `develop`** — endpoints GET/POST/PUT/DELETE /api/funcionarios disponíveis.
-  Confirmar: `git log origin/develop --oneline | grep be-025`.
+- **`feature/be-025-crud-funcionario` mergeada em `integration/03-folha-pagamento`** — endpoints GET/POST/PUT/DELETE /api/funcionarios disponíveis.
+  Confirmar: `git log origin/integration/03-folha-pagamento --oneline | grep be-025`.
 
 ---
 
@@ -42,9 +42,9 @@ Criar a nova aba "Folha de pagamento" no front com a lista de funcionários e fo
 
 ## REGRAS DURAS
 
-1. Branch: `feature/fe-015-tela-funcionarios` saindo de `origin/develop`.
+1. Branch: `feature/fe-015-tela-funcionarios` saindo de `origin/integration/03-folha-pagamento`.
 2. Território: SÓ `frontend/`. Zero `financas_bot_telegram/`.
-3. NUNCA a partir de outra feature branch — sempre de origin/develop (regra do agent).
+3. NUNCA a partir de outra feature branch — sempre de origin/integration/03-folha-pagamento (ver CLAUDE.md §Fluxo de branches).
 4. Badge laranja para conta_propria=false (ex: pagamento para familiar).
 5. Campos condicionais no formulário:
    - PIX selecionado → exibir só chave_pix; ocultar campos TED.
@@ -52,7 +52,7 @@ Criar a nova aba "Folha de pagamento" no front com a lista de funcionários e fo
    Usar watch('forma_pagamento') do react-hook-form.
 6. Clique na linha da tabela deve navegar para /folha/funcionarios/{id} (rota de FE-016 — pode ser um link vazio por ora se FE-016 ainda não existir).
 7. 1 commit: `feat(FE-015): tela funcionarios — lista + formulario cadastro/edicao`.
-8. NÃO mergeie. PR pra develop após status report + Reviewer.
+8. NÃO mergeie. PR pra `integration/03-folha-pagamento` após status report + Reviewer.
 
 ## VERIFICAÇÃO ANTES DE CODAR
 

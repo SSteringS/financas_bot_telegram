@@ -41,8 +41,8 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 
 | ID | Slug | Porte | Depende de | Território | Estado |
 |----|------|-------|------------|-----------|--------|
-| QA-001 | setup-playwright-base | P | — | frontend | aguarda dispatch |
-| QA-002 | scripts-orquestracao-stack | M | QA-001 (integration) | frontend | aguarda dispatch |
+| QA-001 | setup-playwright-base | P | — | frontend | ✅ concluido (integration → develop PR #84) |
+| QA-002 | scripts-orquestracao-stack | M | QA-001 (integration) | frontend | ✅ concluido (integration → develop PR #84) |
 | QA-005 | doc-roteiro-e2e | P | — | plan | ✅ executado (planner) |
 | QA-006 | pre-merge-add-e2e-gate | P | QA-005 | plan | ✅ executado (planner) |
 
@@ -50,7 +50,7 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 
 | ID | Slug | Porte | Depende de | Estado |
 |----|------|-------|------------|--------|
-| QA-003 | fixtures-banco-auth-payloads | M | BE-023 (develop) + QA-001 (integration) | aguarda dispatch |
+| QA-003 | fixtures-banco-auth-payloads | M | BE-023 (develop) + QA-001 (integration) | ✅ concluido (develop PR #85/#86 — revisão informal, débito de processo) |
 | QA-004 | specs-mvp-3-cenarios | M | QA-002 + QA-003 (integration) | aguarda dispatch |
 
 > ⚠️ **QA-004 cenário foto+caption bloqueado** — aguarda sessão com arquiteto para decidir estratégia de mock de download de mídia Telegram (vira ADR Proposed separado). Texto puro + sticker implementados normalmente.
@@ -82,8 +82,8 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 
 ## Fluxo de git desta sprint
 
-- **BE/FE:** `feature/be-NNN-<slug>` e `feature/fe-NNN-<slug>`, PR pra `develop`, Reviewer obrigatório antes do merge.
-- **QA:** `feature/qa-NNN-<slug>`, PR pra `integration/03-folha-pagamento` (implementador pode aceitar o próprio PR). Merge de `integration → develop` é gate do humano ao final da sprint.
+- **BE/FE/QA:** todas as features saem de `origin/integration/03-folha-pagamento` e fazem PR para `integration`. Develop só aceita de integration ao final da sprint (gate do humano). Regra canônica em `CLAUDE.md §Fluxo de branches`.
+- **Exceção QA-004:** parte de `develop` (QA-003 foi para develop diretamente — integration não tem as fixtures).
 
 ---
 

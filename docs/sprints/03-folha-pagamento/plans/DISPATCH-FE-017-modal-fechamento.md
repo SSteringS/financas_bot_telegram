@@ -1,6 +1,6 @@
 # DISPATCH — FE-017-modal-fechamento (single-task)
 
-> **Quando usar:** após FE-016 mergeada em `develop`.
+> **Quando usar:** após FE-016 mergeada em `integration/03-folha-pagamento`.
 > FE-017 modifica `FolhaFuncionarioPage.tsx` (criado em FE-016) e substitui o stub de ModalFechamento.
 > Também pode iniciar após BE-028 (endpoint de fechamento) para validar o POST real.
 
@@ -8,9 +8,9 @@
 
 ## Pré-condições (git)
 
-- **`feature/fe-016-tela-folha-funcionario` mergeada em `develop`** — FolhaFuncionarioPage.tsx e o stub do ModalFechamento precisam existir.
-  Confirmar: `git log origin/develop --oneline | grep fe-016`.
-- BE-028 já deve estar em develop também (para testar o POST real de fechamento).
+- **`feature/fe-016-tela-folha-funcionario` mergeada em `integration/03-folha-pagamento`** — FolhaFuncionarioPage.tsx e o stub do ModalFechamento precisam existir.
+  Confirmar: `git log origin/integration/03-folha-pagamento --oneline | grep fe-016`.
+- BE-028 já deve estar em integration também (para testar o POST real de fechamento).
 
 ---
 
@@ -64,14 +64,14 @@ Calcular internamente: totalVales = soma(vales.valor), totalParcelas = soma(adia
 
 ## REGRAS DURAS
 
-1. Branch: `feature/fe-017-modal-fechamento` saindo de `origin/develop`
+1. Branch: `feature/fe-017-modal-fechamento` saindo de `origin/integration/03-folha-pagamento`
    (develop já tem FE-016 com FolhaFuncionarioPage.tsx e o stub).
 2. Território: SÓ `frontend/`. Zero `financas_bot_telegram/`.
-3. NUNCA a partir de outra feature branch — sempre de origin/develop (regra do agent).
+3. NUNCA a partir de outra feature branch — sempre de origin/integration/03-folha-pagamento (ver CLAUDE.md §Fluxo de branches).
 4. Cálculo de preview: ZERO roundtrips — tudo local com os dados recebidos via props.
 5. Erro 409: mapear para mensagem "Mês já fechado" — não exibir stack trace.
 6. 1 commit: `feat(FE-017): ModalFechamento com calculo em tempo real`.
-7. NÃO mergeie. PR pra develop após status report + Reviewer.
+7. NÃO mergeie. PR pra `integration/03-folha-pagamento` após status report + Reviewer.
 
 ## VERIFICAÇÃO ANTES DE CODAR
 
