@@ -1,13 +1,13 @@
 # DISPATCH — BE-025-crud-funcionario (single-task)
 
-> **Quando usar:** após o PR da BE-024 ser mergeado em `develop`. Pode rodar em paralelo com BE-026.
+> **Quando usar:** após o PR da BE-024 ser mergeado em `integration/03-folha-pagamento`. Pode rodar em paralelo com BE-026.
 
 ---
 
 ## Pré-condições (git)
 
-- **`feature/be-024-entidades-jpa-repositorios-folha` mergeada em `develop`** — entidades JPA, ports e adapters de Funcionario precisam existir antes de compilar o use case desta task.
-  Confirmar: `git log origin/develop --oneline | grep be-024`.
+- **`feature/be-024-entidades-jpa-repositorios-folha` mergeada em `integration/03-folha-pagamento`** — entidades JPA, ports e adapters de Funcionario precisam existir antes de compilar o use case desta task.
+  Confirmar: `git log origin/integration/03-folha-pagamento --oneline | grep be-024`.
 
 ---
 
@@ -39,13 +39,13 @@ Criar:
 
 ## REGRAS DURAS
 
-1. Branch: `feature/be-025-crud-funcionario` saindo de `origin/develop`.
+1. Branch: `feature/be-025-crud-funcionario` saindo de `origin/integration/03-folha-pagamento`.
 2. Território: SÓ `financas_bot_telegram/`. Zero `frontend/`.
 3. Validação condicional PIX/TED: implementar no DTO (Bean Validation @AssertTrue na classe)
    OU validator customizado. Documentar a escolha no status report.
 4. DELETE é soft (ativo=false). NÃO remover do banco.
 5. 1 commit: `feat(BE-025): CadastrarFuncionario + CRUD /api/funcionarios`.
-6. NÃO mergeie. PR pra develop após status report + Reviewer.
+6. NÃO mergeie. PR pra `integration/03-folha-pagamento` após status report + Reviewer.
 
 ## DECISÃO A TOMAR
 

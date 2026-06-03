@@ -1,6 +1,6 @@
 # DISPATCH — BE-026-cadastrar-vale (single-task)
 
-> **Quando usar:** após BE-024 mergeada em `develop`. Pode rodar em paralelo com BE-025.
+> **Quando usar:** após BE-024 mergeada em `integration/03-folha-pagamento`. Pode rodar em paralelo com BE-025.
 > ⚠️ **BE-027 NÃO deve iniciar antes desta mergear** — ambas tocam `FolhaController.java`.
 > Esta task é responsável por **criar** o `FolhaController.java`; BE-027 vai apenas **adicionar** endpoints nele.
 
@@ -8,8 +8,8 @@
 
 ## Pré-condições (git)
 
-- **`feature/be-024-entidades-jpa-repositorios-folha` mergeada em `develop`** — CadastrarValePortOut e as entidades precisam existir.
-  Confirmar: `git log origin/develop --oneline | grep be-024`.
+- **`feature/be-024-entidades-jpa-repositorios-folha` mergeada em `integration/03-folha-pagamento`** — CadastrarValePortOut e as entidades precisam existir.
+  Confirmar: `git log origin/integration/03-folha-pagamento --oneline | grep be-024`.
 - **Decisão §7 (vales na lista do Pedro):** PENDENTE — esta task explicitamente NÃO toca `GET /api/pedidos`. Registrar a decisão que o PO tomar no status report (qual opção: A ou B).
 
 ---
@@ -40,7 +40,7 @@ Criar:
 
 ## REGRAS DURAS
 
-1. Branch: `feature/be-026-cadastrar-vale` saindo de `origin/develop`.
+1. Branch: `feature/be-026-cadastrar-vale` saindo de `origin/integration/03-folha-pagamento`.
 2. Território: SÓ `financas_bot_telegram/`. Zero `frontend/`.
 3. ESTA TASK CRIA FolhaController.java — BE-027 vai adicionar endpoints nele depois do merge.
    Estruturar o controller para ser extensível (sem lógica hardcoded de roteamento).
@@ -50,7 +50,7 @@ Criar:
    - PAGO = vale entregue em espécie, sem necessidade de comprovante.
    Se não conseguir esclarecer: usar PENDENTE como padrão seguro e documentar no status report.
 6. 1 commit: `feat(BE-026): CadastrarVale + endpoints de vales`.
-7. NÃO mergeie. PR pra develop após status report + Reviewer.
+7. NÃO mergeie. PR pra `integration/03-folha-pagamento` após status report + Reviewer.
 
 ## VERIFICAÇÃO DE ESCOPO
 

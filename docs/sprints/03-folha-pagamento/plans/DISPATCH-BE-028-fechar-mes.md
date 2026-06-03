@@ -1,6 +1,6 @@
 # DISPATCH — BE-028-fechar-mes (single-task)
 
-> **Quando usar:** após BE-024, BE-026 E BE-027 **todas mergeadas** em `develop`.
+> **Quando usar:** após BE-024, BE-026 E BE-027 **todas mergeadas** em `integration/03-folha-pagamento`.
 > FecharMesUseCase depende dos ports de vales (BE-026) e adiantamentos (BE-027) que precisam existir.
 
 ---
@@ -9,7 +9,7 @@
 
 Confirmar as três antes de despachar:
 ```
-git log origin/develop --oneline | grep -E "be-024|be-026|be-027"
+git log origin/integration/03-folha-pagamento --oneline | grep -E "be-024|be-026|be-027"
 ```
 Todos os três devem aparecer. Se algum faltar, aguardar o merge.
 
@@ -72,12 +72,12 @@ Não prosseguir para o use case sem resolver isso — a transação vai falhar n
 
 ## REGRAS DURAS
 
-1. Branch: `feature/be-028-fechar-mes` saindo de `origin/develop`.
+1. Branch: `feature/be-028-fechar-mes` saindo de `origin/integration/03-folha-pagamento`.
 2. Território: SÓ `financas_bot_telegram/`. Zero `frontend/`.
 3. FecharMesUseCase DEVE ter @Transactional — todos os 11 passos em uma transação.
 4. DataIntegrityViolationException (UNIQUE INDEX race condition) → capturar e relançar como FechamentoDuplicadoException.
 5. 1 commit: `feat(BE-028): FecharMesUseCase + endpoint de fechamento`.
-6. NÃO mergeie. PR pra develop após status report + Reviewer.
+6. NÃO mergeie. PR pra `integration/03-folha-pagamento` após status report + Reviewer.
 
 ## TESTES DESTA TASK
 
