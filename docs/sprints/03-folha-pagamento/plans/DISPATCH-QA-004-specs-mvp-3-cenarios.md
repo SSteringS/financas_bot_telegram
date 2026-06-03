@@ -1,16 +1,18 @@
 # DISPATCH — QA-004-specs-mvp-3-cenarios (single-task)
 
-> **Lote B — despachar somente após QA-002 E QA-003 mergeadas na integration branch.**
+> **Lote B — despachar somente após QA-002 E QA-003 em `develop`.**
 > É o entregável final da Fase 1. **Inclui os 3 cenários de webhook: texto puro + sticker + foto+caption.**
 > O mock Telegram (QA-002) resolve o download de arquivo via `TELEGRAM_API_URL=http://localhost:9090`.
+>
+> ⚠️ **Nota de branch (2026-06-03):** QA-003 foi mergeada diretamente em `develop` (PR #85/#86), não em `integration`. Por isso esta task **parte de `develop`** (que tem QA-001+002+003) — o PR alvo continua sendo `integration/03-folha-pagamento`. Exceção única; a partir de QA-004 todas as features voltam ao fluxo feature→integration.
 
 ---
 
 ## Pré-condições (git)
 
-- `feature/qa-002-scripts-orquestracao-stack` mergeada em `integration/03-folha-pagamento`.
-- `feature/qa-003-fixtures-banco-auth-payloads` mergeada em `integration/03-folha-pagamento`.
-  Confirmar: `git log origin/integration/03-folha-pagamento --oneline | grep -E "qa-002|qa-003"`
+- `feature/qa-002-scripts-orquestracao-stack` mergeada em `develop` ✅ (via integration PR #84).
+- `feature/qa-003-fixtures-banco-auth-payloads` mergeada em `develop` ✅ (PR #85/#86).
+  Confirmar: `git log origin/develop --oneline | grep -E "qa-002|qa-003"`
 
 ---
 
@@ -28,9 +30,11 @@ Leia também:
 
 ## ATENÇÃO — BRANCH
 
-Branch a partir de `integration/03-folha-pagamento` (que já tem QA-001, QA-002, QA-003):
+Branch a partir de `develop` (QA-003 foi para develop direto; integration não tem as fixtures):
   git fetch
-  git checkout -b feature/qa-004-specs-mvp-3-cenarios origin/integration/03-folha-pagamento
+  git checkout -b feature/qa-004-specs-mvp-3-cenarios origin/develop
+
+O PR alvo continua sendo `integration/03-folha-pagamento` (não develop direto).
 
 ## A TASK
 
@@ -74,22 +78,23 @@ for (const c of cenarios) {
 3. checkA11y(page, { includedImpacts: ['serious', 'critical'] })
 4. Nenhuma violação serious+critical → pass
 
-### playwright.config.ts (atualizar o de QA-001)
-Adicionar:
-- reporter: [['html'], ['list']]
-- outputDir: './playwright-report'
+### playwright.config.ts
+`reporter` e `outputDir` já foram adicionados pela implementação de QA-001 — **não recriar**.
+Verificar se `outputDir: './playwright-report'` (atual) está causando confusão com os artifacts de debug;
+se preferir, mover para `'./test-results'` (padrão semântico do Playwright — já está no .gitignore).
+Caso contrário, aceitar como está e seguir.
 
 ### .gitignore
 - Confirmar que `frontend/playwright-report/` está ignorado (QA-001 deveria ter feito — verificar)
 
 ## REGRAS DURAS
 
-1. Branch: `feature/qa-004-specs-mvp-3-cenarios` saindo de `origin/integration/03-folha-pagamento`.
+1. Branch: `feature/qa-004-specs-mvp-3-cenarios` saindo de `origin/develop`.
 2. Território: SÓ `frontend/`. Zero `financas_bot_telegram/`. Zero frontend/src/.
 3. Os 3 cenários de webhook DEVEM estar na tabela: texto puro, sticker, foto+caption.
 4. playwright-report/ NÃO commitado — verificar .gitignore.
 5. 1 commit: `feat(QA-004): 3 specs MVP — fluxo feliz, webhook (3 cenarios), a11y`.
-6. PR: `feature/qa-004-specs-mvp-3-cenarios → integration/03-folha-pagamento`.
+6. PR: `feature/qa-004-specs-mvp-3-cenarios → integration/03-folha-pagamento` (NÃO para develop direto).
 
 ## VALIDAÇÃO DE ESTABILIDADE (obrigatória)
 

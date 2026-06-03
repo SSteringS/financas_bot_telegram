@@ -82,8 +82,8 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 
 ## Fluxo de git desta sprint
 
-- **BE/FE:** `feature/be-NNN-<slug>` e `feature/fe-NNN-<slug>`, PR pra `develop`, Reviewer obrigatório antes do merge.
-- **QA:** `feature/qa-NNN-<slug>`, PR pra `integration/03-folha-pagamento` (implementador pode aceitar o próprio PR). Merge de `integration → develop` é gate do humano ao final da sprint.
+- **BE/FE/QA (a partir de 2026-06-03):** todas as features saem de `origin/integration/03-folha-pagamento` e fazem PR para `integration`. Develop só aceita de integration (gate do humano ao final da sprint). Ver `plans/FLUXO-BRANCH-SPRINT03.md`.
+- **Exceção QA-004:** parte de `develop` (QA-003 foi para develop diretamente e integration não tem as fixtures).
 
 ---
 
