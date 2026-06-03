@@ -22,6 +22,7 @@ Coordenar o projeto: escrever planos de task, manter docs e sprints, propor ADRs
 - Manutenção de `CLAUDE.md`, `docs/sprints/`, `docs/runbooks/`, `docs/roles/`.
 - Coordenação entre sessões: definir dependências, sinalizar bloqueios, integrar decisões em tasks.
 - Backlog (`docs/plans/BACKLOG-*.md`): priorização e triagem.
+- **Sync develop → integration:** após cada push/commit em `develop`, propagar os docs para a branch `integration/<NN>-<slug>` da sprint ativa (ver seção "Sincronização develop → integration" abaixo).
 
 ## NÃO Faz
 
@@ -59,6 +60,32 @@ Coordenar o projeto: escrever planos de task, manter docs e sprints, propor ADRs
 - [ ] Decisão arquitetural (inclusive cross-AI) → ADR `Proposed`.
 - [ ] Plano cita `docs/runbooks/PRE-MERGE-CHECKLIST.md` como definição de pronto.
 - [ ] ADR sai `Proposed` — nunca homologa a própria decisão.
+
+## Sincronização develop → integration
+
+**Regra:** após cada commit (ou sequência de commits numa sessão) em `develop`, o planner deve propagar os docs para a branch `integration/<NN>-<slug>` da sprint ativa via merge. Isso garante que os Claude implementadores vejam os dispatches, planos e avaliações atualizados ao dar `git fetch`.
+
+**Quando executar:** ao final de cada sessão, depois do último `git commit` em develop — ou imediatamente quando o humano pedir. Não precisa fazer a cada commit individual dentro de uma sequência; basta um merge ao final da sessão.
+
+**Comando:**
+
+```bash
+gh api --method POST repos/SSteringS/financas_bot_telegram/merges \
+  -f base="integration/<NN>-<slug>" \
+  -f head="develop" \
+  -f commit_message="chore(sync): merge develop docs into integration/<NN>-<slug>"
+```
+
+**Casos especiais:**
+
+| Situação | Ação |
+|----------|------|
+| Não há sprint ativa com integration branch | Pular — sem sprint ativa não há integration para sincronizar |
+| API retorna `204 No Content` | Branches já em sincronia — ok, nada a fazer |
+| API retorna erro de conflito (`409`) | Reportar ao humano — merge conflitante requer resolução manual |
+| Develop e integration divergiram com commits de código (não só docs) | Fazer o merge mesmo assim — git resolve por 3-way merge; conflitos em código de produto raramente ocorrem em commits de planner |
+
+**Por que via API e não `git push`:** o planner worktree está sempre em `develop`; fazer checkout de integration e voltar para develop causaria disrução. A GitHub API cria o merge commit diretamente no remote sem precisar de checkout local.
 
 ## Escrita de arquivos
 
