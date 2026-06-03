@@ -2,7 +2,7 @@
   "extends": "../tsconfig.app.json",
   "compilerOptions": {
     "moduleResolution": "node",
-    "allowImportingTsExtensions": false,
+    "allowImportingTsExtensions": true,
     "noEmit": true,
     "types": ["node"]
   },
