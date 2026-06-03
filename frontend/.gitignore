@@ -31,5 +31,6 @@ dist-ssr
 
 # E2E — credenciais locais e artefatos gerados
 .env.e2e
+.e2e-pids
 playwright-report/
 test-results/

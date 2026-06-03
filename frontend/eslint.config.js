@@ -30,5 +30,17 @@ export default tseslint.config(
       ],
     },
   },
+  // Scripts E2E — ambiente Node.js, sem globals do browser nem regras React
+  {
+    files: ['e2e/**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      globals: globals.node,
+    },
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+      'react-refresh/only-export-components': 'off',
+    },
+  },
   prettier,
 )
