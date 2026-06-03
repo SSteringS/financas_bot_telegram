@@ -2,7 +2,7 @@
 adr: "0016"
 titulo: "EVO-09: Folha de Pagamento — decisoes arquiteturais"
 data: 2026-05-31
-status: Proposed
+status: Accepted
 decisores: humano-com-arquiteto
 relacionado: ["0004", "0005", "0007", "0011", "0015"]
 supersedes: null
