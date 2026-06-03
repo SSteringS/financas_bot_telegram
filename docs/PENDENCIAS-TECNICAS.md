@@ -208,7 +208,7 @@ Resultado: a API expõe um campo que **mente** (`null` quando deveria ter dado).
 
 ---
 
-### Scripts E2E fora do type-check estático do TypeScript (QA-002 Obs 3)
+### ~~Scripts E2E fora do type-check estático do TypeScript (QA-002 Obs 3)~~
 
 **Contexto:** `frontend/e2e/tsconfig.json` existe mas não é referenciado em `frontend/tsconfig.json` (que só referencia `tsconfig.app.json` e `tsconfig.node.json`). Consequência: `npm run build` / `tsc -b` **não** verifica os scripts de E2E (`subir-stack.ts`, `aguardar-saude.ts`, `derrubar-stack.ts`). O `tsx` (via esbuild) os executa corretamente em runtime — mas erros de tipo só aparecem quando o script falha durante a execução dos testes, não na fase de build.
 
@@ -223,6 +223,8 @@ Adicionalmente, rodar `tsc -p e2e/tsconfig.json` isolado falha com TS5097 porque
 **Esforço:** baixo (~30 min).
 
 **Prioridade:** baixa. Pode ser feito em QA-003, QA-004, ou como FIX separado pós-sprint 03.
+
+> ~~**Resolvido em QA-003 (2026-06-03):** `e2e/tsconfig.json` corrigido — `allowImportingTsExtensions false→true`. O `tsconfig.json` principal ainda não referencia `e2e/tsconfig.json` explicitamente, mas o TS5097 que impedia a verificação estática isolada foi resolvido. Opção (b) parcialmente implementada.~~
 
 ---
 
