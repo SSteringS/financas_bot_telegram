@@ -111,3 +111,9 @@ Sem observacao de skills nesta task. `skills_eficazes: []`, `skills_gaps: []`.
 2. **Observacao 3 (tsconfig e2e):** registrar como pendencia tecnica em `docs/PENDENCIAS-TECNICAS.md` — os scripts e2e nao passam por type-check estatico no ciclo de build. Pode ser resolvido em QA-003 ou como FIX-NNN separado apos a sprint.
 
 3. **QA-004** pode iniciar apos QA-003 (que depende de BE-023 em develop). Sem bloqueio desta avaliacao.
+
+---
+
+> **Ação do planner (2026-06-03):**
+> - **Obs 1 (downstream ADR 0017) verificada:** `PRE-MERGE-CHECKLIST.md` já inclui `qa` no pattern (`(be|fe|dep|evo|ci|qa)`) e `CLAUDE.md` já documenta `qa-NNN` — pendência estava resolvida de sessão anterior. Nenhuma ação adicional necessária.
+> - **Obs 3 registrada:** scripts e2e sem type-check estático → `docs/PENDENCIAS-TECNICAS.md` (novo item).

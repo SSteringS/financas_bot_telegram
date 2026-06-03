@@ -54,7 +54,7 @@ Instalar `@playwright/test`, `@axe-core/playwright`, `tsx`, `mysql2`, `dotenv` c
 ### Criar
 - `frontend/playwright.config.ts` — config conforme spec §4.QA-001.
 - `frontend/e2e/tsconfig.json` — estende `../tsconfig.json` + ajustes pra `@playwright/test`.
-- `frontend/.env.e2e.example` — template versionado com TODOS os campos necessários (E2E_FRONTEND_URL, E2E_BACKEND_URL, E2E_DB_HOST, E2E_DB_PORT, E2E_DB_NAME, E2E_DB_USER, E2E_DB_PASSWORD, E2E_ADMIN_SECRET).
+- `frontend/.env.e2e.example` — template versionado com TODOS os campos necessários (E2E_FRONTEND_URL, E2E_BACKEND_URL, E2E_DB_HOST, E2E_DB_PORT, E2E_DB_NAME, E2E_DB_USER, E2E_DB_PASSWORD, E2E_ADMIN_KEY).
 - `frontend/e2e/specs/.gitkeep` — pasta vazia com placeholder.
 - `frontend/e2e/fixtures/.gitkeep` — pasta vazia com placeholder.
 

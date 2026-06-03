@@ -39,9 +39,13 @@ E2E_DB_PORT=3306
 E2E_DB_NAME=finbot_dev
 E2E_DB_USER=...
 E2E_DB_PASSWORD=...
-E2E_ADMIN_SECRET=...
+E2E_ADMIN_KEY=...
 E2E_WEBHOOK_SECRET=...
+TELEGRAM_API_URL=http://localhost:9090
+E2E_MOCK_TELEGRAM_PORT=9090
 ```
+
+> **`TELEGRAM_API_URL`** aponta o Spring Boot para o mock Telegram local (porta 9090) em vez da API real. Isso permite testar o cenário de foto+caption sem conexão externa. O mock server é iniciado automaticamente por `subir-stack.ts`.
 
 > ⚠️ **Nunca preencher `.env.e2e` com credenciais de produção.** (Ver §7 abaixo.)
 
@@ -58,9 +62,9 @@ npm run e2e:full
 
 Este comando executa em sequência:
 
-1. **`subir-stack.ts`** — verifica MySQL, sobe o backend Spring Boot (`dev` profile) e o Vite dev server. Aguarda healthchecks antes de prosseguir.
+1. **`subir-stack.ts`** — verifica MySQL, sobe o **mock Telegram** (`:9090`), o backend Spring Boot (`dev` profile, com `TELEGRAM_API_URL` injetada via env) e o Vite dev server. Aguarda healthchecks antes de prosseguir.
 2. **`playwright test`** — executa todas as specs em `e2e/specs/`.
-3. **`derrubar-stack.ts`** — para todos os processos (mesmo se os testes falharem).
+3. **`derrubar-stack.ts`** — para todos os processos incluindo o mock Telegram (mesmo se os testes falharem).
 
 > O `derrubar-stack` roda **sempre**, mesmo com testes vermelhos — o `;` entre os comandos garante isso.
 
@@ -99,16 +103,16 @@ Saída de sucesso:
 
 ```
   ✓  site-fluxo-feliz.spec.ts (1 test)  1.2s
-  ✓  webhook-cenarios.spec.ts (2 tests)  3.4s
+  ✓  webhook-cenarios.spec.ts (3 tests)  4.8s
   ✓  a11y-home.spec.ts (1 test)  0.8s
 
-  4 passed (5.4s)
+  5 passed (6.8s)
 ```
 
 Saída de falha:
 
 ```
-  ✗  webhook-cenarios.spec.ts (2 tests)  2.1s
+  ✗  webhook-cenarios.spec.ts (3 tests)  2.1s
     1 failed
 
   ● webhook recebe e processa: texto puro
@@ -183,6 +187,36 @@ O backend demorou mais de 60s para subir. Causas comuns:
 
 **Fix:** rodar `tsx e2e/scripts/subir-stack.ts` manualmente e observar o output para identificar o erro.
 
+### Mock Telegram não sobe (porta 9090)
+
+```
+Error: Healthcheck falhou: http://localhost:9090/health não respondeu em 5000ms
+```
+
+O processo `mock-telegram.ts` não iniciou corretamente. Causas comuns:
+- Porta 9090 já ocupada por outro processo.
+- `test-photo.jpg` ausente em `frontend/e2e/fixtures/` (não foi commitado).
+
+**Fix:**
+```bash
+# Verificar porta ocupada
+netstat -ano | findstr :9090
+# Verificar que o JPEG existe
+ls frontend/e2e/fixtures/test-photo.jpg
+# Testar o mock manualmente
+tsx frontend/e2e/scripts/mock-telegram.ts &
+curl http://localhost:9090/health
+curl "http://localhost:9090/bot123/getFile?file_id=TEST"
+```
+
+### Cenário foto+caption retorna 500 ou 422 no webhook
+
+O Spring Boot tentou baixar o arquivo do Telegram real (não do mock). Causas:
+- `TELEGRAM_API_URL` ausente ou incorreto no `.env.e2e`.
+- `subir-stack.ts` não carregou o `.env.e2e` antes de spawnar o Spring Boot.
+
+**Fix:** verificar `E2E_BACKEND_URL` e `TELEGRAM_API_URL` no `.env.e2e`. Confirmar que o Spring Boot foi spawned com `env: { ...process.env }`.
+
 ### Suíte passa localmente mas falha em outra máquina
 
 Verificar se `.env.e2e` tem as credenciais corretas para **aquele** ambiente. Nunca compartilhar o `.env.e2e` — o `.env.e2e.example` é o template compartilhado.
@@ -221,13 +255,15 @@ Abrir `frontend/e2e/specs/webhook-cenarios.spec.ts` e adicionar uma linha na tab
 const cenarios = [
   { nome: 'texto puro', payload: telegramUpdateTextoPuro({ fromUserId: 99, text: 'Oi bot' }) },
   { nome: 'sticker', payload: telegramUpdateSticker({ fromUserId: 99 }) },
-  // Adicionar aqui:
+  { nome: 'foto com caption', payload: telegramUpdateFotoLegenda({ fromUserId: 99, fileId: E2E_MOCK_FILE_ID, caption: 'comprovante fev' }) },
+  // Adicionar novos cenários aqui — cada linha = 1 test() adicional
   { nome: 'novo cenario', payload: telegramUpdateNovoCenario({ fromUserId: 99 }) },
-  // TODO Fase 1.1: foto+caption — aguardando ADR de mock de download de mídia Telegram
 ];
 ```
 
 Também criar o factory correspondente em `frontend/e2e/fixtures/payloads-telegram.ts`.
+
+> **Cenário com download de arquivo** (ex.: vídeo, documento): o mock Telegram (`:9090`) responde para qualquer `file_id` com o `test-photo.jpg`. Se o cenário exigir conteúdo diferente (ex.: PDF), estender o mock server para servir o arquivo correto baseado no `file_id` recebido.
 
 ### Fluxo de site novo
 
