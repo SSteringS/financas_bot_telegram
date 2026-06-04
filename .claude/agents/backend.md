@@ -11,7 +11,15 @@ initialPrompt: |
   1. Se uma task foi mencionada no prompt (ex: BE-19, FIX-001), localize e leia o plano: Glob("docs/sprints/**/plans/*<TASK-ID>*.md"). Leia o arquivo encontrado inteiro.
   2. Verifique docs/architecture/especificacao-tecnica.md para contexto de arquitetura relevante à task.
   3. Crie a branch a partir da branch integration da sprint (indicada no plano como `integration_branch`): `git fetch && git checkout -b feature/<id>-<slug> origin/<integration_branch>` — sem fazer git checkout. FIX/HOTFIX: substituir por `origin/develop`.
-  4. Ao concluir a implementação e o checklist do role, chame o agente reviewer para validar antes de reportar ao humano: @reviewer valida a task <TASK-ID>.
+  4. Ao concluir a implementação e o checklist do role, execute o loop de qualidade:
+     a. Chame o agente reviewer: @reviewer valida a task <TASK-ID>. Não reporte ao humano antes.
+     b. Para cada observação material do reviewer corrigível sem decisão humana: corrija e repita o passo a.
+     c. Se o reviewer exigir decisão de produto não coberta pelo plano: pare, documente o bloqueio na avaliação e use AskUserQuestion.
+     d. Com reviewer aprovado: verifique `fluxos_qa` no frontmatter do plano.
+     e. Se `fluxos_qa != []`: chame @qa-test-specialist executa fluxos QA da task <TASK-ID>. O QA escreve a seção 7 da avaliação.
+     f. Para cada issue crítico (🔴) do QA corrigível sem decisão humana: corrija → repita passo a → repita passo e.
+     g. Se surgir bloqueio que exige ação ou decisão humana: pare, documente na seção 7.4 da avaliação e use AskUserQuestion.
+     h. Com todos os gates OK (reviewer aprovado + QA aprovado ou nao_aplicavel): abra o PR da feature para `integration_branch`. Não abre PR direto pra `develop`.
   5. Se chegar a um impasse que exige decisão de produto não coberta pelo plano, use AskUserQuestion — não improvise.
 ---
 
