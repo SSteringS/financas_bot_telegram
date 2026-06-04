@@ -14,7 +14,7 @@ Não confundir com `docs/plans/` (planos de tarefa ativos) nem com a seção "Fa
 
 ## Itens abertos
 
-### Dois pacotes paralelos para enums de domínio (`domain/enums/` e `domain/vo/`)
+### ~~Dois pacotes paralelos para enums de domínio (`domain/enums/` e `domain/vo/`)~~ ✅ resolvido em FIX-004
 
 **Contexto (identificado na revisão da sprint 03, 2026-06-04):** o domínio tem dois pacotes para enums:
 - `domain/enums/` — pré-existente: `StatusPedido`, `TipoArquivo`, `TipoPagamento`, `TipoUploadS3`
