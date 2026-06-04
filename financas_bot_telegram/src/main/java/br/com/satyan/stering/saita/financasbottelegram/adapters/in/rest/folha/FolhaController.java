@@ -1,9 +1,15 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.rest.folha;
 
+import br.com.satyan.stering.saita.financasbottelegram.application.dto.AdiantamentoRequest;
+import br.com.satyan.stering.saita.financasbottelegram.application.dto.AdiantamentoResponse;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.ValeRequest;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.ValeResponse;
+import br.com.satyan.stering.saita.financasbottelegram.application.port.in.CadastrarAdiantamentoPortIn;
+import br.com.satyan.stering.saita.financasbottelegram.application.port.in.CancelarAdiantamentoPortIn;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.in.CadastrarValePortIn;
+import br.com.satyan.stering.saita.financasbottelegram.application.port.out.AdiantamentoRepositoryPortOut;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.PedidoPagamentoRepositoryPort;
+import br.com.satyan.stering.saita.financasbottelegram.domain.entity.Adiantamento;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -33,12 +39,21 @@ public class FolhaController {
 
     private final CadastrarValePortIn cadastrarValeUseCase;
     private final PedidoPagamentoRepositoryPort pedidoRepository;
+    private final CadastrarAdiantamentoPortIn cadastrarAdiantamentoUseCase;
+    private final CancelarAdiantamentoPortIn cancelarAdiantamentoUseCase;
+    private final AdiantamentoRepositoryPortOut adiantamentoRepository;
 
     public FolhaController(
             CadastrarValePortIn cadastrarValeUseCase,
-            PedidoPagamentoRepositoryPort pedidoRepository) {
+            PedidoPagamentoRepositoryPort pedidoRepository,
+            CadastrarAdiantamentoPortIn cadastrarAdiantamentoUseCase,
+            CancelarAdiantamentoPortIn cancelarAdiantamentoUseCase,
+            AdiantamentoRepositoryPortOut adiantamentoRepository) {
         this.cadastrarValeUseCase = cadastrarValeUseCase;
         this.pedidoRepository = pedidoRepository;
+        this.cadastrarAdiantamentoUseCase = cadastrarAdiantamentoUseCase;
+        this.cancelarAdiantamentoUseCase = cancelarAdiantamentoUseCase;
+        this.adiantamentoRepository = adiantamentoRepository;
     }
 
     // ── Vales ─────────────────────────────────────────────────────────────────
@@ -72,6 +87,41 @@ public class FolhaController {
         return pedidoRepository.findValesByFuncionarioAndPeriodo(id, inicio, fim).stream()
                 .map(ValeResponse::from)
                 .toList();
+    }
+
+    // ── Adiantamentos ─────────────────────────────────────────────────────────
+
+    @PostMapping("/{id}/adiantamentos")
+    @Operation(summary = "Cadastra um adiantamento parcelado para o funcionário")
+    public ResponseEntity<AdiantamentoResponse> cadastrarAdiantamento(
+            @PathVariable Long id,
+            @Valid @RequestBody AdiantamentoRequest request) {
+
+        Adiantamento adiantamento = Adiantamento.builder()
+                .descricao(request.getDescricao())
+                .valorTotal(request.getValorTotal())
+                .valorParcela(request.getValorParcela())
+                .numParcelas(request.getNumParcelas())
+                .dataInicio(request.getDataInicio())
+                .build();
+
+        Adiantamento criado = cadastrarAdiantamentoUseCase.cadastrar(id, adiantamento);
+        return ResponseEntity.status(HttpStatus.CREATED).body(AdiantamentoResponse.from(criado));
+    }
+
+    @GetMapping("/{id}/adiantamentos")
+    @Operation(summary = "Lista adiantamentos ativos do funcionário")
+    public List<AdiantamentoResponse> listarAdiantamentos(@PathVariable Long id) {
+        return adiantamentoRepository.findAtivosParaFuncionario(id).stream()
+                .map(AdiantamentoResponse::from)
+                .toList();
+    }
+
+    @DeleteMapping("/adiantamentos/{adiantamentoId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Cancela (soft delete: ativo=false) um adiantamento")
+    public void cancelarAdiantamento(@PathVariable Long adiantamentoId) {
+        cancelarAdiantamentoUseCase.cancelar(adiantamentoId);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
