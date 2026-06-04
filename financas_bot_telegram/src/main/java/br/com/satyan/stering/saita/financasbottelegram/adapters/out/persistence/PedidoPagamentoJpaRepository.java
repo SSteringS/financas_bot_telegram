@@ -75,4 +75,17 @@ public interface PedidoPagamentoJpaRepository
            ORDER BY p.mesReferencia DESC
            """)
     List<PedidoPagamentoEntity> findFolhasByFuncionario(@Param("funcionarioId") Long funcionarioId);
+
+    @Query("""
+           SELECT p FROM PedidoPagamentoEntity p
+           WHERE p.funcionarioId = :funcionarioId
+             AND p.categoria = br.com.satyan.stering.saita.financasbottelegram.domain.vo.CategoriaPedido.VALE
+             AND p.dataPedido >= :inicio
+             AND p.dataPedido <= :fim
+           ORDER BY p.dataPedido DESC
+           """)
+    List<PedidoPagamentoEntity> findValesByFuncionarioAndPeriodo(
+            @Param("funcionarioId") Long funcionarioId,
+            @Param("inicio") LocalDate inicio,
+            @Param("fim") LocalDate fim);
 }
