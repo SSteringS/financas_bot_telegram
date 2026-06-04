@@ -1,9 +1,10 @@
 /**
- * FolhaFuncionarioPage — tela de operação do funcionário (FE-016).
+ * FolhaFuncionarioPage — tela de operação do funcionário (FE-016 + FE-017).
  *
  * Rota: /folha/funcionarios/:id
  * Exibe: vales do mês, adiantamentos ativos, fechamentos anteriores.
  * Botão "Fechar mês" aparece somente se o mês selecionado ainda não foi fechado.
+ * Após confirmação do fechamento (FE-017): exibe banner de sucesso + invalida cache.
  */
 
 import { useState } from 'react'
@@ -31,6 +32,7 @@ export function FolhaFuncionarioPage() {
 
   const [mesSelecionado, setMesSelecionado] = useState(mesCorrente)
   const [modalAberto, setModalAberto] = useState(false)
+  const [toastSucesso, setToastSucesso] = useState<string | null>(null)
 
   const {
     funcionario,
@@ -48,8 +50,8 @@ export function FolhaFuncionarioPage() {
   function handleFecharMesConfirmado(fechamento: Fechamento) {
     setModalAberto(false)
     invalidarPosFechamento()
-    // FE-017 pode adicionar toast aqui
-    void fechamento // suppress unused warning
+    setToastSucesso(`Mês ${fechamento.mesReferencia.slice(0, 7)} fechado — ${formatarMoeda(fechamento.valor)}`)
+    setTimeout(() => setToastSucesso(null), 4000)
   }
 
   // Label do mês para o botão
@@ -147,6 +149,17 @@ export function FolhaFuncionarioPage() {
         {/* Seção Fechamentos */}
         <FechamentosSection fechamentos={fechamentos} />
       </main>
+
+      {/* Toast de sucesso (FE-017) */}
+      {toastSucesso && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg z-50"
+          role="status"
+          data-testid="toast-sucesso"
+        >
+          ✓ {toastSucesso}
+        </div>
+      )}
 
       {/* Modal Fechamento (FE-017) */}
       {funcionario && (
