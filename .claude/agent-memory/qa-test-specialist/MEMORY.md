@@ -6,3 +6,5 @@
 - [A11y automatizada fora de escopo](project_a11y_fora_de_escopo.md) — decisão 2026-06-03: descopar axe enquanto audience for fechada (humano + Pedro)
 - [Sprint só fecha quando todas as atividades mergearem](feedback_estado_sprint.md) — não inferir fechamento de sprint do merge integration→develop
 - [Autorizado a executar testes no worktree do implementador](feedback_autorizacao_worktree_implementador.md) — Read/Bash sem pedir permissão a cada vez, quando o objetivo é teste automatizado
+- [Gaps recorrentes no domínio de folha de pagamento](project_gaps_folha_pagamento.md) — checklist para análise de FecharMes/Adiantamento (filtros temporais, @Transactional, race conditions)
+- [Helpers de teste com valores hardcoded são red flag](feedback_helpers_teste_hardcoded.md) — método: cruzar campos fixos do helper com condicionais do production code

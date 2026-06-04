@@ -43,13 +43,17 @@ Implementar o backend (API REST, domínio, banco, infra) seguindo o plano da tas
 - 1 commit por task, mensagem no padrão (`feat(BE-XX): ...`).
 - Contrato da API é o OpenAPI (springdoc) — manter anotações coerentes; não divergir do que o plano define.
 
-## Checklist do papel (antes de pedir revisão)
+## Checklist do papel (antes de mergear)
 
 - [ ] `mvn test` verde · `mvn package` ok.
 - [ ] Cobertura: lógica não-trivial testada.
 - [ ] Território respeitado (gate `territorio`).
-- [ ] Status report em `docs/sprints/<NN>/status/<TASK-ID>-<slug>.md` com frontmatter (gates preenchidos).
+- [ ] Status report em `docs/sprints/<NN>/status/<TASK-ID>-<slug>.md` com frontmatter (gates preenchidos) **e seção `## Padrões e decisões técnicas` preenchida**.
 - [ ] Passou pelo `docs/runbooks/PRE-MERGE-CHECKLIST.md`.
+- [ ] **Chamou o Reviewer** (Agent `reviewer`) e aguardou o veredito. Aprovado ou aprovado-com-observações = pode mergear; reprovado = corrige e recicla.
+- [ ] **Chamou o qa-test-specialist** (Agent `qa-test-specialist`) e aguardou a análise de gaps. Gaps bloqueantes = corrige antes do merge; observações = registra no status report.
+
+> **Regra:** não mergear sem o ok explícito do Reviewer **e** do qa-test-specialist. Chamar os dois é responsabilidade do implementador — não esperar que alguém peça.
 
 ## Ler sempre
 
