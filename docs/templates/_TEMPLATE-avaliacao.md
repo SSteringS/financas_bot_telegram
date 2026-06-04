@@ -179,3 +179,20 @@ Se nenhum: "Nenhum issue encontrado -- todos os fluxos passaram."
 Prosa de 1-2 frases justificando.
 - Se aprovado: "APROVADO: pode abrir PR para integration_branch."
 - Se reprovado: "ACAO NECESSARIA: corrigir issues CRITICOS antes de abrir PR -- retornar ao reviewer apos correcoes."
+
+---
+
+## 8. Observações do humano (code review manual)
+
+> Preenchido pelo **humano** após execução manual do code review, quando aplicável.
+> **Se esta seção estiver vazia ou ausente:** sem observações do humano nesta revisão — nenhuma ação pendente para o planner.
+> O planner interpreta ausência de conteúdo como "humano não encontrou pontos de atenção adicionais".
+>
+> Categorias sugeridas (usar como labels nos bullets):
+> - `inconsistencia-padroes` — divergência entre o que foi feito e padrões estabelecidos no projeto
+> - `fluxo-agentes` — observação sobre o processo de execução dos agentes (reviewer, QA, implementador)
+> - `decisao-tecnica` — decisão de implementação questionável ou que merece discussão
+> - `bug-potencial` — comportamento que pode causar problema em produção
+> - `template-docs` — necessidade de atualizar template ou documentação de processo
+
+(Descrever livremente. Cada ponto deve indicar: o que foi observado, onde está no código, e se há ação necessária — task nova, FIX, ADR ou registro em PENDENCIAS-TECNICAS.md.)
