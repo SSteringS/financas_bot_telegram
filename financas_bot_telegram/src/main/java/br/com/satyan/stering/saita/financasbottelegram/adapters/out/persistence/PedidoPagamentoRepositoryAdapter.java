@@ -58,4 +58,12 @@ public class PedidoPagamentoRepositoryAdapter implements PedidoPagamentoReposito
                 .map(mapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public List<PedidoPagamento> findValesByFuncionarioAndPeriodo(
+            Long funcionarioId, LocalDate inicio, LocalDate fim) {
+        return jpaRepository.findValesByFuncionarioAndPeriodo(funcionarioId, inicio, fim).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
 }

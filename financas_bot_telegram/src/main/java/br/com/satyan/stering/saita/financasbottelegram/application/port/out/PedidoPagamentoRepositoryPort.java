@@ -34,4 +34,10 @@ public interface PedidoPagamentoRepositoryPort {
      * Usado pelo endpoint {@code GET /api/funcionarios/{id}/fechamentos}.
      */
     List<PedidoPagamento> findFolhasByFuncionario(Long funcionarioId);
+
+    /**
+     * Lista todos os vales (abertos e fechados) do funcionário no período [inicio, fim].
+     * Usado pelo endpoint {@code GET /api/funcionarios/{id}/vales?mes=YYYY-MM}.
+     */
+    List<PedidoPagamento> findValesByFuncionarioAndPeriodo(Long funcionarioId, LocalDate inicio, LocalDate fim);
 }
