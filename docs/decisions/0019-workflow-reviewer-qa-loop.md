@@ -2,7 +2,7 @@
 adr: 0019
 titulo: "Workflow reviewer→QA com loop de correção e limites de rounds"
 data: 2026-06-04
-status: Proposed
+status: Accepted
 decisores: humano
 relacionado: [0004, 0005, 0017]
 supersedes: null
