@@ -5,9 +5,11 @@ import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface PedidoPagamentoJpaRepository
@@ -43,4 +45,34 @@ public interface PedidoPagamentoJpaRepository
             @Param("inicioMes") LocalDate inicioMes,
             @Param("fimMes") LocalDate fimMes,
             @Param("buscaPattern") String buscaPattern);
+
+    // ── Métodos V6: folha de pagamento ────────────────────────────────────────
+
+    @Query("""
+           SELECT p FROM PedidoPagamentoEntity p
+           WHERE p.funcionarioId = :funcionarioId
+             AND p.categoria = br.com.satyan.stering.saita.financasbottelegram.domain.vo.CategoriaPedido.VALE
+             AND p.fechado = false
+             AND p.dataPedido >= :inicio
+             AND p.dataPedido <= :fim
+           """)
+    List<PedidoPagamentoEntity> findValesAbertos(
+            @Param("funcionarioId") Long funcionarioId,
+            @Param("inicio") LocalDate inicio,
+            @Param("fim") LocalDate fim);
+
+    boolean existsByFuncionarioIdAndMesReferencia(Long funcionarioId, LocalDate mesReferencia);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE PedidoPagamentoEntity p SET p.fechado = true WHERE p.id IN :ids")
+    void markAllClosed(@Param("ids") List<Long> ids);
+
+    @Query("""
+           SELECT p FROM PedidoPagamentoEntity p
+           WHERE p.funcionarioId = :funcionarioId
+             AND p.categoria = br.com.satyan.stering.saita.financasbottelegram.domain.vo.CategoriaPedido.FOLHA
+           ORDER BY p.mesReferencia DESC
+           """)
+    List<PedidoPagamentoEntity> findFolhasByFuncionario(@Param("funcionarioId") Long funcionarioId);
 }
