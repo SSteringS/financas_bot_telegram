@@ -14,8 +14,14 @@
  */
 
 // ── Contador de update_id (único por execução) ────────────────────────────────
+//
+// Base aleatória em int32: a Telegram Bot API define update_id como Integer (32-bit).
+// Date.now() (~1.78e12) estoura o max-int32 (2.147e9) e causa JsonMappingException no backend.
+// Base random até 10^9 deixa folga de ~1.1e9 incrementos antes de estourar — suficiente.
+// Aleatoriedade reduz colisão com runs anteriores em mensagem_processada (não é limpa pelo E2E).
+// Ref: https://core.telegram.org/bots/api#update ("Integer — The update's unique identifier")
 
-let _updateCounter = Date.now();
+let _updateCounter = Math.floor(Math.random() * 1_000_000_000);
 
 function nextUpdateId(): number {
   return _updateCounter++;
