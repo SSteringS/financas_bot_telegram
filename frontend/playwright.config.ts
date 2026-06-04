@@ -9,6 +9,10 @@ export default defineConfig({
   globalSetup: './e2e/fixtures/global-setup.ts',
   outputDir: './playwright-report',
   reporter: [['html', { outputFolder: 'playwright-report' }], ['list']],
+  // workers: 1 — todos os specs compartilham requisitante_id=99; paralelismo causa race condition
+  // (worker A semeia pedidos, worker B faz limparDadosE2E e apaga tudo antes do A terminar).
+  // Quando a suíte crescer e precisar de paralelo, refatorar para requisitantes distintos por spec.
+  workers: 1,
   use: {
     baseURL: process.env['E2E_FRONTEND_URL'] ?? 'http://localhost:5173',
     trace: 'on-first-retry',
