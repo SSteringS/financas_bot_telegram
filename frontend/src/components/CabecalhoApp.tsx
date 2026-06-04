@@ -1,4 +1,4 @@
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { useAuth } from '../hooks/useAuth'
 import { useResumo } from '../hooks/useResumo'
@@ -19,6 +19,13 @@ export function CabecalhoApp() {
     <header className="px-5 pt-6 pb-4 border-b border-zinc-100">
       <div className="flex items-center justify-between mb-1">
         <h1 className="text-xl font-bold text-zinc-900">Meus Pagamentos</h1>
+        <Link
+          to="/folha"
+          className="px-3 py-1.5 text-xs font-medium text-zinc-600 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors"
+          aria-label="Ir para folha de pagamento"
+        >
+          Folha
+        </Link>
       </div>
 
       {isLoading ? (
