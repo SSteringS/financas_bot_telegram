@@ -130,69 +130,52 @@ Se nada: "Sem ações pendentes pro planner — pronto pra merge."
 
 ---
 
-## 7. QA -- Fluxos automatizados
+## 7. QA — Fluxos automatizados
 
-> Preenchido pelo **qa-test-specialist** apos o Reviewer dar OK no veredito_final.
-> Se fluxos_qa: [] no plano, preencher como "Nao aplicavel: task sem fluxos QA definidos." e veredito_qa: nao_aplicavel.
+> Preenchido pelo **qa-test-specialist** após o Reviewer dar OK no veredito_final.
+> Se `fluxos_qa: []` no plano, preencher como "Não aplicável: task sem fluxos QA definidos." e `veredito_qa: nao_aplicavel`.
 
-### 7.1 Avaliacao do plano de testes
+### 7.1 Avaliação do plano de testes
 
-O plano especifica os seguintes fluxos em fluxos_qa: (listar do frontmatter do plano)
+O plano especifica os seguintes fluxos em `fluxos_qa`: (listar do frontmatter do plano)
 
-**Concordancia com o plano:**
-- OK **Manter:** (fluxo -- rationale: risco coberto)
-- ADICIONAR **Adicionar:** (fluxo -- rationale: risco nao coberto pelo plano)
-- REMOVER **Remover:** (fluxo -- rationale: desnecessario dado o contexto)
+**Concordância com o plano:**
+- ✅ **Manter:** (fluxo — rationale: risco coberto)
+- ➕ **Adicionar:** (fluxo — rationale: risco não coberto pelo plano)
+- ➖ **Remover:** (fluxo — rationale: desnecessário dado o contexto)
 
-Se concorda integralmente: "Concordo com todos os fluxos especificados -- nenhuma sugestao de ajuste."
+Se concorda integralmente: “Concordo com todos os fluxos especificados — nenhuma sugestão de ajuste.”
 
 ### 7.2 Fluxos executados
 
-| Fluxo | Comando executado | Resultado | Observacoes |
+| Fluxo | Comando executado | Resultado | Observações |
 |---|---|---|---|
-| nome-do-flow | ./mvnw test -Dtest=... | Verde / Vermelho | |
+| nome-do-flow | `./mvnw test -Dtest=...` | ✅ Verde / ❌ Vermelho | |
 
 ### 7.3 Issues encontrados
 
-CRITICO **Criticos** (bloqueiam merge):
-- [ISSUE] Descricao factual -- risco: o que pode dar errado em producao.
+🔴 **Críticos** (bloqueiam merge):
+- [ISSUE] Descrição factual — risco: o que pode dar errado em produção.
 
-RECOMENDADO **Recomendados** (nao bloqueiam, mas sao divida):
+🟡 **Recomendados** (não bloqueiam, mas são dívida):
 - [ISSUE] ...
 
-OPORTUNIDADE **Oportunidades** (cobertura adicional):
+🟢 **Oportunidades** (cobertura adicional):
 - [ISSUE] ...
 
-Se nenhum: "Nenhum issue encontrado -- todos os fluxos passaram."
+Se nenhum: “Nenhum issue encontrado — todos os fluxos passaram.”
 
-### 7.4 Bloqueio para humano (se aplicavel)
+### 7.4 Bloqueio para humano (se aplicável)
 
-> Preencher apenas se ha bloqueio que exige decisao ou acao humana antes de prosseguir.
-> Se nao ha bloqueio: "Nao aplicavel."
+> Preencher apenas se há bloqueio que exige decisão ou ação humana antes de prosseguir.
+> Se não há bloqueio: “Não aplicável.”
 
-(Descricao do bloqueio + contexto minimo para o humano decidir)
+(Descrição do bloqueio + contexto mínimo para o humano decidir)
 
 ### 7.5 Veredito QA
 
 **aprovado** / **aprovado_com_ajustes** / **reprovado**
 
 Prosa de 1-2 frases justificando.
-- Se aprovado: "APROVADO: pode abrir PR para integration_branch."
-- Se reprovado: "ACAO NECESSARIA: corrigir issues CRITICOS antes de abrir PR -- retornar ao reviewer apos correcoes."
-
----
-
-## 8. Observações do humano (code review manual)
-
-> Preenchido pelo **humano** após execução manual do code review, quando aplicável.
-> **Se esta seção estiver vazia ou ausente:** sem observações do humano nesta revisão — nenhuma ação pendente para o planner.
-> O planner interpreta ausência de conteúdo como "humano não encontrou pontos de atenção adicionais".
->
-> Categorias sugeridas (usar como labels nos bullets):
-> - `inconsistencia-padroes` — divergência entre o que foi feito e padrões estabelecidos no projeto
-> - `fluxo-agentes` — observação sobre o processo de execução dos agentes (reviewer, QA, implementador)
-> - `decisao-tecnica` — decisão de implementação questionável ou que merece discussão
-> - `bug-potencial` — comportamento que pode causar problema em produção
-> - `template-docs` — necessidade de atualizar template ou documentação de processo
-
-(Descrever livremente. Cada ponto deve indicar: o que foi observado, onde está no código, e se há ação necessária — task nova, FIX, ADR ou registro em PENDENCIAS-TECNICAS.md.)
+- Se aprovado: "APROVADO: pode abrir PR para `integration_branch`."
+- Se reprovado: “AÇÃO NECESSÁRIA: corrigir issues 🔴 antes de abrir PR — retornar ao reviewer após correções.”

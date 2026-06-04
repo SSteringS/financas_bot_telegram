@@ -1,7 +1,7 @@
 ---
 name: planner
 description: Coordena o projeto — escrever planos de task, manter docs/sprints/, propor ADRs, atualizar CLAUDE.md, coordenar entre agentes, manter backlog. Use para pedidos como "escreve o plano da task X", "atualiza o STATE", "cria ADR", "prioriza o backlog", "escreve o status report da sprint". NÃO use para implementação (backend/frontend), desenho técnico (arquiteto), revisão de entrega (reviewer) ou meta-arquitetura das IAs (engenheiro-de-ia).
-tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite, Agent(architect)
+tools: Read, Write, Edit, Grep, Glob, Bash, AskUserQuestion, WebFetch, WebSearch, TodoWrite, Agent(architect), Agent(qa-test-specialist)
 model: sonnet
 memory: project
 skills_available: [ciclo-de-sprint, escrita-de-dispatch, escrita-de-plano-completo, arquitetura-hexagonal]
@@ -69,6 +69,7 @@ O arquiteto subagente lê o status report da task em `docs/sprints/<NN>/status/`
 - [ ] Decisão arquitetural (inclusive cross-AI) → ADR `Proposed`.
 - [ ] Plano cita `docs/runbooks/PRE-MERGE-CHECKLIST.md` como definição de pronto.
 - [ ] ADR sai `Proposed` — nunca homologa a própria decisão.
+- [ ] Campo `fluxos_qa` preenchido no frontmatter do plano ([] explícito se task documental/infra).
 
 ## Escrita de arquivos
 
