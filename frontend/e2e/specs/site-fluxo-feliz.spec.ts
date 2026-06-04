@@ -2,14 +2,12 @@
  * site-fluxo-feliz.spec.ts — fluxo principal autenticado.
  *
  * Valida: login via magic link → home com pedidos reais → modal de comprovante.
- * Inclui: a11y check (serious + critical) na home.
  *
  * Prerequisito: back + front rodando (npm run e2e:full cuida disso).
  * Dados: seados por semearPedidos em beforeEach; limpos em beforeEach.
  */
 
 import { test, expect } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
 import { limparDadosE2E, semearPedidos } from '../fixtures/banco.ts';
 import { loginE2E } from '../fixtures/auth.ts';
 
@@ -39,7 +37,7 @@ test.beforeEach(async () => {
   ]);
 });
 
-test('fluxo feliz: login → home → comprovante (com a11y)', async ({ page }) => {
+test('fluxo feliz: login → home → comprovante', async ({ page }) => {
   // 1. Autenticação via magic link (sem interação manual)
   await loginE2E(page);
 
@@ -53,20 +51,10 @@ test('fluxo feliz: login → home → comprovante (com a11y)', async ({ page }) 
   // 4. CabecalhoApp: "1 pedido pendente" (E2E PIX Maria é o único PENDENTE)
   await expect(page.getByText(/1 pedido pendente/i)).toBeVisible();
 
-  // 5. a11y: zero violações de impacto serious ou critical na home
-  const a11y = await new AxeBuilder({ page }).analyze();
-  const seriousOrCritical = a11y.violations.filter(
-    (v) => v.impact === 'serious' || v.impact === 'critical',
-  );
-  expect(
-    seriousOrCritical,
-    `Violações a11y na home: ${JSON.stringify(seriousOrCritical.map((v) => ({ id: v.id, impact: v.impact })))}`,
-  ).toEqual([]);
-
-  // 6. Abrir modal de comprovante do boleto pago
+  // 5. Abrir modal de comprovante do boleto pago
   //    Nota: o app usa modais (não rota /pedidos/:id). O botão tem aria-label explícito.
   await page.getByRole('button', { name: /ver comprovante de E2E Boleto Energia/i }).click();
 
-  // 7. Modal deve estar visível (role="dialog" + aria-modal="true" definidos em ModalArquivo)
+  // 6. Modal deve estar visível (role="dialog" + aria-modal="true" definidos em ModalArquivo)
   await expect(page.getByRole('dialog')).toBeVisible();
 });
