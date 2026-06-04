@@ -14,6 +14,22 @@ Não confundir com `docs/plans/` (planos de tarefa ativos) nem com a seção "Fa
 
 ## Itens abertos
 
+### Dois pacotes paralelos para enums de domínio (`domain/enums/` e `domain/vo/`)
+
+**Contexto (identificado na revisão da sprint 03, 2026-06-04):** o domínio tem dois pacotes para enums:
+- `domain/enums/` — pré-existente: `StatusPedido`, `TipoArquivo`, `TipoPagamento`, `TipoUploadS3`
+- `domain/vo/` — criado na sprint 03: `CategoriaPedido`, `FormaPagamento`
+
+São convenções diferentes para a mesma coisa. `vo` vem de Value Object (DDD); `enums` é nomenclatura direta. Funcionam igual em código mas criam confusão: onde colocar o próximo enum?
+
+**Fix sugerido:** escolher uma convenção e consolidar. Opção recomendada: mover os enums de `vo/` para `enums/` (mais enums → `enums/` já é o padrão do projeto) e deletar `vo/`. Exige atualizar imports em ~10 arquivos.
+
+**Esforço:** baixo (~15 min com IDE ou `sed`).
+
+**Prioridade:** baixa. Não afeta comportamento, só coerência estrutural.
+
+---
+
 ### `DataIntegrityViolationException` importada na application layer (FecharMesServiceImpl)
 
 **Contexto (identificado no review BE-026/029, 2026-06-04):** `FecharMesServiceImpl` (`application/services/`) importa `org.springframework.dao.DataIntegrityViolationException` (linha 21) para capturar violação de UNIQUE INDEX no passo 8 e traduzir para `FechamentoDuplicadoException`. Em arquitetura hexagonal estrita, esse catch deveria viver no adapter de saída (`PedidoPagamentoRepositoryAdapter.save()`), que traduz a exceção antes de ela chegar na application layer. Mesmo padrão existe em `RegistrarComprovanteServiceImpl` (pré-existente).
