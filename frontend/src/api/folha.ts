@@ -78,4 +78,20 @@ export async function listarFechamentos(funcionarioId: number): Promise<Fechamen
   return client.get<Fechamento[]>(`/api/funcionarios/${funcionarioId}/fechamentos`)
 }
 
-// fecharMes() será adicionado por FE-017 (POST /api/funcionarios/{id}/fechamentos)
+// ── Fechar mês (FE-017) ───────────────────────────────────────────────────────
+
+/**
+ * POST /api/funcionarios/{id}/fechamentos
+ * Gera o Pedido FOLHA com o valor líquido calculado pelo backend.
+ * @param ajuste positivo = bônus; negativo = desconto extra. Padrão: 0.
+ */
+export async function fecharMes(
+  funcionarioId: number,
+  mes: string,
+  ajuste: number,
+): Promise<Fechamento> {
+  return client.post<Fechamento>(`/api/funcionarios/${funcionarioId}/fechamentos`, {
+    mes,
+    ajuste,
+  })
+}
