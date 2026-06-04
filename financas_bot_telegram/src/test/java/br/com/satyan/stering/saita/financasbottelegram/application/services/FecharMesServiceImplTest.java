@@ -253,6 +253,83 @@ class FecharMesServiceImplTest {
         verify(pedidoRepository, never()).save(any());
     }
 
+    // ── B1: filtro dataInicio (passo 5) ──────────────────────────────────────
+
+    @Test
+    void naoDeveDescontarAdiantamentoQueIniciaAposOMesDeFechamento() {
+        when(pedidoRepository.existsFolha(1L, PRIMEIRO_DO_MES)).thenReturn(false);
+        when(funcionarioRepository.findAtivoById(1L)).thenReturn(Optional.of(funcionario));
+        when(pedidoRepository.findValesAbertos(any(), any(), any())).thenReturn(List.of());
+
+        // adiantamento com dataInicio = JUNHO/26 — posterior ao mês de fechamento MAIO/26
+        Adiantamento adiantamentoFuturo = Adiantamento.builder()
+                .id(99L)
+                .funcionarioId(1L)
+                .valorParcela(new BigDecimal("200.00"))
+                .numParcelas(3)
+                .parcelasPagas(0)
+                .dataInicio(LocalDate.of(2026, 6, 1)) // após primeiroDoMes (2026-05-01)
+                .ativo(true)
+                .build();
+
+        when(adiantamentoRepository.findAtivosParaFechamento(1L))
+                .thenReturn(List.of(adiantamentoFuturo));
+        when(pedidoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        PedidoPagamento resultado = service.fechar(1L, MES, BigDecimal.ZERO);
+
+        // adiantamento futuro não deve ser descontado; valorFinal = salárioBase
+        assertThat(resultado.getValor()).isEqualByComparingTo("2000.00");
+        verify(adiantamentoRepository, never()).save(any()); // nenhum adiantamento atualizado
+    }
+
+    @Test
+    void deveDescontarAdiantamentoQueIniciaExatamenteNoPrimeiroDiaDoMes() {
+        when(pedidoRepository.existsFolha(1L, PRIMEIRO_DO_MES)).thenReturn(false);
+        when(funcionarioRepository.findAtivoById(1L)).thenReturn(Optional.of(funcionario));
+        when(pedidoRepository.findValesAbertos(any(), any(), any())).thenReturn(List.of());
+
+        // adiantamento com dataInicio = 2026-05-01 (exatamente o primeiroDoMes)
+        Adiantamento adiantamentoBordeiro = Adiantamento.builder()
+                .id(88L)
+                .funcionarioId(1L)
+                .valorParcela(new BigDecimal("100.00"))
+                .numParcelas(2)
+                .parcelasPagas(0)
+                .dataInicio(PRIMEIRO_DO_MES) // == primeiroDoMes, deve ser incluído (<=)
+                .ativo(true)
+                .build();
+
+        when(adiantamentoRepository.findAtivosParaFechamento(1L))
+                .thenReturn(List.of(adiantamentoBordeiro));
+        when(pedidoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(adiantamentoRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        PedidoPagamento resultado = service.fechar(1L, MES, BigDecimal.ZERO);
+
+        // adiantamento do dia exato deve ser descontado: 2000 - 100 = 1900
+        assertThat(resultado.getValor()).isEqualByComparingTo("1900.00");
+        verify(adiantamentoRepository).save(any());
+    }
+
+    // ── B2: race condition DataIntegrityViolationException ────────────────────
+
+    @Test
+    void deveTraduzirDataIntegrityViolationParaFechamentoDuplicadoEmCasoDeRace() {
+        when(pedidoRepository.existsFolha(1L, PRIMEIRO_DO_MES)).thenReturn(false); // passa no check
+        when(funcionarioRepository.findAtivoById(1L)).thenReturn(Optional.of(funcionario));
+        when(pedidoRepository.findValesAbertos(any(), any(), any())).thenReturn(List.of());
+        when(adiantamentoRepository.findAtivosParaFechamento(any())).thenReturn(List.of());
+
+        // UNIQUE INDEX barra o insert concorrente — simula race condition
+        when(pedidoRepository.save(any()))
+                .thenThrow(new org.springframework.dao.DataIntegrityViolationException("unique constraint violated"));
+
+        assertThatThrownBy(() -> service.fechar(1L, MES, BigDecimal.ZERO))
+                .isInstanceOf(FechamentoDuplicadoException.class)
+                .hasMessageContaining("2026-05");
+    }
+
     // ── gerarTextoFechamento ──────────────────────────────────────────────────
 
     @Test

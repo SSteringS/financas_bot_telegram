@@ -1,10 +1,15 @@
 package br.com.satyan.stering.saita.financasbottelegram.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 
+import br.com.satyan.stering.saita.financasbottelegram.application.port.out.AdiantamentoRepositoryPortOut;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -16,6 +21,10 @@ import org.springframework.http.ResponseEntity;
  * de vales como fechados e idempotência (409 no segundo fechamento do mesmo mês).
  */
 class FecharMesIntegrationTest extends AbstractIntegrationTest {
+
+    /** Spy injetado para testar rollback transacional (B3). Reset em {@link #resetarSpy()}. */
+    @SpyBean
+    private AdiantamentoRepositoryPortOut adiantamentoSpyRepository;
 
     private Long funcionarioId;
 
@@ -39,6 +48,12 @@ class FecharMesIntegrationTest extends AbstractIntegrationTest {
             jdbcTemplate.update("DELETE FROM adiantamento WHERE funcionario_id = ?", funcionarioId);
             jdbcTemplate.update("DELETE FROM funcionario WHERE id = ?", funcionarioId);
         }
+    }
+
+    /** Garante que o spy não afete outros testes após B3. */
+    @AfterEach
+    void resetarSpy() {
+        Mockito.reset(adiantamentoSpyRepository);
     }
 
     @Test
@@ -132,6 +147,47 @@ class FecharMesIntegrationTest extends AbstractIntegrationTest {
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         // Março deve aparecer antes de fevereiro (mes_referencia DESC)
         assertThat(resp.getBody()).containsPattern("2026-03.*2026-02");
+    }
+
+    // ── B3: atomicidade transacional ──────────────────────────────────────────
+
+    /**
+     * B3: falha no passo 10 (adiantamento.save) deve reverter toda a transação.
+     *
+     * <p>Usa {@link SpyBean} para injetar uma {@link RuntimeException} no momento em que
+     * {@code FecharMesServiceImpl} tenta persistir o adiantamento atualizado.
+     * A annotation {@code @Transactional} do use case deve garantir rollback completo:
+     * o pedido FOLHA criado no passo 8 não pode aparecer no banco após a falha.
+     */
+    @Test
+    void deveReverterTransacaoEmCasoDeErroNoPasso10() {
+        // Criar adiantamento ativo para que o passo 10 seja atingido
+        jdbcTemplate.update("""
+                INSERT INTO adiantamento
+                    (funcionario_id, descricao, valor_total, valor_parcela, num_parcelas,
+                     parcelas_pagas, data_inicio, ativo)
+                VALUES (?, 'Adiantamento B3', 300.00, 100.00, 3, 0, '2026-01-01', TRUE)
+                """, funcionarioId);
+
+        // Spy: lança RuntimeException quando save() é chamado no passo 10
+        doThrow(new RuntimeException("falha simulada no passo 10 — B3"))
+                .when(adiantamentoSpyRepository).save(any());
+
+        ResponseEntity<String> resp = restTemplate.postForEntity(
+                "/api/funcionarios/" + funcionarioId + "/fechamentos",
+                requestBodyEntity("{ \"mes\": \"2026-07\", \"ajuste\": 0.00 }"),
+                String.class);
+
+        // Transação deve ter sido revertida → 5xx do servidor
+        assertThat(resp.getStatusCode().is5xxServerError()).isTrue();
+
+        // Passo 8 (INSERT pedido FOLHA) deve ter sido revertido
+        Integer countFolha = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM pedidos_pagamento WHERE funcionario_id = ? AND categoria = 'FOLHA'",
+                Integer.class, funcionarioId);
+        assertThat(countFolha)
+                .as("Pedido FOLHA não deveria existir após rollback da transação")
+                .isEqualTo(0);
     }
 
     // ── Helper ───────────────────────────────────────────────────────────────
