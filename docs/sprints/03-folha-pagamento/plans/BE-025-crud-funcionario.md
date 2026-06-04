@@ -11,6 +11,7 @@ estado: pronto-pra-execucao
 depende_de: [BE-024]
 bloqueia: [FE-015]
 skills_dispatched: [arquitetura-hexagonal, ecossistema-spring]
+fluxos_qa: []
 ---
 
 # BE-025 — CadastrarFuncionario + CRUD /api/funcionarios

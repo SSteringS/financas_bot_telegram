@@ -12,6 +12,7 @@ depende_de: []
 bloqueia: [BE-024, BE-025, BE-026, BE-027, BE-028, BE-029, FE-015, FE-016, FE-017]
 skills_dispatched: []
 integration_branch: null
+fluxos_qa: []
 ---
 
 # FIX-002 — CI aceitar `integration/*` no gate de branch e nos triggers

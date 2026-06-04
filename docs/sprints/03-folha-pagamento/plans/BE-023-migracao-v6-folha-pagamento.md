@@ -11,6 +11,7 @@ estado: pronto-pra-execucao
 depende_de: []
 bloqueia: [BE-024]
 skills_dispatched: [arquitetura-hexagonal]
+fluxos_qa: []
 ---
 
 # BE-023 — Migração V6 — DDL folha de pagamento
