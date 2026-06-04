@@ -12,7 +12,15 @@
  */
 
 import { client } from './client'
-import type { Funcionario, FuncionarioRequest } from '../types/folha'
+import type {
+  Funcionario,
+  FuncionarioRequest,
+  Vale,
+  ValeRequest,
+  Adiantamento,
+  AdiantamentoRequest,
+  Fechamento,
+} from '../types/folha'
 
 // ── Funcionários ──────────────────────────────────────────────────────────────
 
@@ -36,7 +44,38 @@ export async function desativarFuncionario(id: number): Promise<void> {
   return client.delete<void>(`/api/funcionarios/${id}`)
 }
 
-// ── Extensões futuras (FE-016) ────────────────────────────────────────────────
-// listarVales(), criarVale(), listarAdiantamentos(), criarAdiantamento(),
-// cancelarAdiantamento(), listarFechamentos(), fecharMes()
-// serão adicionadas neste arquivo por FE-016.
+// ── Vales (FE-016) ────────────────────────────────────────────────────────────
+
+export async function listarVales(funcionarioId: number, mes: string): Promise<Vale[]> {
+  return client.get<Vale[]>(`/api/funcionarios/${funcionarioId}/vales`, { mes })
+}
+
+export async function criarVale(funcionarioId: number, data: ValeRequest): Promise<Vale> {
+  return client.post<Vale>(`/api/funcionarios/${funcionarioId}/vales`, data)
+}
+
+// ── Adiantamentos (FE-016) ────────────────────────────────────────────────────
+
+export async function listarAdiantamentos(funcionarioId: number): Promise<Adiantamento[]> {
+  return client.get<Adiantamento[]>(`/api/funcionarios/${funcionarioId}/adiantamentos`)
+}
+
+export async function criarAdiantamento(
+  funcionarioId: number,
+  data: AdiantamentoRequest,
+): Promise<Adiantamento> {
+  return client.post<Adiantamento>(`/api/funcionarios/${funcionarioId}/adiantamentos`, data)
+}
+
+/** DELETE /api/funcionarios/adiantamentos/{adiantamentoId} → 204 No Content */
+export async function cancelarAdiantamento(adiantamentoId: number): Promise<void> {
+  return client.delete<void>(`/api/funcionarios/adiantamentos/${adiantamentoId}`)
+}
+
+// ── Fechamentos (FE-016) ──────────────────────────────────────────────────────
+
+export async function listarFechamentos(funcionarioId: number): Promise<Fechamento[]> {
+  return client.get<Fechamento[]>(`/api/funcionarios/${funcionarioId}/fechamentos`)
+}
+
+// fecharMes() será adicionado por FE-017 (POST /api/funcionarios/{id}/fechamentos)
