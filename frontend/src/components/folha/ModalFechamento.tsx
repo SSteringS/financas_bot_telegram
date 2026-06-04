@@ -92,7 +92,7 @@ export function ModalFechamento({
 
           <div className="flex justify-between text-sm">
             <span className="text-zinc-600">
-              Vales ({listaAdiantamentosAtivos.length === 0 && totalVales === 0 ? '0' : '−'})
+              Vales ({totalVales === 0 ? '0' : '−'})
             </span>
             <span className="font-medium text-red-600">
               − {formatarMoeda(totalVales)}
