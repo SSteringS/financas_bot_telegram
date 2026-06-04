@@ -1,8 +1,10 @@
 # DISPATCH — QA-004-specs-mvp-3-cenarios (single-task)
 
 > **Lote B — despachar somente após QA-002 E QA-003 em `develop`.**
-> É o entregável final da Fase 1. **Inclui os 3 cenários de webhook: texto puro + sticker + foto+caption.**
+> É o entregável final da Fase 1. **2 specs: fluxo feliz + webhook (3 cenários: texto puro + sticker + foto+caption).**
 > O mock Telegram (QA-002) resolve o download de arquivo via `TELEGRAM_API_URL=http://localhost:9090`.
+>
+> ⚠️ **a11y cancelada (QA-007, 2026-06-03):** não criar `a11y-home.spec.ts`. Não usar `@axe-core/playwright`. Zero import de `checkA11y`.
 >
 > ⚠️ **Nota de branch (2026-06-03):** QA-003 foi mergeada diretamente em `develop` (PR #85/#86), não em `integration`. Por isso esta task **parte de `develop`** (que tem QA-001+002+003) — o PR alvo continua sendo `integration/03-folha-pagamento`. Exceção única; a partir de QA-004 todas as features voltam ao fluxo feature→integration.
 
@@ -19,7 +21,8 @@
 ## O prompt (cole tudo numa sessão `--agent frontend`)
 
 ```
-Task: QA-004 — 3 specs MVP (site-fluxo-feliz, webhook-cenarios, a11y-home).
+Task: QA-004 — 2 specs MVP (site-fluxo-feliz, webhook-cenarios).
+ATENÇÃO: a11y cancelada — não criar a11y-home.spec.ts, não importar @axe-core/playwright.
 
 Localize e leia o plano:
   Glob("docs/sprints/03-folha-pagamento/plans/QA-004-specs-mvp-3-cenarios.md")
@@ -45,7 +48,8 @@ Criar 3 specs em frontend/e2e/specs/.
 2. page.goto('/') → verificar home carregou (título ou elemento identificador)
 3. Clicar num pedido → verificar navegação para detalhe (/pedidos/:id ou similar)
 4. Clicar em "ver comprovante" → verificar modal/preview abre
-5. checkA11y inline: import { checkA11y } from '@axe-core/playwright'; checkA11y(page, { includedImpacts: ['serious', 'critical'] })
+
+NÃO adicionar checkA11y — a11y cancelada (QA-007).
 
 ### webhook-cenarios.spec.ts (3 tests — estrutura parametrizada)
 import { telegramUpdateTextoPuro, telegramUpdateSticker, telegramUpdateFotoLegenda, E2E_MOCK_FILE_ID } from '../fixtures/payloads-telegram';
@@ -72,12 +76,6 @@ for (const c of cenarios) {
   });
 }
 
-### a11y-home.spec.ts (1 test)
-1. loginE2E(page)
-2. page.goto('/')
-3. checkA11y(page, { includedImpacts: ['serious', 'critical'] })
-4. Nenhuma violação serious+critical → pass
-
 ### playwright.config.ts
 `reporter` e `outputDir` já foram adicionados pela implementação de QA-001 — **não recriar**.
 Verificar se `outputDir: './playwright-report'` (atual) está causando confusão com os artifacts de debug;
@@ -93,8 +91,9 @@ Caso contrário, aceitar como está e seguir.
 2. Território: SÓ `frontend/`. Zero `financas_bot_telegram/`. Zero frontend/src/.
 3. Os 3 cenários de webhook DEVEM estar na tabela: texto puro, sticker, foto+caption.
 4. playwright-report/ NÃO commitado — verificar .gitignore.
-5. 1 commit: `feat(QA-004): 3 specs MVP — fluxo feliz, webhook (3 cenarios), a11y`.
-6. PR: `feature/qa-004-specs-mvp-3-cenarios → integration/03-folha-pagamento` (NÃO para develop direto).
+5. Zero import de `@axe-core/playwright` — a11y cancelada (QA-007).
+6. 1 commit: `feat(QA-004): 2 specs MVP — fluxo feliz, webhook (3 cenarios)`.
+7. PR: `feature/qa-004-specs-mvp-3-cenarios → integration/03-folha-pagamento` (NÃO para develop direto).
 
 ## VALIDAÇÃO DE ESTABILIDADE (obrigatória)
 
@@ -107,7 +106,7 @@ Quando uma spec falhar intencionalmente (alterar assert para forçar erro): abri
 
 `docs/sprints/03-folha-pagamento/status/QA-004-specs-mvp-3-cenarios.md`
 
-testes_novos: 5 (1 fluxo feliz + 3 webhook + 1 a11y).
+testes_novos: 4 (1 fluxo feliz + 3 webhook).
 Anotar resultado das 3 execuções consecutivas (timestamp, duração, resultado).
 
 ## SE QUEBRAR
@@ -115,10 +114,6 @@ Anotar resultado das 3 execuções consecutivas (timestamp, duração, resultado
 Cenário — HMAC header inválido (back rejeita 403):
   Verificar como back valida o header. Pode ser X-Telegram-Bot-Api-Secret-Token ou outro.
   Usar o segredo correto de .env.e2e.
-
-Cenário — checkA11y encontra violações no DOM do app:
-  Listar as violações no status report. Se for bug real de a11y: criar pendência pro planner.
-  NÃO silenciar a violação ajustando o threshold — só ajustar se for falso positivo comprovado.
 
 Cenário — flakiness em loginE2E (cookie expira):
   Usar storageState do Playwright para reutilizar sessão entre testes do mesmo spec.
@@ -140,7 +135,7 @@ Pare ao final. PR para integration. Reviewer deve rodar manualmente antes de apr
 
 ## Notas pro humano
 
-- **Fase 1 da suíte E2E entregue após o merge desta.** Inclui os 3 cenários de webhook. Registrar na retro da sprint 03.
+- **Fase 1 da suíte E2E entregue após o merge desta.** 2 specs, 4 testes (fluxo feliz + 3 cenários de webhook). Registrar na retro da sprint 03.
 - **Mock Telegram:** o cenário foto+caption depende do mock server (QA-002) estar rodando. Se o teste falhar com erro de conexão recusada em `:9090`, verificar se `subir-stack.ts` subiu o mock corretamente.
 - **Estimativa:** 2-3h.
 
