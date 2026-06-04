@@ -55,20 +55,11 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 
 ---
 
-## Situação da integration branch
-
-> ⚠️ `integration/03-folha-pagamento` foi **deletada** após PR #94 (merge final QA-008). Para retomar as tasks BE/FE, é necessário recriar a branch a partir de `develop` ou iniciar sprint 04.
-
----
-
 ## Próximos passos (BE/FE)
 
-Antes de despachar BE-024:
+> **Decisão §7 resolvida (2026-06-04 — PO):** **Opção A** — vales NÃO aparecem na lista do Pedro. `GET /api/pedidos` e `Home.tsx` ficam intocados. BE-026 e FE-016 desbloqueados.
 
-1. **Recriar `integration/03-folha-pagamento`** a partir de `develop` (ou decidir sprint 04).
-2. **Resolver decisão §7 da spec:** vales aparecem na lista do Pedro? (Opção A — não / Opção B — com tag visual). Bloqueia BE-026 e FE-016.
-
-Ordem de despacho quando integration estiver disponível:
+Ordem de despacho:
 
 ```
 BE-024 → (merge integration) → BE-025 ║ BE-026 → BE-027 → BE-028 → BE-029

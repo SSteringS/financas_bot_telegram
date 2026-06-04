@@ -21,7 +21,7 @@ fluxos_qa: []
 - **Origem:** spec EVO-09 §3 (CadastrarValePortIn) + §5 (endpoints de vales).
 - **Por quê agora:** BE-028 (FecharMes) busca vales abertos para calcular o fechamento.
 - **Esforço:** baixo — um use case simples, 2 endpoints, sem lógica complexa.
-- **Riscos resumidos:** ⚠️ **Decisão pendente (spec §7):** vales aparecem na lista principal do Pedro (`GET /api/pedidos`)? Se **Opção A** (não aparecem), o endpoint existente `GET /api/pedidos` precisa adicionar `AND categoria IS NULL`. Se **Opção B** (aparecem com tag), sem mudança na query. Esta decisão é da responsabilidade de **outra task ou FIX** — BE-026 entrega apenas o CRUD de vales; **não toca `GET /api/pedidos`**.
+- **Riscos resumidos:** ✅ **Decisão §7 resolvida (2026-06-04 — PO):** vales NÃO aparecem na lista do Pedro. **Opção A** — `GET /api/pedidos` fica intocado. Esta task apenas entrega o CRUD de vales em `/api/funcionarios/{id}/vales`; nada em `PedidoController.java`.
 
 ---
 
@@ -103,7 +103,7 @@ Use case `CadastrarValeUseCase`:
 
 | Risco | Probabilidade | Impacto | Mitigação |
 |-------|--------------|---------|-----------|
-| Decisão §7 atrasar outras tasks | Média | Médio | BE-026 não depende dela; FE-016 bloqueia até resolução |
+| ~~Decisão §7 atrasar outras tasks~~ | ✅ Resolvida | — | Opção A decidida pelo PO em 2026-06-04 — sem bloqueio |
 | `status` do vale incorreto (PO não confirmou) | Média | Baixo | Esclarecer antes de implementar; padrão seguro: PENDENTE |
 
 ---

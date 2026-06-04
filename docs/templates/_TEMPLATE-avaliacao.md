@@ -14,6 +14,11 @@ skills_eficazes: []          # skills cujo efeito foi observado no código — s
                              # ex: [arquitetura-hexagonal] quando não há drift em task que toca application/
 skills_gaps: []              # skills ausentes no dispatch cuja falta causou problema observável — sinal C negativo
                              # ex: [qualidade-de-testes] quando testes cobrem só happy path
+veredito_qa: pendente        # pendente | aprovado | aprovado_com_ajustes | reprovado | nao_aplicavel
+                             # nao_aplicavel quando fluxos_qa: [] no plano; preenchido pelo qa-test-specialist
+fluxos_qa_executados: []     # fluxos que o QA efetivamente executou nesta avaliação
+fluxos_qa_adicionar: []      # fluxos que QA recomenda adicionar ao plano (pro planner ajustar)
+fluxos_qa_remover: []        # fluxos desnecessários que QA recomenda remover do plano
 ---
 
 # Avaliação — [TASK-ID] (título curto)
@@ -122,3 +127,55 @@ Decisões/ações que o planner precisa integrar após esta avaliação:
 - Atualização do STATE.md.
 
 Se nada: "Sem ações pendentes pro planner — pronto pra merge."
+
+---
+
+## 7. QA -- Fluxos automatizados
+
+> Preenchido pelo **qa-test-specialist** apos o Reviewer dar OK no veredito_final.
+> Se fluxos_qa: [] no plano, preencher como "Nao aplicavel: task sem fluxos QA definidos." e veredito_qa: nao_aplicavel.
+
+### 7.1 Avaliacao do plano de testes
+
+O plano especifica os seguintes fluxos em fluxos_qa: (listar do frontmatter do plano)
+
+**Concordancia com o plano:**
+- OK **Manter:** (fluxo -- rationale: risco coberto)
+- ADICIONAR **Adicionar:** (fluxo -- rationale: risco nao coberto pelo plano)
+- REMOVER **Remover:** (fluxo -- rationale: desnecessario dado o contexto)
+
+Se concorda integralmente: "Concordo com todos os fluxos especificados -- nenhuma sugestao de ajuste."
+
+### 7.2 Fluxos executados
+
+| Fluxo | Comando executado | Resultado | Observacoes |
+|---|---|---|---|
+| nome-do-flow | ./mvnw test -Dtest=... | Verde / Vermelho | |
+
+### 7.3 Issues encontrados
+
+CRITICO **Criticos** (bloqueiam merge):
+- [ISSUE] Descricao factual -- risco: o que pode dar errado em producao.
+
+RECOMENDADO **Recomendados** (nao bloqueiam, mas sao divida):
+- [ISSUE] ...
+
+OPORTUNIDADE **Oportunidades** (cobertura adicional):
+- [ISSUE] ...
+
+Se nenhum: "Nenhum issue encontrado -- todos os fluxos passaram."
+
+### 7.4 Bloqueio para humano (se aplicavel)
+
+> Preencher apenas se ha bloqueio que exige decisao ou acao humana antes de prosseguir.
+> Se nao ha bloqueio: "Nao aplicavel."
+
+(Descricao do bloqueio + contexto minimo para o humano decidir)
+
+### 7.5 Veredito QA
+
+**aprovado** / **aprovado_com_ajustes** / **reprovado**
+
+Prosa de 1-2 frases justificando.
+- Se aprovado: "APROVADO: pode abrir PR para integration_branch."
+- Se reprovado: "ACAO NECESSARIA: corrigir issues CRITICOS antes de abrir PR -- retornar ao reviewer apos correcoes."

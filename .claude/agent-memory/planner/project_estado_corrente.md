@@ -4,62 +4,44 @@ description: Snapshot do estado de sprint e tasks em voo — verificar antes de 
 type: project
 ---
 
-**Data do snapshot:** 2026-06-01
+**Data do snapshot:** 2026-06-04
 
 **Sprint ativa:** 03 — Folha de pagamento (EVO-09)
 
-## Estado BE-023
+## Fase QA/FIX — CONCLUÍDA ✅
 
-✅ **BE-023 mergeada em develop via PR #81** (2026-06-01). V6 SQL disponível.
-**`requisitante_id` em `pedidos_pagamento`: NOT NULL DEFAULT 1** — BE-028 precisará de migration V6b (ALTER para nullable) antes de criar Pedido FOLHA. Documentado como "PASSO ZERO" no DISPATCH-BE-028.
+| Task | Estado | PR |
+|---|---|---|
+| QA-001 setup-playwright-base | ✅ concluido | #84 |
+| QA-002 scripts-orquestracao-stack | ✅ concluido | #84 |
+| QA-003 fixtures-banco-auth-payloads | ✅ concluido | #85/#86 (débito: revisão informal) |
+| QA-004 specs-mvp (2 specs, 3 tests) | ✅ concluido | #88/92 |
+| QA-005 doc-roteiro-e2e | ✅ executado (planner) | — |
+| QA-006 pre-merge-add-e2e-gate | ✅ executado (planner) | — |
+| QA-007 remove axe-core | ✅ concluido | #91 |
+| QA-008 estabilizacao-suite (workers+update_id) | ✅ concluido | #93/#94 — e2e:full 3x verde |
+| FIX-002 ci-aceitar-integration | ✅ concluido | #89/90 |
 
-## Fila BE/FE (prontas para despachar)
+## Fase BE/FE — PENDENTE
 
-```
-BE-024 → (merge) → BE-025 ║ BE-026
-                              ↓          ↓
-                            FE-015    BE-027 (após BE-026 mergear)
-                              ↓          ↓
-                            (merge)   BE-028 (após BE-024+026+027)
-                                          ↓
-                                   BE-029 ║ FE-016 ║ FE-017
-                                          (FE-016 também espera FE-015)
-                                          (FE-017 também espera FE-016)
-```
+| Task | Estado | Bloqueio |
+|---|---|---|
+| BE-024 entidades JPA | 🔵 pronto-pra-execucao | integration branch deletada |
+| BE-025 CRUD funcionário | ⏸ | BE-024 |
+| BE-026 cadastrar-vale | ⏸ | BE-024 |
+| BE-027 cadastrar-adiantamento | ⏸ | BE-024; serializado após BE-026 |
+| BE-028 fechar-mes | ⏸ | BE-024+026+027 |
+| BE-029 testes-fechar-mes | ⏸ | BE-028 |
+| FE-015 tela-funcionarios | ⏸ | BE-025 |
+| FE-016 tela-folha-funcionario | ⏸ | BE-026+027+028+FE-015 |
+| FE-017 modal-fechamento | ⏸ | BE-028 |
 
-**Serialização intencional:** BE-026 → BE-027 (não paralelas) — conflito em FolhaController.java.
+## Ação necessária antes de despachar BE-026/FE-016
 
-## Fila QA — Suíte E2E Fase 1
+1. **Decisão §7 da spec** (vales na lista do Pedro?) — bloqueia BE-026 e FE-016.
 
-**integration branch criada:** `integration/03-folha-pagamento` ✅ (2026-06-01)
+`integration/03-folha-pagamento` está ativa e em sincronia com develop (sync 2026-06-04).
 
-### Lote A (despachar imediatamente)
-- QA-001 → setup Playwright base → PR para integration
-- QA-002 → scripts orquestração → aguarda QA-001 em integration
-- QA-005 ✅ executado pelo planner (ROTEIRO-E2E.md criado)
-- QA-006 ✅ executado pelo planner (PRE-MERGE-CHECKLIST atualizado)
+**Why:** Sprint iniciou fase QA primeiro (infra E2E); fase BE/FE interrompida esperando dispatch.
 
-### Lote B (aguarda BE-023 em develop ✅ + QA-001..002 em integration)
-- QA-003 → fixtures banco + auth + payloads
-- QA-004 → 3 specs MVP (4 testes) — foto+caption bloqueada
-
-**⚠️ QA-004 cenário foto+caption:** bloqueado até sessão com arquiteto para decidir mock de mídia Telegram → ADR Proposed separado.
-
-## Decisões pendentes
-
-- **ADR 0016:** `Proposed` — homologar antes de despachar tasks de código Java (BE-024+).
-- **Decisão §7 spec** (vales na lista do Pedro): não bloqueia tasks; resolver como FIX pós-sprint.
-- **ADR mock mídia Telegram:** necessário para QA-004 foto+caption (Fase 1.1).
-- **eng-ia:** backend.md e frontend.md initialPrompts ainda dizem `origin/develop` — precisam update para `origin/integration/<NN>-<slug>` para tasks QA.
-
-## Commits desta sprint (develop)
-
-- `b672e9a` — dispatches BE-024..FE-017 + status/avaliação BE-023
-- `cc3b21a` — memory planner
-- `00c9119` — qa-test-specialist agent
-- `59e1177` — suíte E2E Fase 1 (ADR 0017, 6 planos QA, 4 dispatches, ROTEIRO-E2E, checklist)
-- `Merge` — origin/develop (BE-023 DDL)
-
-**Why:** Rápida orientação entre sessões.
-
-**How to apply:** Verificar os dispatches em `docs/sprints/03-folha-pagamento/plans/DISPATCH-*.md` para próximo passo. Após merge de BE-023 (já feito), despachar BE-024 + QA-001.
+**How to apply:** Ao planejar próxima sessão, verificar se integration branch foi recriada. Se não, recriar antes de despachar BE-024. Dispatches prontos em `docs/sprints/03-folha-pagamento/plans/DISPATCH-BE-024...`.
