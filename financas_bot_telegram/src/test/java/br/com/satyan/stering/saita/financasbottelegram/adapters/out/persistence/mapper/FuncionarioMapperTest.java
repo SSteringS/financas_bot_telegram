@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.persistence.entity.FuncionarioEntity;
 import br.com.satyan.stering.saita.financasbottelegram.domain.entity.Funcionario;
-import br.com.satyan.stering.saita.financasbottelegram.domain.vo.FormaPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.FormaPagamento;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;

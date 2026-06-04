@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.FuncionarioRepositoryPortOut;
 import br.com.satyan.stering.saita.financasbottelegram.domain.entity.Funcionario;
-import br.com.satyan.stering.saita.financasbottelegram.domain.vo.FormaPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.FormaPagamento;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

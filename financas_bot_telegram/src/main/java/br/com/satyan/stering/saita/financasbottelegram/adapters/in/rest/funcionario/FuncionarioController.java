@@ -7,7 +7,7 @@ import br.com.satyan.stering.saita.financasbottelegram.application.port.in.Cadas
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.FuncionarioRepositoryPortOut;
 import br.com.satyan.stering.saita.financasbottelegram.domain.entity.Funcionario;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.FuncionarioNaoEncontradoException;
-import br.com.satyan.stering.saita.financasbottelegram.domain.vo.FormaPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.FormaPagamento;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import java.util.List;

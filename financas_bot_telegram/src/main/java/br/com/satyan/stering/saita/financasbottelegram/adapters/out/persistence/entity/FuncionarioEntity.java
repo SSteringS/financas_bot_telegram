@@ -1,6 +1,6 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.out.persistence.entity;
 
-import br.com.satyan.stering.saita.financasbottelegram.domain.vo.FormaPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.FormaPagamento;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

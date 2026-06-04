@@ -2,7 +2,7 @@ package br.com.satyan.stering.saita.financasbottelegram.domain.model;
 
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoPagamento;
-import br.com.satyan.stering.saita.financasbottelegram.domain.vo.CategoriaPedido;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.CategoriaPedido;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
