@@ -1,6 +1,8 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.rest;
 
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.ErroDTO;
+import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.AdiantamentoJaQuitadoException;
+import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.AdiantamentoNaoEncontradoException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.AuthTokenInvalidoException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.ComprovanteNaoEncontradoException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.FuncionarioNaoEncontradoException;
@@ -51,6 +53,18 @@ public class RestExceptionHandler {
     public ResponseEntity<ErroDTO> handleFuncionarioNaoEncontrado(FuncionarioNaoEncontradoException e) {
         return ResponseEntity.status(404)
                 .body(new ErroDTO("FUNCIONARIO_NAO_ENCONTRADO", e.getMessage()));
+    }
+
+    @ExceptionHandler(AdiantamentoNaoEncontradoException.class)
+    public ResponseEntity<ErroDTO> handleAdiantamentoNaoEncontrado(AdiantamentoNaoEncontradoException e) {
+        return ResponseEntity.status(404)
+                .body(new ErroDTO("ADIANTAMENTO_NAO_ENCONTRADO", e.getMessage()));
+    }
+
+    @ExceptionHandler(AdiantamentoJaQuitadoException.class)
+    public ResponseEntity<ErroDTO> handleAdiantamentoJaQuitado(AdiantamentoJaQuitadoException e) {
+        return ResponseEntity.status(409)
+                .body(new ErroDTO("ADIANTAMENTO_JA_QUITADO", e.getMessage()));
     }
 
     @ExceptionHandler(MesFormatoInvalidoException.class)
