@@ -15,8 +15,8 @@ gates:
   branch_convencao: ok
   territorio: ok
 commits:
-  - placeholder
-pr: null
+  - 1863ab4
+pr: https://github.com/SSteringS/financas_bot_telegram/pull/103
 desvios: 0
 pendencias_humano: 0
 ---
