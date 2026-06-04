@@ -1,6 +1,6 @@
 ---
 task: QA-004
-titulo: "3 specs MVP — fluxo feliz, webhook (3 cenarios), a11y"
+titulo: "2 specs MVP — fluxo feliz, webhook (3 cenarios)"
 sprint: 03-folha-pagamento
 data_planejamento: 2026-06-01
 branch_alvo: feature/qa-004-specs-mvp-3-cenarios
@@ -16,13 +16,13 @@ exige_e2e_full: false
 lote: B
 ---
 
-# QA-004 — 3 specs MVP (site-fluxo-feliz, webhook-cenarios, a11y-home)
+# QA-004 — 2 specs MVP (site-fluxo-feliz, webhook-cenarios)
 
 ## Intake
 
 - **Origem:** spec QA Fase 1 §4 (QA-004). **Lote B — depende de QA-002 e QA-003.**
 - **Por quê agora:** é o entregável final da Fase 1. Substitui ~80% do ROTEIRO-INTEGRACAO-FRONT-BACK manual.
-- **Esforço:** médio (~3-4h) — 3 specs, 4 `test()` no total, integração com fixtures, asserção via axe-core.
+- **Esforço:** médio (~2-3h) — 2 specs, 4 `test()` no total, integração com fixtures.
 - **Riscos resumidos:** 3 cenários no webhook (texto puro + sticker + foto+caption). Mock Telegram (QA-002) resolve o download de arquivo — `TELEGRAM_API_URL` apontado para `:9090` via `.env.e2e`. S3 usa bucket dev real (credenciais `~/.aws`).
 
 ---
@@ -34,8 +34,9 @@ Após QA-001 (config) + QA-002 (scripts de stack) + QA-003 (fixtures), a infra e
 Contagem de `test()` nesta task (critério "testes E2E novos"):
 - `site-fluxo-feliz.spec.ts` → 1 test
 - `webhook-cenarios.spec.ts` → 3 tests (parametrizado: texto puro + sticker + foto+caption)
-- `a11y-home.spec.ts` → 1 test
-**Total: 5 testes novos.**
+**Total: 4 testes novos.**
+
+> **a11y cancelada (2026-06-03):** `a11y-home.spec.ts` e o `checkA11y` inline do fluxo feliz foram removidos do escopo — acessibilidade retirada dos gates desta sprint (QA-007). `@axe-core/playwright` será desinstalado por QA-007.
 
 ---
 
@@ -48,7 +49,8 @@ Três specs em `frontend/e2e/specs/`:
 2. `page.goto('/')` — verifica landing na home.
 3. Clicar num pedido → verificar navegação para detalhe.
 4. Clicar em "ver comprovante" → verificar que modal/preview abre.
-5. Bonus inline a11y: `checkA11y(page, { includedImpacts: ['serious', 'critical'] })`.
+
+> ~~Bonus inline a11y~~ — removido (QA-007, 2026-06-03).
 
 **`webhook-cenarios.spec.ts`** — parametrizado com 3 cenários:
 ```typescript
@@ -63,9 +65,7 @@ for (const c of cenarios) {
 ```
 Cada cenário: POST para `E2E_BACKEND_URL/webhook/telegram` com payload + header HMAC simulado → verificar 200 + pedido criado no banco (via `querySql`). O cenário foto+caption depende do mock Telegram (QA-002) rodando em `:9090` — `TELEGRAM_API_URL=http://localhost:9090` no `.env.e2e` faz o back baixar do mock em vez do Telegram real.
 
-**`a11y-home.spec.ts`** — standalone:
-1. `loginE2E(page)`, navega para home.
-2. `checkA11y(page, { includedImpacts: ['serious', 'critical'] })` — threshold: zero violações serious+critical.
+~~**`a11y-home.spec.ts`**~~ — **cancelada** (QA-007, 2026-06-03). `@axe-core/playwright` desinstalado por QA-007.
 
 ~~Atualizar `playwright.config.ts` (de QA-001): adicionar `reporter: [['html'], ['list']]` e `outputDir: './playwright-report'`.~~
 
@@ -78,7 +78,7 @@ Cada cenário: POST para `E2E_BACKEND_URL/webhook/telegram` com payload + header
 ### Criar
 - `frontend/e2e/specs/site-fluxo-feliz.spec.ts`
 - `frontend/e2e/specs/webhook-cenarios.spec.ts`
-- `frontend/e2e/specs/a11y-home.spec.ts`
+- ~~`frontend/e2e/specs/a11y-home.spec.ts`~~ — cancelada (QA-007)
 
 ### Modificar
 - `frontend/playwright.config.ts` — **reporter e outputDir já existem** (adicionados em QA-001). Verificar/ajustar `outputDir` se necessário (ver nota acima).
@@ -98,23 +98,23 @@ Cada cenário: POST para `E2E_BACKEND_URL/webhook/telegram` com payload + header
 
 Critério de estabilidade: `npm run e2e:full` verde **3 vezes consecutivas** em ambiente limpo (sem flakiness).
 
-`testes_novos: 5` (1 fluxo feliz + 3 webhook + 1 a11y).
+`testes_novos: 4` (1 fluxo feliz + 3 webhook).
 
 ---
 
 ## Critérios de aceitação
 
-- [ ] `npm run e2e:full` verde com 3 specs ativas (5 testes no total).
+- [ ] `npm run e2e:full` verde com 2 specs ativas (4 testes no total).
 - [ ] `npm run e2e:full` verde 3 vezes seguidas em ambiente limpo — sem flakiness.
 - [ ] `webhook-cenarios.spec.ts` tem os 3 cenários na tabela: texto puro, sticker e foto+caption.
 - [ ] Cenário foto+caption usa `telegramUpdateFotoLegenda({ fromUserId: 99, fileId: E2E_MOCK_FILE_ID, caption: 'comprovante fev' })`.
-- [ ] `a11y-home.spec.ts` usa threshold `serious+critical` (não `moderate` ou `minor`).
 - [ ] Após spec com falha intencional: `playwright-report/index.html` mostra screenshot + trace navegável.
 - [ ] `playwright-report/` **não** commitado (`.gitignore`).
 - [ ] Cleanup (`limparDadosE2E`) roda antes/depois dos testes que criam dados — confirmar que `requisitante_id=1` não é afetado.
 - [ ] `npm test` (Vitest) continua verde.
 - [ ] Branch: `feature/qa-004-specs-mvp-3-cenarios` saindo de `integration/03-folha-pagamento`.
 - [ ] Status report com frontmatter válido e `testes_novos: 4`.
+- [ ] Zero import de `@axe-core/playwright` em qualquer spec.
 
 ---
 
