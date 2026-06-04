@@ -10,7 +10,7 @@
 
 - **`feature/be-024-entidades-jpa-repositorios-folha` mergeada em `integration/03-folha-pagamento`** — CadastrarValePortOut e as entidades precisam existir.
   Confirmar: `git log origin/integration/03-folha-pagamento --oneline | grep be-024`.
-- **Decisão §7 (vales na lista do Pedro):** PENDENTE — esta task explicitamente NÃO toca `GET /api/pedidos`. Registrar a decisão que o PO tomar no status report (qual opção: A ou B).
+- **Decisão §7 (vales na lista do Pedro):** ✅ **Opção A decidida pelo PO (2026-06-04)** — vales NÃO aparecem na lista do Pedro. `GET /api/pedidos` NÃO precisa de mudança agora. Esta task não toca esse endpoint — consistente com a decisão. Anotar no status report.
 
 ---
 

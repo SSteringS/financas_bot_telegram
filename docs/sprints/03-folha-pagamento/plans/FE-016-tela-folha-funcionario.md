@@ -21,7 +21,7 @@ fluxos_qa: []
 - **Origem:** spec EVO-09 §6 (Tela: Folha do Funcionário). Maior task de front desta sprint.
 - **Por quê agora:** agrega vales + adiantamentos + histórico de fechamentos em uma só tela; FE-017 (modal de fechamento) depende dela.
 - **Esforço:** alto — 3 seções com queries independentes, seletor de mês, accordion de fechamentos, botão condicional de fechar mês.
-- **Riscos resumidos:** ⚠️ **Decisão pendente §7** (vales aparecem na lista do Pedro?) afeta integração com a tela principal mas **não bloqueia a implementação desta tela** — o ajuste na lista principal pode entrar depois como FIX separado.
+- **Riscos resumidos:** ✅ **Decisão §7 resolvida (2026-06-04 — PO): Opção A** — vales NÃO aparecem na lista do Pedro. `GET /api/pedidos` e `Home.tsx` ficam intocados por enquanto. Se necessário filtrar no futuro, entra como FIX separado.
 
 ---
 
@@ -56,10 +56,8 @@ DELETE /api/adiantamentos/{adiantamentoId}
 
 **Botão "Fechar mês YYYY-MM":** aparece **somente se** não existe Pedido FOLHA com `mes_referencia` do mês selecionado. Abre `ModalFechamento` (FE-017).
 
-### Decisão pendente §7 (vales na lista do Pedro)
-Esta tela **não é afetada diretamente** pela decisão §7 — ela é exclusiva do filho. O impacto da decisão §7 está no `GET /api/pedidos` (lista do Pedro) e na `Home.tsx` do front. Registrar aqui apenas para rastreabilidade:
-- **Opção A aprovada pelo PO:** criar FIX separado após esta sprint pra adicionar `AND categoria IS NULL` no `GET /api/pedidos` e potencialmente um banner informativo nesta tela.
-- **Opção B aprovada pelo PO:** criar FIX separado pra adicionar tag visual VALE/FOLHA na `Home.tsx`. Sem impacto nesta tela.
+### Decisão §7 (vales na lista do Pedro) — ✅ Resolvida
+**Opção A aprovada pelo PO em 2026-06-04:** vales NÃO aparecem na lista do Pedro. `GET /api/pedidos` e `Home.tsx` ficam intocados. Esta tela não é afetada — é exclusiva do filho. Se no futuro precisar filtrar vales da lista do Pedro, entra como FIX separado pós-sprint.
 
 ---
 

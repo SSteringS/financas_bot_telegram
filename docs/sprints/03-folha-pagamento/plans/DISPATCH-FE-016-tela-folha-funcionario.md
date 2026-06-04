@@ -87,7 +87,7 @@ B. **Seletor de mês:** <select> nativo com os últimos 6 meses, ou componente c
 
 Incluir:
 - Decisões A e B (form inline vs modal; seletor de mês) com justificativa.
-- Nota sobre decisão §7 (qual opção PO escolheu, se já decidida).
+- Nota sobre decisão §7: **Opção A decidida pelo PO (2026-06-04)** — vales NÃO aparecem na lista do Pedro. `Home.tsx` não precisa de ajuste agora.
 - Confirmação que stub de ModalFechamento tem as props corretas para FE-017 integrar.
 - Resultado dos testes de condicionalidade do botão "Fechar mês".
 

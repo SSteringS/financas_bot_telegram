@@ -57,11 +57,9 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 
 ## Próximos passos (BE/FE)
 
-Antes de despachar BE-026 e FE-016:
+> **Decisão §7 resolvida (2026-06-04 — PO):** **Opção A** — vales NÃO aparecem na lista do Pedro. `GET /api/pedidos` e `Home.tsx` ficam intocados. BE-026 e FE-016 desbloqueados.
 
-1. **Resolver decisão §7 da spec:** vales aparecem na lista do Pedro? (Opção A — não / Opção B — com tag visual). Bloqueia BE-026 e FE-016.
-
-Ordem de despacho quando integration estiver disponível:
+Ordem de despacho:
 
 ```
 BE-024 → (merge integration) → BE-025 ║ BE-026 → BE-027 → BE-028 → BE-029

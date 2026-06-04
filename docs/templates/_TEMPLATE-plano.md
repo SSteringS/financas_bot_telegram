@@ -16,6 +16,10 @@ skills_dispatched: []                      # skills a carregar nesta task — si
                                            # [] se nenhuma skill específica além das always-on do role
 integration_branch: integration/03-evo-09  # branch intermediária desta sprint — implementador cria feature/* a partir daqui
                                            # null para fix/hotfix (saem direto de develop)
+fluxos_qa: []                              # fluxos de teste automatizado que o QA deve executar nesta task
+                                           # ex: [integracao-autenticacao, componente-lista-pedidos, e2e-fluxo-compra]
+                                           # [] se nenhuma (task documental, infra pura, ou flows já cobertos)
+                                           # preenchido pelo planner; QA pode sugerir ajustes na seção 7 da avaliação
 ---
 
 # [TASK-ID] — Título curto da tarefa
@@ -103,13 +107,14 @@ O que **não** entra nesta task mesmo que pareça relacionado. Cita o que entra 
 - **Depende sequencialmente de:** o que precisa estar em `develop` antes.
 - **Bloqueia:** o que destrava quando esta mergear.
 - **Atenção pro Reviewer:** pontos específicos que o Reviewer deve olhar (smells esperados, áreas sensíveis).
+- **Atenção pro QA:** contexto sobre os `fluxos_qa` escolhidos — por que cada flow foi incluído e o que está fora de escopo.
 - **Após merge:** ações necessárias (atualizar `STATE.md`, despachar próxima task, abrir pendência).
 
 ---
 
 ## Definição de pronto
 
-Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report válido conforme `_TEMPLATE-status.md`, e **revisão obrigatória do Reviewer** (sessão separada — ADR 0005). PR pra `develop`; não mergear sozinho.
+Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report válido conforme `_TEMPLATE-status.md`, **revisão do Reviewer** (sessão separada — ADR 0005), e — quando `fluxos_qa ≠ []` — **gate QA** com seção 7 da avaliação preenchida e `veredito_qa: aprovado` ou `aprovado_com_ajustes`. Implementador abre o PR da feature para `integration_branch` após todos os gates OK; **não** abre PR direto pra `develop`.
 
 ---
 
