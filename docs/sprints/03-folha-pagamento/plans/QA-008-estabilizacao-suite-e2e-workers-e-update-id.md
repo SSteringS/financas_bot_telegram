@@ -13,6 +13,7 @@ depende_de: [QA-004, QA-007]
 bloqueia: []
 skills_dispatched: []
 exige_e2e_full: true
+fluxos_qa: []
 ---
 
 # QA-008 — Estabilização da suíte E2E (workers serializados + update_id em int32)

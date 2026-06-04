@@ -14,6 +14,7 @@ bloqueia: []
 skills_dispatched: []
 exige_e2e_full: false
 lote: A
+fluxos_qa: []
 ---
 
 # QA-006 — Item E2E no PRE-MERGE-CHECKLIST

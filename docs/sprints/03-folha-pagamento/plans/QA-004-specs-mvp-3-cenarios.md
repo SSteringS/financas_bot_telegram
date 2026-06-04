@@ -14,6 +14,7 @@ bloqueia: []
 skills_dispatched: []
 exige_e2e_full: false
 lote: B
+fluxos_qa: []
 ---
 
 # QA-004 — 2 specs MVP (site-fluxo-feliz, webhook-cenarios)

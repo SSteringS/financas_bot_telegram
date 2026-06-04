@@ -11,6 +11,7 @@ estado: pronto-pra-execucao
 depende_de: [BE-024]
 bloqueia: [BE-028]
 skills_dispatched: [arquitetura-hexagonal, ecossistema-spring]
+fluxos_qa: []
 ---
 
 # BE-027 — CadastrarAdiantamento + endpoints adiantamentos + cancelamento
