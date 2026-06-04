@@ -14,8 +14,9 @@ gates:
   cobertura_pct: na
   branch_convencao: ok
   territorio: ok
-commits: []
-pr: null
+commits:
+  - f45fb30
+pr: https://github.com/SSteringS/financas_bot_telegram/pull/105
 desvios: 0
 pendencias_humano: 0
 ---

@@ -14,6 +14,46 @@ Não confundir com `docs/plans/` (planos de tarefa ativos) nem com a seção "Fa
 
 ## Itens abertos
 
+### `DataIntegrityViolationException` importada na application layer (FecharMesServiceImpl)
+
+**Contexto (identificado no review BE-026/029, 2026-06-04):** `FecharMesServiceImpl` (`application/services/`) importa `org.springframework.dao.DataIntegrityViolationException` (linha 21) para capturar violação de UNIQUE INDEX no passo 8 e traduzir para `FechamentoDuplicadoException`. Em arquitetura hexagonal estrita, esse catch deveria viver no adapter de saída (`PedidoPagamentoRepositoryAdapter.save()`), que traduz a exceção antes de ela chegar na application layer. Mesmo padrão existe em `RegistrarComprovanteServiceImpl` (pré-existente).
+
+**Fix sugerido:** Mover o catch para `PedidoPagamentoRepositoryAdapter.save()`:
+```java
+// adapter catches DataIntegrityViolationException → lança PedidoDuplicadoPortException (domain exception)
+// service só conhece PedidoDuplicadoPortException
+```
+
+**Esforço:** baixo — mas requer cuidado para não quebrar o `@Transactional` (a exceção deve ser lançada dentro da transação para garantir rollback).
+
+**Prioridade:** baixa. O comportamento está correto e testado (B2 do FIX-003). É dívida arquitetural, não bug.
+
+---
+
+### `/api/funcionarios/**` sem autenticação JWT
+
+**Contexto (identificado no review BE-026/029, 2026-06-04):** `JwtAuthenticationFilter.shouldNotFilter` só aplica JWT para paths `/api/v1/**`. Os endpoints `/api/funcionarios/**` (FolhaController, FuncionarioController) são servidos sem autenticação. Pré-existente desde BE-025 — aceito como design intencional desta fase.
+
+**Fix sugerido:** Estender o filtro ou adicionar `HttpSecurity` com `authorizeRequests()` para cobrir `/api/funcionarios/**`. Alternativa: mover esses endpoints para `/api/v1/funcionarios/**` (mudança de URL — requer atualização no frontend).
+
+**Esforço:** baixo a médio (depende se muda URL ou não).
+
+**Prioridade:** média. Antes de considerar o sistema "em produção plena" pra múltiplos usuários, corrigir.
+
+---
+
+### Duplicação `parseMes`/`parseMesYearMonth` em FolhaController
+
+**Contexto (identificado no review BE-026/029, 2026-06-04):** Dois métodos privados idênticos em `FolhaController` (linhas 156 e 167). Funciona, mas risco de divergência em manutenção futura.
+
+**Fix sugerido:** Unificar em um único método `parseMesYearMonth`.
+
+**Esforço:** trivial (3 linhas).
+
+**Prioridade:** baixa.
+
+---
+
 ### `terraform.tfstate` e `.tfstate.backup` commitados em `financas_bot_telegram/infra/`
 
 **Contexto:** `terraform.tfstate`, `terraform.tfstate.backup` e a pasta `.terraform/` estão versionados no repositório. O backend remoto é S3 (`finbot-tfstate-satyans`), então esses arquivos locais são resíduo — a fonte da verdade é o state no S3. Ter o state local versionado cria risco: alguém pode confundir o arquivo local (potencialmente desatualizado) com o state real, ou pior, rodar `terraform` sem ter inicializado o backend S3 e sobrescrever o state remoto.
