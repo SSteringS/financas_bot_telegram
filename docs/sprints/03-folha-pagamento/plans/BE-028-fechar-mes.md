@@ -11,6 +11,7 @@ estado: pronto-pra-execucao
 depende_de: [BE-024, BE-026, BE-027]
 bloqueia: [BE-029, FE-016, FE-017]
 skills_dispatched: [arquitetura-hexagonal, ecossistema-spring, qualidade-de-testes]
+fluxos_qa: []
 ---
 
 # BE-028 — FecharMesUseCase + endpoint de fechamento

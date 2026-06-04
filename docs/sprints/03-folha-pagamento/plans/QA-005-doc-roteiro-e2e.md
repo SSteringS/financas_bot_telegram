@@ -14,6 +14,7 @@ bloqueia: []
 skills_dispatched: []
 exige_e2e_full: false
 lote: A
+fluxos_qa: []
 ---
 
 # QA-005 — Doc `docs/runbooks/ROTEIRO-E2E.md`

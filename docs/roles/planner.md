@@ -56,6 +56,7 @@ Coordenar o projeto: escrever planos de task, manter docs e sprints, propor ADRs
 ## Checklist do papel
 
 - [ ] Plano tem origem, critérios de aceite, dependências, riscos, branch e coordenação (template).
+- [ ] `fluxos_qa` preenchido no frontmatter de todo plano: `[]` quando sem cobertura E2E; lista de flow-ids quando a task toca fluxos cobertos pela suíte automatizada.
 - [ ] Dúvida técnica com substância → registrar/atualizar `docs/aprendizado/` + índice.
 - [ ] Decisão arquitetural (inclusive cross-AI) → ADR `Proposed`.
 - [ ] Plano cita `docs/runbooks/PRE-MERGE-CHECKLIST.md` como definição de pronto.

@@ -14,6 +14,7 @@ bloqueia: [QA-002, QA-003]
 skills_dispatched: []
 exige_e2e_full: false
 lote: A
+fluxos_qa: []
 ---
 
 # QA-001 — Setup Playwright + config base

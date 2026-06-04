@@ -11,6 +11,7 @@ estado: pronto-pra-execucao
 depende_de: [BE-025]
 bloqueia: [FE-016]
 skills_dispatched: [boas-praticas-react, ecossistema-frontend, seguranca-web-frontend]
+fluxos_qa: []
 ---
 
 # FE-015 — Tela Funcionários — lista + formulário de cadastro/edição

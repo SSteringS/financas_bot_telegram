@@ -14,6 +14,7 @@ bloqueia: [QA-004]
 skills_dispatched: []
 exige_e2e_full: false
 lote: B
+fluxos_qa: []
 ---
 
 # QA-003 — Fixtures — banco, auth, global-setup, payloads-telegram

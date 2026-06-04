@@ -14,6 +14,7 @@ bloqueia: [QA-004]
 skills_dispatched: []
 exige_e2e_full: false
 lote: A
+fluxos_qa: []
 ---
 
 # QA-002 — Scripts de orquestração da stack

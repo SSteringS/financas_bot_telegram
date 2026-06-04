@@ -11,6 +11,7 @@ estado: pronto-pra-execucao
 depende_de: [BE-028]
 bloqueia: []
 skills_dispatched: [qualidade-de-testes, arquitetura-hexagonal]
+fluxos_qa: []
 ---
 
 # BE-029 — Testes — FecharMesUseCase + integração endpoint fechamento

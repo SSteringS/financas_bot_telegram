@@ -11,6 +11,7 @@ estado: pronto-pra-execucao
 depende_de: [BE-026, BE-027, BE-028, FE-015]
 bloqueia: [FE-017]
 skills_dispatched: [boas-praticas-react, ecossistema-frontend]
+fluxos_qa: []
 ---
 
 # FE-016 — Tela Folha do Funcionário — vales, adiantamentos, fechamentos

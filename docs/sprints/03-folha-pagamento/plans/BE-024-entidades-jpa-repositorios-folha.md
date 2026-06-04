@@ -11,6 +11,7 @@ estado: pronto-pra-execucao
 depende_de: [BE-023]
 bloqueia: [BE-025, BE-026, BE-027, BE-028]
 skills_dispatched: [arquitetura-hexagonal, ecossistema-spring]
+fluxos_qa: []
 ---
 
 # BE-024 — Entidades JPA + repositórios — Funcionario e Adiantamento

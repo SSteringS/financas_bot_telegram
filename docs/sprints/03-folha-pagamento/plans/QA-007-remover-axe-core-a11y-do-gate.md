@@ -13,6 +13,7 @@ depende_de: []
 bloqueia: []
 skills_dispatched: []
 exige_e2e_full: false
+fluxos_qa: []
 ---
 
 # QA-007 — Remover `@axe-core/playwright` — a11y fora do gate E2E
