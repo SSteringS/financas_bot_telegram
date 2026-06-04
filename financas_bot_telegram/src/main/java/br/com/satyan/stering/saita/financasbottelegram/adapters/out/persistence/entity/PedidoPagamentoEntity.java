@@ -22,7 +22,11 @@ public class PedidoPagamentoEntity {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "requisitante_id", nullable = false)
+    /**
+     * FK para {@code requisitante.id}. Null para pedidos sistema (categoria=FOLHA),
+     * obrigatório para pedidos do Telegram.
+     */
+    @Column(name = "requisitante_id")
     private Long requisitanteId;
 
     @Column(name = "telegram_user_id")

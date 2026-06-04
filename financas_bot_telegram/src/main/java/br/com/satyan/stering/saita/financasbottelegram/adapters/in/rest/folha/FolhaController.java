@@ -2,11 +2,14 @@ package br.com.satyan.stering.saita.financasbottelegram.adapters.in.rest.folha;
 
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.AdiantamentoRequest;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.AdiantamentoResponse;
+import br.com.satyan.stering.saita.financasbottelegram.application.dto.FecharMesRequest;
+import br.com.satyan.stering.saita.financasbottelegram.application.dto.PedidoFolhaResponse;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.ValeRequest;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.ValeResponse;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.in.CadastrarAdiantamentoPortIn;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.in.CancelarAdiantamentoPortIn;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.in.CadastrarValePortIn;
+import br.com.satyan.stering.saita.financasbottelegram.application.port.in.FecharMesPortIn;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.AdiantamentoRepositoryPortOut;
 import br.com.satyan.stering.saita.financasbottelegram.application.port.out.PedidoPagamentoRepositoryPort;
 import br.com.satyan.stering.saita.financasbottelegram.domain.entity.Adiantamento;
@@ -42,18 +45,21 @@ public class FolhaController {
     private final CadastrarAdiantamentoPortIn cadastrarAdiantamentoUseCase;
     private final CancelarAdiantamentoPortIn cancelarAdiantamentoUseCase;
     private final AdiantamentoRepositoryPortOut adiantamentoRepository;
+    private final FecharMesPortIn fecharMesUseCase;
 
     public FolhaController(
             CadastrarValePortIn cadastrarValeUseCase,
             PedidoPagamentoRepositoryPort pedidoRepository,
             CadastrarAdiantamentoPortIn cadastrarAdiantamentoUseCase,
             CancelarAdiantamentoPortIn cancelarAdiantamentoUseCase,
-            AdiantamentoRepositoryPortOut adiantamentoRepository) {
+            AdiantamentoRepositoryPortOut adiantamentoRepository,
+            FecharMesPortIn fecharMesUseCase) {
         this.cadastrarValeUseCase = cadastrarValeUseCase;
         this.pedidoRepository = pedidoRepository;
         this.cadastrarAdiantamentoUseCase = cadastrarAdiantamentoUseCase;
         this.cancelarAdiantamentoUseCase = cancelarAdiantamentoUseCase;
         this.adiantamentoRepository = adiantamentoRepository;
+        this.fecharMesUseCase = fecharMesUseCase;
     }
 
     // ── Vales ─────────────────────────────────────────────────────────────────
@@ -124,7 +130,39 @@ public class FolhaController {
         cancelarAdiantamentoUseCase.cancelar(adiantamentoId);
     }
 
+    // ── Fechamentos ───────────────────────────────────────────────────────────
+
+    @PostMapping("/{id}/fechamentos")
+    @Operation(summary = "Fecha o mês para o funcionário — gera Pedido FOLHA com breakdown")
+    public ResponseEntity<PedidoFolhaResponse> fecharMes(
+            @PathVariable Long id,
+            @Valid @RequestBody FecharMesRequest request) {
+
+        YearMonth mes = parseMesYearMonth(request.getMes());
+        PedidoPagamento pedidoFolha = fecharMesUseCase.fechar(id, mes, request.getAjuste());
+        return ResponseEntity.ok(PedidoFolhaResponse.from(pedidoFolha));
+    }
+
+    @GetMapping("/{id}/fechamentos")
+    @Operation(summary = "Lista fechamentos anteriores do funcionário (Pedidos FOLHA) por mes_referencia DESC")
+    public List<PedidoFolhaResponse> listarFechamentos(@PathVariable Long id) {
+        return pedidoRepository.findFolhasByFuncionario(id).stream()
+                .map(PedidoFolhaResponse::from)
+                .toList();
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private YearMonth parseMesYearMonth(String mes) {
+        if (mes == null || mes.isBlank()) {
+            return YearMonth.now();
+        }
+        try {
+            return YearMonth.parse(mes);
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("Formato de mês inválido: '" + mes + "'. Use YYYY-MM.");
+        }
+    }
 
     private YearMonth parseMes(String mes) {
         if (mes == null || mes.isBlank()) {
