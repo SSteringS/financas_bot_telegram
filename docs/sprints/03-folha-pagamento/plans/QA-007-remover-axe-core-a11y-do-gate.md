@@ -8,7 +8,7 @@ integration_branch: integration/03-folha-pagamento
 prioridade: media
 esforco: baixo
 territorio: front
-estado: pronto-pra-execucao
+estado: concluido
 depende_de: []
 bloqueia: []
 skills_dispatched: []

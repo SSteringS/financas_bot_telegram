@@ -7,7 +7,7 @@ branch_alvo: fix/002-ci-aceitar-integration-no-gate-de-branch
 prioridade: alta
 esforco: baixo
 territorio: back
-estado: pronto-pra-execucao
+estado: concluido
 depende_de: []
 bloqueia: [BE-024, BE-025, BE-026, BE-027, BE-028, BE-029, FE-015, FE-016, FE-017]
 skills_dispatched: []
