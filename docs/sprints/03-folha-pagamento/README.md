@@ -1,6 +1,6 @@
 # Sprint 03 — Folha de Pagamento
 
-**Status:** 🟡 em andamento — fase QA/FIX concluída; fase BE/FE pendente (2026-06-04)
+**Status:** 🟡 em andamento — fase BE/FE + FIX concluídas; QA de cobertura em execução (2026-06-05)
 
 **Objetivo:** entregar a gestão de folha de pagamento doméstica — cadastro de funcionários, vales, adiantamentos parcelados e fechamento mensal.
 
@@ -52,22 +52,33 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 | ID | Slug | Estado |
 |----|------|--------|
 | FIX-002 | ci-aceitar-integration-no-gate-de-branch | ✅ concluido (PR #89/90 → develop) |
+| FIX-003 | qa-gaps-fechar-mes | ✅ concluido (PR #105 → develop) |
+| FIX-004 | consolidar-pacote-vo-em-enums | ✅ concluido (PR #107 → develop) |
+| FIX-005 back | padronizar-api-v1-jwt-allowlist | ✅ concluido (PR #109 → develop) |
+| FIX-005 front | padronizar-api-v1-front | 🔴 pendente (folha.ts ainda usa `/api/funcionarios`) |
+
+### QA — Cobertura + E2E Expansão (2026-06-05)
+
+| ID | Slug | Estado |
+|----|------|--------|
+| QA-009 | cobertura-testes-backend | 🔵 pronto-pra-execucao (FIX-005 back desbloqueou) |
+| QA-010 | cobertura-testes-frontend | 🔵 pronto-pra-execucao |
+| QA-011 | expansao-e2e-cenarios-positivos | 🔵 pronto-pra-execucao (Sub-áreas B/C/D independentes; Sub-área A aguarda BE-030) |
+| BE-030 | telegram-file-url-configuravel | 🔵 pronto-pra-execucao (desbloqueia QA-011 Sub-área A) |
 
 ---
 
-## Próximos passos (BE/FE)
+## Próximos passos (atual — QA de cobertura)
 
-> **Decisão §7 resolvida (2026-06-04 — PO):** **Opção A** — vales NÃO aparecem na lista do Pedro. `GET /api/pedidos` e `Home.tsx` ficam intocados. BE-026 e FE-016 desbloqueados.
-
-Ordem de despacho:
+Fila de execução paralela disponível:
 
 ```
-BE-024 → (merge integration) → BE-025 ║ BE-026 → BE-027 → BE-028 → BE-029
-                                           ↓                              ↓
-                                         FE-015                   FE-016 ║ FE-017
+FIX-005 front     (front — desbloqueia paridade API front/back)
+BE-030            (back — desbloqueia QA-011 Sub-área A)
+QA-009            (back — independente de FIX-005 front e BE-030)
+QA-010            (front — independente)
+QA-011 B/C/D      (front — independente; Sub-área A aguarda BE-030)
 ```
-
-> ⚠️ BE-026 e BE-027 **não podem ser paralelas** — ambas tocam `FolhaController.java`.
 
 ---
 
