@@ -54,7 +54,7 @@ São convenções diferentes para a mesma coisa. `vo` vem de Value Object (DDD);
 
 **Esforço:** baixo a médio (depende se muda URL ou não).
 
-**Prioridade:** média. Antes de considerar o sistema "em produção plena" pra múltiplos usuários, corrigir.
+**Prioridade:** ~~média~~ → **alta** — promovido pelo humano em 2026-06-04. Plano criado: `docs/sprints/03-folha-pagamento/plans/FIX-005-proteger-api-funcionarios-jwt.md`.
 
 ---
 
