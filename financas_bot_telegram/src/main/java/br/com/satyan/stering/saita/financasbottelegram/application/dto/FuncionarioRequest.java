@@ -1,6 +1,6 @@
 package br.com.satyan.stering.saita.financasbottelegram.application.dto;
 
-import br.com.satyan.stering.saita.financasbottelegram.domain.vo.FormaPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.FormaPagamento;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;

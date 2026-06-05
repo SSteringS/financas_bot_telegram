@@ -19,8 +19,8 @@ import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.FechamentoDuplicadoException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.exceptions.FuncionarioNaoEncontradoException;
 import br.com.satyan.stering.saita.financasbottelegram.domain.model.PedidoPagamento;
-import br.com.satyan.stering.saita.financasbottelegram.domain.vo.CategoriaPedido;
-import br.com.satyan.stering.saita.financasbottelegram.domain.vo.FormaPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.CategoriaPedido;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.FormaPagamento;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;

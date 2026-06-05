@@ -138,7 +138,19 @@ O reviewer é chamado pelo implementador via template neutro (ADR 0019 §4). Reg
 - **Issue crítico = bloqueante para merge.** Definir claramente na avaliação o que é crítico (bloqueia) vs observação (registrar mas não bloqueia). O implementador decide se corrige ou escalas ao humano.
 ```
 
-b) Atualizar "Ler sempre" para incluir `docs/decisions/0019`.
+b) Adicionar à seção "Smells / o que procurar" do arquivo (ou criar a seção se não existir) o seguinte smell:
+
+```
+### Consistência de prefixo de URL
+
+Se o projeto usa `/api/vN/` como padrão, todo controller novo deve seguir o mesmo prefixo. Endpoints criados fora do padrão (ex: `/api/funcionarios/**` quando o padrão estabelecido é `/api/v1/**`) são **observação material** — registrar como inconsistência arquitetural e sugerir padronização.
+
+Evidência a buscar: comparar o `@RequestMapping` do controller novo com os controllers existentes no mesmo pacote ou em `adapters/in/rest/`.
+```
+
+> **Origem:** FIX-005 (sprint 03, 2026-06-04) — inconsistência `/api/funcionarios/**` vs `/api/v1/**` não foi capturada pelo reviewer automatizado porque o smell não estava no checklist.
+
+c) Atualizar "Ler sempre" para incluir `docs/decisions/0019`.
 
 ---
 

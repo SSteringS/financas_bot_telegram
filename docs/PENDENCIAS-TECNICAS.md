@@ -14,7 +14,7 @@ Não confundir com `docs/plans/` (planos de tarefa ativos) nem com a seção "Fa
 
 ## Itens abertos
 
-### Dois pacotes paralelos para enums de domínio (`domain/enums/` e `domain/vo/`)
+### ~~Dois pacotes paralelos para enums de domínio (`domain/enums/` e `domain/vo/`)~~ ✅ resolvido em FIX-004
 
 **Contexto (identificado na revisão da sprint 03, 2026-06-04):** o domínio tem dois pacotes para enums:
 - `domain/enums/` — pré-existente: `StatusPedido`, `TipoArquivo`, `TipoPagamento`, `TipoUploadS3`
@@ -54,7 +54,7 @@ São convenções diferentes para a mesma coisa. `vo` vem de Value Object (DDD);
 
 **Esforço:** baixo a médio (depende se muda URL ou não).
 
-**Prioridade:** média. Antes de considerar o sistema "em produção plena" pra múltiplos usuários, corrigir.
+**Prioridade:** ~~média~~ → **alta** — promovido pelo humano em 2026-06-04. Plano criado: `docs/sprints/03-folha-pagamento/plans/FIX-005-proteger-api-funcionarios-jwt.md`.
 
 ---
 

@@ -51,7 +51,7 @@ public interface PedidoPagamentoJpaRepository
     @Query("""
            SELECT p FROM PedidoPagamentoEntity p
            WHERE p.funcionarioId = :funcionarioId
-             AND p.categoria = br.com.satyan.stering.saita.financasbottelegram.domain.vo.CategoriaPedido.VALE
+             AND p.categoria = br.com.satyan.stering.saita.financasbottelegram.domain.enums.CategoriaPedido.VALE
              AND p.fechado = false
              AND p.dataPedido >= :inicio
              AND p.dataPedido <= :fim
@@ -71,7 +71,7 @@ public interface PedidoPagamentoJpaRepository
     @Query("""
            SELECT p FROM PedidoPagamentoEntity p
            WHERE p.funcionarioId = :funcionarioId
-             AND p.categoria = br.com.satyan.stering.saita.financasbottelegram.domain.vo.CategoriaPedido.FOLHA
+             AND p.categoria = br.com.satyan.stering.saita.financasbottelegram.domain.enums.CategoriaPedido.FOLHA
            ORDER BY p.mesReferencia DESC
            """)
     List<PedidoPagamentoEntity> findFolhasByFuncionario(@Param("funcionarioId") Long funcionarioId);
@@ -79,7 +79,7 @@ public interface PedidoPagamentoJpaRepository
     @Query("""
            SELECT p FROM PedidoPagamentoEntity p
            WHERE p.funcionarioId = :funcionarioId
-             AND p.categoria = br.com.satyan.stering.saita.financasbottelegram.domain.vo.CategoriaPedido.VALE
+             AND p.categoria = br.com.satyan.stering.saita.financasbottelegram.domain.enums.CategoriaPedido.VALE
              AND p.dataPedido >= :inicio
              AND p.dataPedido <= :fim
            ORDER BY p.dataPedido DESC

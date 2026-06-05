@@ -1,4 +1,4 @@
-package br.com.satyan.stering.saita.financasbottelegram.domain.vo;
+package br.com.satyan.stering.saita.financasbottelegram.domain.enums;
 
 /**
  * Categoria de um pedido relacionado à folha de pagamento doméstica.
