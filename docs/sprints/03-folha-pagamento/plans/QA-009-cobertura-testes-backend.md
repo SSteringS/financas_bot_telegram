@@ -4,11 +4,11 @@ titulo: "Cobertura de testes backend — fechar gaps críticos de unit + integra
 sprint: 03-folha-pagamento
 data_planejamento: 2026-06-04
 branch_alvo: feature/qa-009-cobertura-testes-backend
-integration_branch: null
+integration_branch: integration/03-folha-pagamento
 prioridade: alta
 esforco: alto
 territorio: back
-estado: bloqueado
+estado: pronto-pra-execucao
 depende_de: [QA-008, FIX-005]
 bloqueia: []
 skills_dispatched: [qualidade-de-testes, seguranca-backend]
@@ -17,7 +17,7 @@ fluxos_qa: []
 
 # QA-009 — Cobertura de testes backend (controllers + services + adapters + integration)
 
-> **Status: bloqueado em FIX-005.** QA-009 só pode iniciar após `fix/005-proteger-api-funcionarios-jwt` mergear em `develop` e o planner sincronizar `develop → integration/03-folha-pagamento`. Motivo: Sub-área A (`FolhaControllerTest`) deve incluir cenários 401/403; Sub-área D (integration tests da folha) deve usar auth desde o início. Ver `docs/sprints/03-folha-pagamento/plans/FIX-005-proteger-api-funcionarios-jwt.md`.
+> **Status: pronto-pra-execucao.** FIX-005 back mergeada (PR #109, 2026-06-05) — URLs corretas em `@RequestMapping`, JWT allowlist ativo. Sub-área A usa `/api/v1/funcionarios/**`; Sub-área D inclui autenticação via `postAutenticado()`/`getAutenticado()`. Ver §"Decisão / abordagem" para ajustes de URL vs plano original.
 
 > **Atualização pós-merge do FIX-005 (planner faz):** remover a nota "não escrever testes 401/403" da Sub-área A (linhas abaixo) e adicionar cenários 401/403 explicitamente. Integration tests da Sub-área D devem chamar `autenticarComo()` em `@BeforeEach`.
 
@@ -39,15 +39,15 @@ Inventário cruzado (produção × teste) identificou os seguintes gaps no back:
 ### Sub-área A — Controllers REST
 
 `FolhaController` (`adapters/in/rest/folha/FolhaController.java`) — 7 endpoints sem teste:
-- `POST /api/funcionarios/{id}/vales` — cadastrar vale
-- `GET  /api/funcionarios/{id}/vales?mes=YYYY-MM` — listar vales
-- `POST /api/funcionarios/{id}/adiantamentos` — cadastrar adiantamento
-- `GET  /api/funcionarios/{id}/adiantamentos` — listar adiantamentos
-- `DELETE /api/funcionarios/adiantamentos/{adiantamentoId}` — cancelar
-- `POST /api/funcionarios/{id}/fechamentos` — fechar mês
-- `GET  /api/funcionarios/{id}/fechamentos` — listar fechamentos
+- `POST /api/v1/funcionarios/{id}/vales` — cadastrar vale
+- `GET  /api/v1/funcionarios/{id}/vales?mes=YYYY-MM` — listar vales
+- `POST /api/v1/funcionarios/{id}/adiantamentos` — cadastrar adiantamento
+- `GET  /api/v1/funcionarios/{id}/adiantamentos` — listar adiantamentos
+- `DELETE /api/v1/funcionarios/adiantamentos/{adiantamentoId}` — cancelar
+- `POST /api/v1/funcionarios/{id}/fechamentos` — fechar mês
+- `GET  /api/v1/funcionarios/{id}/fechamentos` — listar fechamentos
 
-**Pendência conhecida** (`docs/PENDENCIAS-TECNICAS.md`): `/api/funcionarios/**` **não passa pelo JwtAuthenticationFilter**. Esta task **não** corrige isso — testes refletem o estado atual (sem auth). Quando essa pendência virar plano BE-NNN, alguém atualiza os testes pra incluir cenários 401/403.
+> **Atualização FIX-005 (2026-06-05):** URLs migradas para `/api/v1/funcionarios/**`. JWT allowlist ativo — endpoints agora **requerem** autenticação. Incluir cenários 401 por request sem cookie (usar MockMvc sem `Cookie` header).
 
 ### Sub-área B — Services unitários
 
@@ -86,13 +86,14 @@ Adotar **paridade com testes existentes** como guia de estilo. Cada gap tem ao m
 
 Modelo referencial: `FuncionarioControllerTest.java` (mesmo padrão de mock MockMvc + ObjectMapper).
 
-Estrutura mínima por endpoint (7 endpoints × ~3-4 cenários = ~25 testes):
+Estrutura mínima por endpoint (7 endpoints × ~4-5 cenários = ~30 testes):
 - **Happy path** — 200/201 com body válido + Location header onde aplicável.
 - **Validação de input** — 400 com body inválido (campos obrigatórios faltando, valor negativo onde proibido).
 - **Recurso não encontrado** — 404 quando funcionário não existe (apenas para endpoints com `{id}`).
 - **Parsing de `mes`** — 400 quando `mes` fora do formato `YYYY-MM` em `listarVales`/`listarFechamentos`.
+- **401 sem autenticação** — request sem cookie JWT retorna 401 (FIX-005 tornou esses endpoints protegidos). Usar `mockMvc.perform()` sem `Cookie` header.
 
-**Importante:** esses controllers hoje não passam pelo JWT filter. Não escrever testes de 401/403 — escrever um comentário no topo do arquivo apontando para a pendência documentada e dizer que voltarão quando a pendência for resolvida.
+> **Remover** o comentário de pendência JWT que estava planejado — FIX-005 resolveu. O `FolhaControllerTest` agora testa 401 como cenário normal.
 
 ### Sub-área B — `AtualizarFuncionarioServiceImplTest`
 
@@ -126,10 +127,12 @@ Cenários mínimos:
 
 Modelo referencial: `FecharMesIntegrationTest.java`. Herda `AbstractIntegrationTest`, sobe Testcontainers MySQL.
 
+> **Atualização FIX-005 (2026-06-05):** todos os endpoints da folha agora requerem JWT. Usar `postAutenticado()` / `getAutenticado()` / `deleteAutenticado()` de `AbstractIntegrationTest` (adicionados em FIX-005). Padrão: `String cookie = autenticarComo(99L)` no `@BeforeEach`.
+
 Por suite:
-- **ValeIntegrationTest** — POST vale + GET listagem filtrada por mês. Asserções de banco (`pedidos_pagamento` tem registro com `tipo_categoria=VALE` e `mes_referencia` corretos).
-- **AdiantamentoIntegrationTest** — POST adiantamento → entidade `adiantamento` + parcelas em `pedidos_pagamento` criadas. DELETE cancela (soft delete `ativo=false`). GET lista só ativos.
-- **FuncionarioCRUDIntegrationTest** — POST cria + GET busca por id + (se houver endpoint) PUT atualiza. Asserções sobre tabela `funcionario`.
+- **ValeIntegrationTest** — POST vale + GET listagem filtrada por mês com `postAutenticado`/`getAutenticado`. URLs: `/api/v1/funcionarios/{id}/vales`. Asserções de banco (`pedidos_pagamento` com `tipo_categoria=VALE` e `mes_referencia` corretos).
+- **AdiantamentoIntegrationTest** — POST adiantamento → entidade `adiantamento` + parcelas em `pedidos_pagamento` criadas. DELETE cancela (`deleteAutenticado`). GET lista só ativos. URLs: `/api/v1/funcionarios/{id}/adiantamentos`.
+- **FuncionarioCRUDIntegrationTest** — POST cria + GET busca por id + PUT atualiza. Usar `postAutenticado`/`getAutenticado`. URLs: `/api/v1/funcionarios/**`.
 
 ---
 
@@ -192,23 +195,25 @@ Cobertura JaCoCo alvo nas classes alvo:
 ## Critérios de aceitação
 
 - [ ] 11 arquivos de teste criados nos paths declarados em §"Escopo / arquivos".
-- [ ] `./mvnw test` verde com `testes_total` ≥ 110 e `testes_novos` ≥ 50.
+- [ ] `./mvnw test` verde com `testes_total` ≥ 415 (354 pré-task + ~60 novos) e `testes_novos` ≥ 55.
 - [ ] `./mvnw test -Dtest=*IntegrationTest` verde — todos os integration tests incluindo os 3 novos da folha.
 - [ ] JaCoCo report mostra:
   - `FolhaController` ≥ 80% line coverage
   - `TelegramFileDownloaderService`, `TelegramMessageSenderService`, `TelegramNotificadorImpl` cada ≥ 70%
   - `AdiantamentoRepositoryAdapter`, `FuncionarioRepositoryAdapter` cada ≥ 80%
   - `Sha256HashService` ≥ 90%
-- [ ] FolhaControllerTest tem comentário no topo apontando para a pendência de JWT (`docs/PENDENCIAS-TECNICAS.md` §"`/api/funcionarios/**` sem autenticação JWT") e dizendo que cenários 401/403 voltam quando a pendência for resolvida.
-- [ ] Zero mudanças em código de produção (`src/main/java/`). Se algum bug for descoberto, **abrir FIX-NNN separado** e referenciar no status report desta task.
-- [ ] Branch `feature/qa-009-cobertura-testes-backend` saindo da branch correta (planner define — provavelmente `integration/03-...` se a sprint ainda estiver aberta).
-- [ ] Status report `docs/sprints/<sprint>/status/QA-009-cobertura-testes-backend.md` com frontmatter válido. `testes_novos` ≥ 50; corpo lista por sub-área quantos testes foram adicionados.
+- [ ] `FolhaControllerTest` inclui cenário `401` por request sem cookie JWT em pelo menos 2 endpoints (validação que FIX-005 está ativo). **Sem** comentário de pendência JWT — essa pendência foi resolvida.
+- [ ] `ValeIntegrationTest`, `AdiantamentoIntegrationTest`, `FuncionarioCRUDIntegrationTest` usam `postAutenticado()`/`getAutenticado()`/`deleteAutenticado()` de `AbstractIntegrationTest`.
+- [ ] Todas as URLs nos novos testes usam `/api/v1/funcionarios/**` (não `/api/funcionarios/**`).
+- [ ] Zero mudanças em código de produção (`src/main/java/`). Se algum bug for descoberto, **abrir FIX-NNN separado**.
+- [ ] Branch `feature/qa-009-cobertura-testes-backend` saindo de `integration/03-folha-pagamento`.
+- [ ] Status report `docs/sprints/03-folha-pagamento/status/QA-009-cobertura-testes-backend.md` com frontmatter válido. `testes_novos` ≥ 55; corpo lista por sub-área quantos testes foram adicionados.
 
 ---
 
 ## Fora de escopo (explicitamente)
 
-- **Corrigir a pendência de JWT** em `/api/funcionarios/**` — vira BE-NNN separado quando o humano priorizar (decisão de produto).
+- **FIX-005 front** (atualizar URLs de `/api/funcionarios/**` para `/api/v1/funcionarios/**` no front) — task separada pendente, não é desta task.
 - **Refatorar `parseMes`/`parseMesYearMonth` duplicado** em `FolhaController` — pendência declarada, BE-NNN separado, esta task não toca produto.
 - **Refatorar `DataIntegrityViolationException` em FecharMesServiceImpl** — pendência declarada, BE-NNN separado.
 - **Testes de carga** — fora.
