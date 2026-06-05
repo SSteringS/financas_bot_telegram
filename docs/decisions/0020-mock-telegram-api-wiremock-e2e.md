@@ -2,7 +2,7 @@
 adr: 0020
 titulo: "Mock do Telegram Bot API em E2E — WireMock standalone com URL configurável"
 data: 2026-06-04
-status: Proposed
+status: Accepted
 decisores: humano
 relacionado: [0017, 0013]
 supersedes: null
