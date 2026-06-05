@@ -61,10 +61,10 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 
 | ID | Slug | Estado |
 |----|------|--------|
-| QA-009 | cobertura-testes-backend | 🔵 pronto-pra-execucao (FIX-005 back desbloqueou) |
+| QA-009 | cobertura-testes-backend | 🔵 pronto-pra-execucao |
 | QA-010 | cobertura-testes-frontend | 🔵 pronto-pra-execucao |
-| QA-011 | expansao-e2e-cenarios-positivos | 🔵 pronto-pra-execucao (Sub-áreas B/C/D independentes; Sub-área A aguarda BE-030) |
-| BE-030 | telegram-file-url-configuravel | 🔵 pronto-pra-execucao (desbloqueia QA-011 Sub-área A) |
+| QA-011 | expansao-e2e-cenarios-positivos | 🔵 pronto-pra-execucao (Sub-áreas B/C/D; Sub-área A desbloqueia com FIX-005 front) |
+| BE-030 | telegram-file-url-configuravel | ✅ concluido (PR #113 → develop) |
 
 ---
 
@@ -73,12 +73,13 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 Fila de execução paralela disponível:
 
 ```
-FIX-005 front     (front — desbloqueia paridade API front/back)
-BE-030            (back — desbloqueia QA-011 Sub-área A)
-QA-009            (back — independente de FIX-005 front e BE-030)
+FIX-005 front     (front — produto quebrado sem isso; desbloqueia QA-011 Sub-área A)
+QA-009            (back — independente)
 QA-010            (front — independente)
-QA-011 B/C/D      (front — independente; Sub-área A aguarda BE-030)
+QA-011 B/C/D      (front — independente; Sub-área A aguarda FIX-005 front)
 ```
+
+BE-030 ✅ concluída — QA-011 Sub-área A só precisa ainda do FIX-005 front.
 
 ---
 
