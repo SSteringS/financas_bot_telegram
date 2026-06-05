@@ -8,7 +8,7 @@ integration_branch: integration/03-folha-pagamento
 prioridade: alta
 esforco: alto
 territorio: back
-estado: pronto-pra-execucao
+estado: concluido
 depende_de: [QA-008, FIX-005]
 bloqueia: []
 skills_dispatched: [qualidade-de-testes, seguranca-backend]
