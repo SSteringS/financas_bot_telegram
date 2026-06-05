@@ -14,11 +14,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 /**
- * Testes de integração do endpoint {@code POST /api/funcionarios/{id}/fechamentos}.
+ * Testes de integração do endpoint {@code POST /api/v1/funcionarios/{id}/fechamentos}.
  *
  * <p>Usa MySQL real via Testcontainers (herdado de {@link AbstractIntegrationTest}).
  * Verifica fluxo completo E2E com banco real: criação de Pedido FOLHA, marcação
  * de vales como fechados e idempotência (409 no segundo fechamento do mesmo mês).
+ * Todos os requests usam cookie JWT obtido via {@link #autenticarComo(Long)}.
  */
 class FecharMesIntegrationTest extends AbstractIntegrationTest {
 
@@ -27,6 +28,7 @@ class FecharMesIntegrationTest extends AbstractIntegrationTest {
     private AdiantamentoRepositoryPortOut adiantamentoSpyRepository;
 
     private Long funcionarioId;
+    private String cookie;
 
     @BeforeEach
     void setUp() {
@@ -38,6 +40,8 @@ class FecharMesIntegrationTest extends AbstractIntegrationTest {
         funcionarioId = jdbcTemplate.queryForObject(
                 "SELECT id FROM funcionario WHERE nome = 'Maria Teste' ORDER BY id DESC LIMIT 1",
                 Long.class);
+        // Autenticar com requisitante_id=1 (seeded pela migration V2)
+        cookie = autenticarComo(1L);
     }
 
     @AfterEach
@@ -69,10 +73,9 @@ class FecharMesIntegrationTest extends AbstractIntegrationTest {
                 { "mes": "2026-05", "ajuste": 0.00 }
                 """;
 
-        ResponseEntity<String> resp = restTemplate.postForEntity(
-                "/api/funcionarios/" + funcionarioId + "/fechamentos",
-                requestBodyEntity(requestBody),
-                String.class);
+        ResponseEntity<String> resp = postAutenticado(
+                "/api/v1/funcionarios/" + funcionarioId + "/fechamentos",
+                cookie, requestBody, String.class);
 
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(resp.getBody()).contains("PENDENTE");
@@ -99,17 +102,15 @@ class FecharMesIntegrationTest extends AbstractIntegrationTest {
                 """;
 
         // Primeiro fechamento
-        ResponseEntity<String> primeiro = restTemplate.postForEntity(
-                "/api/funcionarios/" + funcionarioId + "/fechamentos",
-                requestBodyEntity(requestBody),
-                String.class);
+        ResponseEntity<String> primeiro = postAutenticado(
+                "/api/v1/funcionarios/" + funcionarioId + "/fechamentos",
+                cookie, requestBody, String.class);
         assertThat(primeiro.getStatusCode()).isEqualTo(HttpStatus.OK);
 
         // Segundo fechamento do mesmo mês → 409
-        ResponseEntity<String> segundo = restTemplate.postForEntity(
-                "/api/funcionarios/" + funcionarioId + "/fechamentos",
-                requestBodyEntity(requestBody),
-                String.class);
+        ResponseEntity<String> segundo = postAutenticado(
+                "/api/v1/funcionarios/" + funcionarioId + "/fechamentos",
+                cookie, requestBody, String.class);
         assertThat(segundo.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
         assertThat(segundo.getBody()).contains("FECHAMENTO_DUPLICADO");
     }
@@ -120,10 +121,9 @@ class FecharMesIntegrationTest extends AbstractIntegrationTest {
                 { "mes": "2026-06", "ajuste": 0.00 }
                 """;
 
-        ResponseEntity<String> resp = restTemplate.postForEntity(
-                "/api/funcionarios/999999/fechamentos",
-                requestBodyEntity(requestBody),
-                String.class);
+        ResponseEntity<String> resp = postAutenticado(
+                "/api/v1/funcionarios/999999/fechamentos",
+                cookie, requestBody, String.class);
 
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
@@ -131,18 +131,14 @@ class FecharMesIntegrationTest extends AbstractIntegrationTest {
     @Test
     void deveListarFechamentosAnteriores() {
         // Fecha dois meses diferentes
-        restTemplate.postForEntity(
-                "/api/funcionarios/" + funcionarioId + "/fechamentos",
-                requestBodyEntity("{ \"mes\": \"2026-03\", \"ajuste\": 0.00 }"),
-                String.class);
-        restTemplate.postForEntity(
-                "/api/funcionarios/" + funcionarioId + "/fechamentos",
-                requestBodyEntity("{ \"mes\": \"2026-02\", \"ajuste\": 0.00 }"),
-                String.class);
+        postAutenticado("/api/v1/funcionarios/" + funcionarioId + "/fechamentos",
+                cookie, "{ \"mes\": \"2026-03\", \"ajuste\": 0.00 }", String.class);
+        postAutenticado("/api/v1/funcionarios/" + funcionarioId + "/fechamentos",
+                cookie, "{ \"mes\": \"2026-02\", \"ajuste\": 0.00 }", String.class);
 
-        ResponseEntity<String> resp = restTemplate.getForEntity(
-                "/api/funcionarios/" + funcionarioId + "/fechamentos",
-                String.class);
+        ResponseEntity<String> resp = getAutenticado(
+                "/api/v1/funcionarios/" + funcionarioId + "/fechamentos",
+                cookie, String.class);
 
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         // Março deve aparecer antes de fevereiro (mes_referencia DESC)
@@ -173,10 +169,9 @@ class FecharMesIntegrationTest extends AbstractIntegrationTest {
         doThrow(new RuntimeException("falha simulada no passo 10 — B3"))
                 .when(adiantamentoSpyRepository).save(any());
 
-        ResponseEntity<String> resp = restTemplate.postForEntity(
-                "/api/funcionarios/" + funcionarioId + "/fechamentos",
-                requestBodyEntity("{ \"mes\": \"2026-07\", \"ajuste\": 0.00 }"),
-                String.class);
+        ResponseEntity<String> resp = postAutenticado(
+                "/api/v1/funcionarios/" + funcionarioId + "/fechamentos",
+                cookie, "{ \"mes\": \"2026-07\", \"ajuste\": 0.00 }", String.class);
 
         // Transação deve ter sido revertida → 5xx do servidor
         assertThat(resp.getStatusCode().is5xxServerError()).isTrue();
@@ -190,11 +185,4 @@ class FecharMesIntegrationTest extends AbstractIntegrationTest {
                 .isEqualTo(0);
     }
 
-    // ── Helper ───────────────────────────────────────────────────────────────
-
-    private org.springframework.http.HttpEntity<String> requestBodyEntity(String json) {
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
-        return new org.springframework.http.HttpEntity<>(json, headers);
-    }
 }

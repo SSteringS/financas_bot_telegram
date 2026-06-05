@@ -30,14 +30,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.cookieFactory = cookieFactory;
     }
 
+    /**
+     * Allowlist explícita de paths que dispensam autenticação JWT.
+     *
+     * <p>Lógica positiva em vez de negativa: qualquer path sob {@code /api/} que
+     * não esteja listado aqui <strong>requer JWT válido</strong>. Endpoints futuros
+     * sob {@code /api/v2/}, {@code /api/internal/} etc. são automaticamente
+     * protegidos sem necessidade de atualizar este filtro.
+     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
         String path = request.getRequestURI();
-        return !path.startsWith("/api/v1/")
-                || path.equals("/api/v1/auth/exchange");
+        // Allowlist de paths públicos — tudo sob /api/ não listado aqui requer JWT
+        return path.equals("/api/v1/auth/exchange")
+                || path.startsWith("/webhook")
+                || path.startsWith("/actuator")
+                || !path.startsWith("/api/");
     }
 
     @Override

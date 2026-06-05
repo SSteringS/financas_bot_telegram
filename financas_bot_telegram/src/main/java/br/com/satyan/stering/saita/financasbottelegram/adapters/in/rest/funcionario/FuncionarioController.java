@@ -20,15 +20,15 @@ import org.springframework.web.bind.annotation.*;
  *
  * <p>Endpoints:
  * <ul>
- *   <li>{@code POST   /api/funcionarios} — Cadastrar funcionário</li>
- *   <li>{@code GET    /api/funcionarios} — Listar ativos</li>
- *   <li>{@code GET    /api/funcionarios/{id}} — Buscar por ID</li>
- *   <li>{@code PUT    /api/funcionarios/{id}} — Atualizar dados</li>
- *   <li>{@code DELETE /api/funcionarios/{id}} — Desativar (soft delete)</li>
+ *   <li>{@code POST   /api/v1/funcionarios} — Cadastrar funcionário</li>
+ *   <li>{@code GET    /api/v1/funcionarios} — Listar ativos</li>
+ *   <li>{@code GET    /api/v1/funcionarios/{id}} — Buscar por ID</li>
+ *   <li>{@code PUT    /api/v1/funcionarios/{id}} — Atualizar dados</li>
+ *   <li>{@code DELETE /api/v1/funcionarios/{id}} — Desativar (soft delete)</li>
  * </ul>
  */
 @RestController
-@RequestMapping("/api/funcionarios")
+@RequestMapping("/api/v1/funcionarios")
 public class FuncionarioController {
 
     private final CadastrarFuncionarioPortIn cadastrarUseCase;
