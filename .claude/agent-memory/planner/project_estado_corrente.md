@@ -4,56 +4,46 @@ description: Snapshot do estado de sprint e tasks em voo — verificar antes de 
 type: project
 ---
 
-**Data do snapshot:** 2026-06-04 (overnight)
+**Data do snapshot:** 2026-06-04
 
-**Sprint ativa:** 03 — Folha de pagamento (EVO-09)
+**Sprint ativa:** 03 — Folha de pagamento
 
-## Fase QA/FIX — CONCLUÍDA ✅
+## Feature sprint 03 — CONCLUÍDA ✅ (mergeada em develop)
 
-| Task | Estado | PR |
-|---|---|---|
-| QA-001 setup-playwright-base | ✅ concluido | #84 |
-| QA-002 scripts-orquestracao-stack | ✅ concluido | #84 |
-| QA-003 fixtures-banco-auth-payloads | ✅ concluido | #85/#86 |
-| QA-004 specs-mvp (2 specs, 3 tests) | ✅ concluido | #88/92 |
-| QA-005 doc-roteiro-e2e | ✅ executado (planner) | — |
-| QA-006 pre-merge-add-e2e-gate | ✅ executado (planner) | — |
-| QA-007 remove axe-core | ✅ concluido | #91 |
-| QA-008 estabilizacao-suite (workers+update_id) | ✅ concluido | #93/#94 — e2e:full 3x verde |
-| FIX-002 ci-aceitar-integration | ✅ concluido | #89/90 |
-
-## Fase BE/FE — OVERNIGHT DESPACHADA
-
-Mega-dispatches autônomos criados e em integration:
-- `DISPATCH-OVERNIGHT-BACK.md` → BE-024→025→026→027→028→029 (sessão backend única, serial)
-- `DISPATCH-OVERNIGHT-FRONT.md` → FE-015→016→017 (sessão frontend única, serial, com loops de espera por BE)
-
-| Task | Estado |
+| Task | PR |
 |---|---|
-| BE-024 entidades JPA | 🔵 pronto-pra-execucao (dispatch overnight) |
-| BE-025 CRUD funcionário | ⏸ aguarda BE-024 |
-| BE-026 cadastrar-vale | ⏸ aguarda BE-024 |
-| BE-027 cadastrar-adiantamento | ⏸ aguarda BE-026 |
-| BE-028 fechar-mes | ⏸ aguarda BE-024+026+027 |
-| BE-029 testes-fechar-mes | ⏸ aguarda BE-028 |
-| FE-015 tela-funcionarios | ⏸ aguarda BE-025 |
-| FE-016 tela-folha-funcionario | ⏸ aguarda BE-028+FE-015 |
-| FE-017 modal-fechamento | ⏸ aguarda FE-016 |
+| BE-024..BE-029 + FE-015..FE-017 | PR #106 (integration→develop) |
+| FIX-003 | PR #105 |
+| FIX-004 (vo→enums) | PR #107 |
 
-## Decisões resolvidas
+## Fase QA — CONCLUÍDA ✅
 
-- **§7 (vales na lista do Pedro):** ✅ **Opção A** (PO, 2026-06-04) — vales NÃO aparecem na lista.
-  `GET /api/pedidos` e `Home.tsx` ficam intocados.
-- **ADR 0016:** Accepted (homologado 2026-06-03)
-- **ADR 0017:** Accepted (prefixo QA-NNN)
-- **ADR 0018:** Proposed (a11y fora de escopo — qa-test-specialist)
+QA-001..QA-008 + FIX-002 — todos mergeados em develop.
+
+## ADRs recentes
+
+- **ADR 0019** (reviewer→QA loop): `Accepted`
+- **ADR 0020** (mock Telegram WireMock): `Proposed` — aguarda homologação humana
+
+## Tasks pendentes — planejadas, não commitadas ainda
+
+| Task | Estado | Arquivo |
+|---|---|---|
+| QA-009 cobertura-testes-backend | pronto-pra-execucao | plans/QA-009-... |
+| QA-010 cobertura-testes-frontend | pronto-pra-execucao | plans/QA-010-... |
+| QA-011 expansao-e2e | pronto-pra-execucao (depende BE-030) | plans/QA-011-... |
+| ADR 0020 | Proposed | decisions/0020-... |
+| BE-030 telegram-file-url-configuravel | A PLANEJAR | — |
+
+## Divergência de branch
+
+- `develop` local está 1 commit atrás de `origin/develop` (PR #107 FIX-004 — `d9823f6`)
+- `integration/03-folha-pagamento` ainda ativa no remoto
 
 ## integration branch
 
-`integration/03-folha-pagamento` — ativa, em sincronia com develop `dfa3561` (sync 2026-06-04 overnight).
+`integration/03-folha-pagamento` — ativa. QA-009/010/011 devem sair dela.
 
-**Why:** Sprint fase BE/FE despachada como overnight autônomo para execução sem intervenção.
+**Why:** Sprint 03 features mergeadas. QA de cobertura e E2E expandido ainda pendentes de execução.
 
-**How to apply:** De manhã, verificar status das tasks via `git log origin/integration/03-folha-pagamento`.
-Se todas mergeadas → abrir PR integration→develop e pedir revisão humana.
-Se alguma falhou → status report em `docs/sprints/03-folha-pagamento/status/` explica o bloqueio.
+**How to apply:** Antes de despachar QA-009/010/011: (1) pull develop local; (2) commitar os planos; (3) sync develop→integration; (4) criar plano BE-030 e despachar primeiro (desbloqueia QA-011 Sub-área A).
