@@ -1,12 +1,13 @@
 ---
 task: FIX-005
-titulo: "Proteger /api/funcionarios/** com JwtAuthenticationFilter"
+titulo: "Padronizar /api/funcionarios/** → /api/v1/funcionarios/** + proteger com JWT"
 sprint: 03-folha-pagamento
 data_planejamento: 2026-06-04
-branch_alvo: fix/005-proteger-api-funcionarios-jwt
+branch_alvo_back: fix/005-padronizar-api-v1
+branch_alvo_front: fix/005-padronizar-api-v1-front
 prioridade: alta
 esforco: baixo
-territorio: back
+territorio: back+front
 estado: pronto-pra-execucao
 depende_de: []
 bloqueia: [QA-009]
@@ -15,37 +16,43 @@ integration_branch: null
 fluxos_qa: []
 ---
 
-# FIX-005 — Proteger `/api/funcionarios/**` com JwtAuthenticationFilter
+# FIX-005 — Padronizar `/api/funcionarios/**` → `/api/v1/funcionarios/**` + proteger com JWT
 
 ## Intake
 
-- **Origem:** identificado pelo humano na revisão da sprint 03 (2026-06-04). Registrado em `docs/PENDENCIAS-TECNICAS.md` — "gravíssimo", promovido a FIX imediato.
-- **Por quê agora:** todos os endpoints de folha de pagamento (`/api/funcionarios/**`) estão acessíveis sem autenticação. Qualquer requisição HTTP sem cookie JWT retorna 200/201/204 normalmente. Em produção isso significa que qualquer pessoa com acesso à URL pode criar, listar e deletar dados de funcionários e folha.
-- **Esforço:** baixo. A correção principal é uma linha em `shouldNotFilter()`. O custo real é atualizar os testes de integração que passavam a esmo sem auth.
-- **Riscos resumidos:** zero risco funcional (não altera comportamento de endpoints já autenticados). Risco principal: `FecharMesIntegrationTest` e futuros testes da folha precisam adicionar auth — se esquecido, os testes ficam vermelhos e o CI bloqueia.
+- **Origem:** dois problemas identificados pelo humano na revisão da sprint 03 (2026-06-04), promovidos a FIX imediato por severidade.
+- **Problema 1 — Inconsistência de versionamento de URL (arquitetural):** a API expõe endpoints sob dois prefixos diferentes: `/api/v1/**` (pedidos, auth, resumo) e `/api/funcionarios/**` (toda a folha de pagamento). Viola o princípio de padronização do projeto — qualquer dev ou consumidor da API precisa saber de dois padrões distintos. O reviewer não capturou isso durante a sprint 03 (ver §Contexto).
+- **Problema 2 — Gap de autenticação JWT (segurança):** `JwtAuthenticationFilter.shouldNotFilter()` usa condição negativa que salta o filtro para qualquer path fora de `/api/v1/**`, incluindo `/api/funcionarios/**`. Todos os 11 endpoints de folha/funcionário são acessíveis sem autenticação.
+- **Relação entre os problemas:** resolver Problema 1 (mover para `/api/v1/`) resolve Problema 2 implicitamente — os novos paths já seriam cobertos pelo filtro existente. Mesmo assim o filtro será refatorado (ver §Decisão/abordagem — defesa em profundidade).
+- **Esforço:** baixo no back (renomear `@RequestMapping`, atualizar testes); baixo no front (substituir strings de URL nos serviços de API).
 
 ---
 
-## Contexto — análise da causa raiz
+## Contexto
+
+### Inconsistência de URL descoberta tarde
+
+Os endpoints da folha de pagamento (BE-024..BE-029) foram criados com o prefixo `/api/funcionarios/**`. O padrão já existente no projeto é `/api/v1/**`. Essa inconsistência passou pelo reviewer automatizado da sprint 03 sem ser flagada.
+
+**Por que o reviewer não capturou:** o reviewer analisa código de cada task em isolamento. A inconsistência de URL só é visível quando se compara o novo controller com os controllers pré-existentes (`PedidosController`, `AuthController`, `ResumoController`) — uma comparação cross-file que exige olhar o projeto como um todo, não só o diff. Esse é um **smell de consistência arquitetural** que deve ser adicionado ao checklist do reviewer (`docs/roles/reviewer.md`).
+
+### Análise da causa raiz — JWT
 
 `JwtAuthenticationFilter.shouldNotFilter()` usa condição negativa:
 
 ```java
-// ATUAL — com bug
-@Override
+// ATUAL — lógica negativa com gap:
 protected boolean shouldNotFilter(HttpServletRequest request) {
     if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
         return true;
     }
     String path = request.getRequestURI();
-    return !path.startsWith("/api/v1/")     // ← BUG: true para /api/funcionarios/**
+    return !path.startsWith("/api/v1/")      // true para /api/funcionarios/** → filter skips
             || path.equals("/api/v1/auth/exchange");
 }
 ```
 
-**Leitura do bug:** `!path.startsWith("/api/v1/")` é `true` para qualquer path que **não** começa com `/api/v1/`. Isso inclui `/api/funcionarios/**` — todos os endpoints da folha criados na sprint 03. Resultado: o filtro pula a validação JWT nesses paths.
-
-**Paths afetados (todos desprotegidos hoje):**
+**Endpoints atualmente desprotegidos (11 no total):**
 - `POST   /api/funcionarios`
 - `GET    /api/funcionarios`
 - `GET    /api/funcionarios/{id}`
@@ -62,19 +69,46 @@ protected boolean shouldNotFilter(HttpServletRequest request) {
 
 ## Decisão / abordagem
 
-### Fix em `shouldNotFilter()`
+### Fix primário — Padronizar URLs (back + front)
 
-Substituir a condição negativa por um **allowlist explícito de paths públicos**. Tudo que cair sob `/api/` — independente do sub-path — passa pelo filtro JWT.
+Mover todos os endpoints de folha/funcionário para o prefixo `/api/v1/`:
+
+| De | Para |
+|---|---|
+| `/api/funcionarios/**` | `/api/v1/funcionarios/**` |
+
+Isso resolve **ambos os problemas**: a inconsistência arquitetural e o gap de JWT (os novos paths passam automaticamente pelo filtro existente, que protege todo `/api/v1/**`).
+
+**Back — FuncionarioController e FolhaController:**
+```java
+// DE:
+@RequestMapping("/api/funcionarios")
+// PARA:
+@RequestMapping("/api/v1/funcionarios")
+```
+
+Confirmar que é uma única anotação `@RequestMapping` por controller (não path hardcoded nos métodos). Se houver paths hardcoded nos métodos individuais, atualizar também.
+
+**Front — todos os serviços/hooks de API:**
+Buscar e substituir todas as ocorrências de `/api/funcionarios` por `/api/v1/funcionarios` nos arquivos do front. Usar grep para mapear antes de editar:
+```bash
+grep -r "/api/funcionarios" frontend/src/ --include="*.ts" --include="*.tsx" -l
+```
+Atualizar todos os arquivos listados.
+
+### Fix secundário — `shouldNotFilter()` com allowlist explícito (defesa em profundidade)
+
+Mesmo após mover as URLs para `/api/v1/`, refatorar o filtro para usar allowlist explícito. Razão: qualquer endpoint futuro sob `/api/v2/`, `/api/internal/` ou outro prefixo sofreria o mesmo gap se o filtro continuar com lógica negativa.
 
 ```java
-// NOVO — allowlist explícito
+// NOVO — allowlist explícito:
 @Override
 protected boolean shouldNotFilter(HttpServletRequest request) {
     if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
         return true;
     }
     String path = request.getRequestURI();
-    // Paths públicos explícitos — qualquer /api/** não listado aqui requer JWT
+    // Allowlist de paths públicos — tudo sob /api/ não listado aqui requer JWT
     return path.equals("/api/v1/auth/exchange")
             || path.startsWith("/webhook")
             || path.startsWith("/actuator")
@@ -82,16 +116,7 @@ protected boolean shouldNotFilter(HttpServletRequest request) {
 }
 ```
 
-**Lógica da nova implementação:**
-- `/api/v1/auth/exchange` — único endpoint público da API (troca token de convite por JWT)
-- `/webhook/**` — recebe mensagens do Telegram (autenticado pelo token do bot, não por JWT)
-- `/actuator/**` — health checks (sem auth intencional)
-- `!path.startsWith("/api/")` — tudo que não é API (ex: `/favicon.ico`, `/`) passa livre
-- **Tudo o mais sob `/api/`** — inclui `/api/v1/**` e `/api/funcionarios/**` — requer JWT
-
-> **Verificar em `SecurityConfig`:** antes de commitar, o implementador deve confirmar que não há regra `permitAll()` para `/api/funcionarios/**` no `HttpSecurity`. Se houver, remover também.
-
-### Atualizar `AbstractIntegrationTest` — helpers de POST e DELETE autenticados
+### `AbstractIntegrationTest` — helpers de POST/DELETE autenticados
 
 `AbstractIntegrationTest` já tem `autenticarComo()` e `getAutenticado()`. Adicionar:
 
@@ -117,108 +142,120 @@ protected ResponseEntity<Void> deleteAutenticado(String url, String cookie) {
 }
 ```
 
-### Atualizar `FecharMesIntegrationTest` — adicionar autenticação
+### `FecharMesIntegrationTest` — adicionar autenticação + atualizar URLs
 
-`FecharMesIntegrationTest` chama `restTemplate.postForEntity()` e `restTemplate.getForEntity()` **sem** cookie. Após o fix, esses calls receberão 401. Atualizar o `@BeforeEach` e todos os calls:
+Após o fix de URL e JWT, `FecharMesIntegrationTest` recebe 401 em todos os POSTs (que agora requerem JWT) e 404 se as URLs não forem atualizadas. Atualizar:
 
 ```java
 // Adicionar campo:
 private String cookie;
 
-// Em setUp(), após criar o funcionário:
+// Em @BeforeEach, após criar funcionário:
 cookie = autenticarComo(12345L); // qualquer requisitanteId — JWT só precisa ser válido
-
-// Substituir chamadas:
-// ANTES: restTemplate.postForEntity(url, requestBodyEntity(body), String.class)
-// DEPOIS: postAutenticado(url, cookie, body, String.class)
-
-// ANTES: restTemplate.getForEntity(url, String.class)
-// DEPOIS: getAutenticado(url, cookie, String.class)
 ```
 
-**Ocorrências a atualizar em `FecharMesIntegrationTest`** (linha → novo call):
-- L72: `restTemplate.postForEntity(...)` → `postAutenticado(...)`
-- L104/109: `restTemplate.postForEntity(...)` → `postAutenticado(...)`
-- L134/139: `restTemplate.postForEntity(...)` (setup state) → `postAutenticado(...)`
-- L143: `restTemplate.getForEntity(...)` → `getAutenticado(...)`
-- L176: `restTemplate.postForEntity(...)` (B3) → `postAutenticado(...)`
+Substituir todas as chamadas sem auth:
+- `restTemplate.postForEntity(url, requestBodyEntity(body), String.class)` → `postAutenticado(url, cookie, body, String.class)`
+- `restTemplate.getForEntity(url, String.class)` → `getAutenticado(url, cookie, String.class)`
 
-O helper `requestBodyEntity()` privado do arquivo pode ser mantido ou removido — após a migração não é mais necessário (substituído por `postAutenticado`).
+**Ocorrências a atualizar (5 calls) + atualizar URLs de `/api/funcionarios/` para `/api/v1/funcionarios/`.**
 
 ---
 
 ## Escopo / arquivos
 
-### Modificar
+### Back — `fix/005-padronizar-api-v1` (sai de `develop`)
 
 | Arquivo | O quê |
 |---|---|
-| `financas_bot_telegram/src/main/java/.../infra/security/JwtAuthenticationFilter.java` | Substituir `shouldNotFilter()` pelo allowlist explícito |
+| `financas_bot_telegram/src/main/java/.../adapters/in/rest/folha/FolhaController.java` | `@RequestMapping` de `/api/funcionarios` → `/api/v1/funcionarios` |
+| `financas_bot_telegram/src/main/java/.../adapters/in/rest/folha/FuncionarioController.java` | idem |
+| `financas_bot_telegram/src/main/java/.../infra/security/JwtAuthenticationFilter.java` | Refatorar `shouldNotFilter()` para allowlist explícito |
 | `financas_bot_telegram/src/test/java/.../integration/AbstractIntegrationTest.java` | Adicionar `postAutenticado()` e `deleteAutenticado()` |
-| `financas_bot_telegram/src/test/java/.../integration/FecharMesIntegrationTest.java` | Adicionar `cookie` no `@BeforeEach`, migrar todos os calls para helpers autenticados |
+| `financas_bot_telegram/src/test/java/.../integration/FecharMesIntegrationTest.java` | Adicionar auth (`autenticarComo`) + atualizar URLs |
 
-### Verificar (não necessariamente modificar)
+> **Verificar também:** `SecurityConfig.java` — ausência de `permitAll()` para `/api/funcionarios/**`; se existir, remover.
 
-| Arquivo | O quê verificar |
+> **Confirmar:** se outros controllers além de `FolhaController` e `FuncionarioController` usam o path `/api/funcionarios` (ex: métodos anotados diretamente), mapear com grep:
+> ```bash
+> grep -r "api/funcionarios" financas_bot_telegram/src/main/ --include="*.java"
+> ```
+
+### Front — `fix/005-padronizar-api-v1-front` (sai de `develop`, após back mergear)
+
+| O quê | Como encontrar |
 |---|---|
-| `SecurityConfig.java` (ou equivalente) | Ausência de `permitAll()` para `/api/funcionarios/**` — se existir, remover |
+| Todas as chamadas `/api/funcionarios/**` → `/api/v1/funcionarios/**` | `grep -r "/api/funcionarios" frontend/src/ --include="*.ts" --include="*.tsx" -l` |
 
-### Não tocar
+> O front **não** deve alterar nenhum arquivo do back. Território: apenas `frontend/`.
 
-- `frontend/` — zero mudança no front (a autenticação já acontecia; o front já envia o cookie JWT)
-- Nenhuma lógica de negócio — apenas filtro e testes
+### Sequência de dispatch
+
+```
+back implementa fix/005-padronizar-api-v1
+    ↓ back abre PR → develop, reviewer aprova, merge
+front implementa fix/005-padronizar-api-v1-front (com URLs já corretas)
+    ↓ front abre PR → develop, reviewer aprova, merge
+planner sincroniza develop → integration/03-folha-pagamento
+    ↓
+QA-009 inicia (bloqueio levantado)
+```
 
 ---
 
-## Testes
+## Testes — o que muda
 
-`testes_novos: 0` no código de produção. Em testes:
-- `FecharMesIntegrationTest` é refatorado (não novo) — zero novos testes, apenas adiciona auth nos existentes.
-- `AbstractIntegrationTest` recebe 2 métodos novos (helpers).
+### Back
+- `FecharMesIntegrationTest` — refatorado (auth + URLs). Nenhum teste novo.
+- `AbstractIntegrationTest` — 2 métodos helpers novos (não são testes em si).
+- Todos os outros integration tests existentes (`PedidosListIntegrationTest`, etc.) — **não são afetados** (usam `/api/v1/**`, já passavam pelo filtro).
 
-Validação: `mvn compile` + `mvn test` verdes após o fix.
+### Front
+- Nenhum teste de front é adicionado. A mudança é apenas nas chamadas de API (strings de URL).
+- `mvn test` verde no back confirma que os testes de integração ainda passam com auth.
 
 ---
 
 ## Critérios de aceitação
 
-- [ ] `shouldNotFilter()` usa allowlist explícito — sem condição negativa com `!startsWith`.
-- [ ] `curl -X POST http://localhost:8080/api/funcionarios/1/vales -H 'Content-Type: application/json' -d '{}'` sem cookie retorna **401**, não 400/200.
+**Back:**
+- [ ] `grep -r "api/funcionarios" financas_bot_telegram/src/main/` retorna zero resultados.
+- [ ] `curl -X GET http://localhost:8080/api/funcionarios` sem cookie retorna **404** (path não existe mais).
+- [ ] `curl -X GET http://localhost:8080/api/v1/funcionarios` sem cookie retorna **401**.
+- [ ] `curl -X GET http://localhost:8080/api/v1/funcionarios` com cookie válido retorna **200**.
 - [ ] `AbstractIntegrationTest` tem `postAutenticado()` e `deleteAutenticado()`.
-- [ ] `FecharMesIntegrationTest` usa `postAutenticado()` / `getAutenticado()` — zero calls `restTemplate.postForEntity` sem auth.
+- [ ] `FecharMesIntegrationTest` usa auth e URLs `/api/v1/funcionarios/**`.
 - [ ] `mvn compile` verde.
-- [ ] `mvn test` verde (sem regressões — todos os testes de integração passam com auth).
-- [ ] Branch: `fix/005-proteger-api-funcionarios-jwt` saindo de `develop`.
-- [ ] Commit: `fix(FIX-005): proteger /api/funcionarios/** com JwtAuthenticationFilter — allowlist explícito`.
-- [ ] Status report em `docs/sprints/03-folha-pagamento/status/FIX-005-*.md`.
+- [ ] `mvn test` verde (sem regressões).
+- [ ] Branch: `fix/005-padronizar-api-v1` saindo de `develop`.
+- [ ] Commit back: `fix(FIX-005): padronizar /api/funcionarios → /api/v1/funcionarios + shouldNotFilter allowlist`.
+- [ ] Status report back em `docs/sprints/03-folha-pagamento/status/FIX-005-back-*.md`.
+
+**Front:**
+- [ ] `grep -r "/api/funcionarios" frontend/src/` retorna zero resultados.
+- [ ] App carrega corretamente — tela de funcionários e folha funcionam com as novas URLs.
+- [ ] `npm run build` verde.
+- [ ] Branch: `fix/005-padronizar-api-v1-front` saindo de `develop`.
+- [ ] Commit front: `fix(FIX-005): atualizar chamadas /api/funcionarios → /api/v1/funcionarios no front`.
+- [ ] Status report front em `docs/sprints/03-folha-pagamento/status/FIX-005-front-*.md`.
 
 ---
 
 ## Fora de escopo
 
-- Testes 401/403 para `FolhaControllerTest` — esses vão em **QA-009** (que bloqueia em FIX-005). O plano de QA-009 será atualizado pelo planner após o merge desta task: a nota "não escrever testes 401/403" e o comentário de pendência são removidos; cenários 401/403 são adicionados à Sub-área A do QA-009.
-- `ValeIntegrationTest`, `AdiantamentoIntegrationTest`, `FuncionarioCRUDIntegrationTest` — criados pelo QA-009, **já devem usar auth desde o início** (não precisam de retrofix).
-- Mover endpoints para `/api/v1/funcionarios/**` — mudança de URL não justificada; o fix é no filtro.
-- Autorização por papel (RBAC) — não existe hoje; não é escopo desta task. O JWT só autentica (quem é), não autoriza (o que pode fazer).
+- Testes 401/403 para `FolhaControllerTest` — vão em **QA-009** após FIX-005 mergear.
+- `ValeIntegrationTest`, `AdiantamentoIntegrationTest`, `FuncionarioCRUDIntegrationTest` — criados pelo QA-009 **já com `/api/v1/funcionarios/**` e com auth desde o início**.
+- Mover outros endpoints para `/api/v2/` ou qualquer outra versão — fora de escopo.
+- Autorização por papel (RBAC) — não existe hoje; não é escopo desta task.
 
 ---
 
-## Sequenciamento e coordenação
+## Gap do reviewer — ação pendente
 
-```
-FIX-005 merge → develop
-    ↓
-develop → sync → integration/03-folha-pagamento  (planner faz o merge)
-    ↓
-QA-009 executa (já com auth nos integration tests)
-```
+O reviewer da sprint 03 não capturou a inconsistência de URL. Causa: o smell de "consistência de versionamento de API" não está no checklist do reviewer (`docs/roles/reviewer.md`). Ação para o dispatch de materialização do ADR 0019 (DISPATCH-ENG-IA):
 
-**FIX-005 deve mergear ANTES de QA-009 iniciar.** Caso contrário, os integration tests de folha de QA-009 seriam escritos sem auth e precisariam de retrofix imediato.
-
-- **Pode rodar em paralelo com:** FIX-004 (território disjunto — FIX-004 toca `domain/enums/`).
-- **Bloqueia:** QA-009 — Sub-área A (`FolhaControllerTest`) deve incluir 401/403; Sub-área D (integration tests da folha) deve usar auth desde o início.
-- **Após merge:** planner atualiza QA-009 removendo a nota "não escrever 401/403" e adicionando cenários de 401/403 à Sub-área A. Planner também sincroniza `develop → integration/03-folha-pagamento`.
-- **Após merge:** marcar item "JWT" em `docs/PENDENCIAS-TECNICAS.md` como `~~resolvido~~`.
+> Adicionar à seção "Smells" de `docs/roles/reviewer.md`:
+> **Consistência de prefixo de URL:** se o projeto usa `/api/vN/`, todo controller novo deve seguir o mesmo prefixo. Endpoints criados fora do padrão (ex: `/api/funcionarios/` quando o padrão é `/api/v1/`) são smell arquitetural a ser flagado como observação material.
 
 ---
 
@@ -226,15 +263,29 @@ QA-009 executa (já com auth nos integration tests)
 
 | Risco | Probabilidade | Impacto | Mitigação |
 |---|---|---|---|
-| Import `HttpStatus.UNAUTHORIZED` / `403` esquecido num teste | Baixa | Baixo | `mvn test` vermelho deixa claro |
-| SecurityConfig tem `permitAll()` não documentado que ainda libera os endpoints | Baixa | Alto | Critério: testar manualmente com `curl` sem cookie e confirmar 401 |
-| `requisitanteId` passado para `autenticarComo()` exige existência em tabela | Baixa | Médio | Verificar se `GerarTokenConviteUseCase.gerar()` persiste algo; se sim, o `@AfterEach` deve limpar |
+| Path hardcoded em método `@GetMapping`/`@PostMapping` (além do `@RequestMapping`) | Média | Médio | `grep -r "api/funcionarios" src/main/` lista tudo; critério exige zero resultados |
+| Front chama um path que o grep não capturou (ex: concatenação dinâmica) | Baixa | Alto | Testar a tela de funcionários manualmente após o fix do front |
+| `autenticarComo(12345L)` requer persistência do requisitante em banco | Baixa | Médio | Verificar `GerarTokenConviteUseCase.gerar()` — se persistir, o `@AfterEach` deve limpar |
+| Outro arquivo de teste hardcoda `/api/funcionarios/` | Baixa | Baixo | `grep -r "api/funcionarios" src/test/` antes de commitar |
+
+---
+
+## Coordenação
+
+- **Pode rodar em paralelo com:** nada — FIX-005 (back) deve mergear antes do front iniciar. Ambos devem mergear antes de QA-009.
+- **Depende de:** nada (sai direto de `develop`).
+- **Bloqueia:** QA-009 (Sub-área A precisa de auth + `/api/v1/`; Sub-área D idem).
+- **Após merge de ambos (back + front):**
+  - Planner atualiza QA-009: remover nota "não escrever 401/403" + adicionar cenários 401/403 à Sub-área A; Sub-área D usa `/api/v1/funcionarios/**` e `autenticarComo()`.
+  - Planner sincroniza `develop → integration/03-folha-pagamento`.
+  - Planner adiciona smell de URL ao DISPATCH-ENG-IA (materialização ADR 0019).
+  - Marcar item "JWT" em `docs/PENDENCIAS-TECNICAS.md` como `~~resolvido~~`.
 
 ---
 
 ## Definição de pronto
 
-Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report válido, ciclo reviewer→QA conforme ADR 0019. PR `fix/005-... → develop` (FIX vai direto para develop, não passa pela integration branch).
+Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status reports válidos (um por território), ciclo reviewer→QA conforme ADR 0019. PRs `fix/005-*-back → develop` e `fix/005-*-front → develop` (FIXes vão direto para develop).
 
 ---
 
@@ -243,7 +294,8 @@ Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report válido, ciclo re
 - `docs/PENDENCIAS-TECNICAS.md` §"/api/funcionarios/** sem autenticação JWT"
 - `docs/sprints/03-folha-pagamento/avaliacoes/BE-026-029-sprint03-folha.md §8` — identificação da vulnerabilidade
 - `docs/decisions/0019-workflow-reviewer-qa-loop.md` — protocolo reviewer→QA a seguir
-- `docs/sprints/03-folha-pagamento/plans/QA-009-cobertura-testes-backend.md` — Sub-área A e D afetadas pelo fix
-- `financas_bot_telegram/src/main/java/.../infra/security/JwtAuthenticationFilter.java` — arquivo principal
+- `docs/sprints/03-folha-pagamento/plans/QA-009-cobertura-testes-backend.md` — bloqueado por FIX-005
+- `docs/plans/DISPATCH-ENG-IA-implementar-adr-0019.md` — adicionar smell de URL à materialização
+- `financas_bot_telegram/src/main/java/.../infra/security/JwtAuthenticationFilter.java`
 - `financas_bot_telegram/src/test/java/.../integration/AbstractIntegrationTest.java`
 - `financas_bot_telegram/src/test/java/.../integration/FecharMesIntegrationTest.java`
