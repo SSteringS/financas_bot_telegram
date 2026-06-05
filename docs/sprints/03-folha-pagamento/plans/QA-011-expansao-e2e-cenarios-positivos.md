@@ -9,7 +9,7 @@ prioridade: media
 esforco: alto
 territorio: front
 estado: pronto-pra-execucao
-depende_de: [QA-008, BE-030]
+depende_de: [QA-008, FIX-005-front]
 bloqueia: []
 skills_dispatched: [qualidade-de-testes, ecossistema-frontend]
 fluxos_qa: []
@@ -17,7 +17,7 @@ fluxos_qa: []
 
 # QA-011 — Expansão E2E (foto+caption, WhatsApp, comprovante, folha de pagamento)
 
-> **Status: pronto-pra-execucao.** Depende de **BE-030** (tornar `telegram.file.url` configurável — ver ADR 0020) estar mergeada antes de rodar Sub-área A. Sub-áreas B, C e D podem ser implementadas em paralelo enquanto BE-030 está em execução. Implementador coordena com o planner antes de despachar.
+> **Status: pronto-pra-execucao.** BE-030 ✅ mergeada (PR #113). Sub-áreas B, C e D podem começar imediatamente. Sub-área A (foto+caption) aguarda **FIX-005 front** — `frontend/src/api/folha.ts` ainda usa `/api/funcionarios/**` (URLs incorretas). Quando FIX-005 front mergear, Sub-área A pode começar. Implementador coordena com o planner antes de despachar.
 
 ---
 
