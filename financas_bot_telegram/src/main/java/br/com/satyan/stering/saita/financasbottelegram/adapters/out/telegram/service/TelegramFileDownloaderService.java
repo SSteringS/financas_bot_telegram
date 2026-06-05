@@ -13,14 +13,17 @@ public class TelegramFileDownloaderService {
 
   private final RestClient restClient;
   private final String telegramApiUrl;
+  private final String telegramFileUrl;
   private final String botToken;
 
   public TelegramFileDownloaderService(RestClient restClient,
       @Value("${telegram.api.url}") String telegramApiUrl,
-      @Value("${telegram.bot-token}") String botToken) {
+      @Value("${telegram.bot-token}") String botToken,
+      @Value("${telegram.api.file.url:https://api.telegram.org/file/bot}") String telegramFileUrl) {
     this.restClient = restClient;
     this.telegramApiUrl = telegramApiUrl;
     this.botToken = botToken;
+    this.telegramFileUrl = telegramFileUrl;
   }
 
   public byte[] downloadImageByFileId(String fileId) {
@@ -34,7 +37,7 @@ public class TelegramFileDownloaderService {
           .body(String.class);
 
       String filePath = extractFilePathFromJson(filePathResponse);
-      String downloadUrl = "https://api.telegram.org/file/bot" + botToken + "/" + filePath;
+      String downloadUrl = telegramFileUrl + botToken + "/" + filePath;
 
       byte[] imageBytes = restClient.get()
           .uri(downloadUrl)
