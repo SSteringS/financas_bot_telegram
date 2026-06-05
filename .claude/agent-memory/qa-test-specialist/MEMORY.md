@@ -8,3 +8,4 @@
 - [Autorizado a executar testes no worktree do implementador](feedback_autorizacao_worktree_implementador.md) — Read/Bash sem pedir permissão a cada vez, quando o objetivo é teste automatizado
 - [Gaps recorrentes no domínio de folha de pagamento](project_gaps_folha_pagamento.md) — checklist para análise de FecharMes/Adiantamento (filtros temporais, @Transactional, race conditions)
 - [Helpers de teste com valores hardcoded são red flag](feedback_helpers_teste_hardcoded.md) — método: cruzar campos fixos do helper com condicionais do production code
+- [Refactor puro de pacote: 4 checks empíricos bastam](project_refactor_renomeacao_pacote_checklist.md) — Glob pacote antigo, grep import, grep string, mvn test; sem testes novos
