@@ -32,12 +32,12 @@ import org.springframework.web.bind.annotation.*;
  *
  * <p>Vales:
  * <ul>
- *   <li>{@code POST /api/funcionarios/{id}/vales} — Cadastrar vale</li>
- *   <li>{@code GET  /api/funcionarios/{id}/vales?mes=YYYY-MM} — Listar vales do mês</li>
+ *   <li>{@code POST /api/v1/funcionarios/{id}/vales} — Cadastrar vale</li>
+ *   <li>{@code GET  /api/v1/funcionarios/{id}/vales?mes=YYYY-MM} — Listar vales do mês</li>
  * </ul>
  */
 @RestController
-@RequestMapping("/api/funcionarios")
+@RequestMapping("/api/v1/funcionarios")
 public class FolhaController {
 
     private final CadastrarValePortIn cadastrarValeUseCase;
