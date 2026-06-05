@@ -4,7 +4,7 @@ description: Snapshot do estado de sprint e tasks em voo — verificar antes de 
 type: project
 ---
 
-**Data do snapshot:** 2026-06-04
+**Data do snapshot:** 2026-06-05
 
 **Sprint ativa:** 03 — Folha de pagamento
 
@@ -16,34 +16,36 @@ type: project
 | FIX-003 | PR #105 |
 | FIX-004 (vo→enums) | PR #107 |
 
-## Fase QA — CONCLUÍDA ✅
+## Fase QA fase 1 — CONCLUÍDA ✅
 
 QA-001..QA-008 + FIX-002 — todos mergeados em develop.
 
 ## ADRs recentes
 
 - **ADR 0019** (reviewer→QA loop): `Accepted`
-- **ADR 0020** (mock Telegram WireMock): `Proposed` — aguarda homologação humana
+- **ADR 0020** (mock Telegram WireMock): `Accepted` — homologado pelo humano
 
-## Tasks pendentes — planejadas, não commitadas ainda
+## FIXes concluídos
 
-| Task | Estado | Arquivo |
+| Task | PR | Observação |
 |---|---|---|
-| QA-009 cobertura-testes-backend | pronto-pra-execucao | plans/QA-009-... |
-| QA-010 cobertura-testes-frontend | pronto-pra-execucao | plans/QA-010-... |
-| QA-011 expansao-e2e | pronto-pra-execucao (depende BE-030) | plans/QA-011-... |
-| ADR 0020 | Proposed | decisions/0020-... |
-| BE-030 telegram-file-url-configuravel | A PLANEJAR | — |
+| FIX-005 back (padronizar /api/v1 + JWT allowlist) | PR #109 → develop | ✅ |
+| BE-030 (telegram.file.url configurável) | PR #113 → develop | ✅ |
 
-## Divergência de branch
+## Fase QA cobertura + E2E expansão
 
-- `develop` local está 1 commit atrás de `origin/develop` (PR #107 FIX-004 — `d9823f6`)
-- `integration/03-folha-pagamento` ainda ativa no remoto
+| Task | Estado | PR |
+|---|---|---|
+| QA-009 cobertura-testes-backend | ✅ concluido | PR #115 → develop (61 testes novos, 417 total) |
+| QA-010 cobertura-testes-frontend | 🔵 pronto-pra-execucao | — |
+| QA-011 Sub-áreas B/C/D | 🔵 pronto-pra-execucao | — |
+| QA-011 Sub-área A | ⏸ aguarda FIX-005 front | — |
+| FIX-005 front (folha.ts /api/v1) | 🔴 pendente (produto quebrado) | — |
 
 ## integration branch
 
-`integration/03-folha-pagamento` — ativa. QA-009/010/011 devem sair dela.
+`integration/03-folha-pagamento` — ativa. Último merge: QA-009 (PR #116 integration→develop).
 
-**Why:** Sprint 03 features mergeadas. QA de cobertura e E2E expandido ainda pendentes de execução.
+**Why:** QA-009 concluída e mergeada. Fila restante: FIX-005 front (urgente), QA-010, QA-011 B/C/D.
 
-**How to apply:** Antes de despachar QA-009/010/011: (1) pull develop local; (2) commitar os planos; (3) sync develop→integration; (4) criar plano BE-030 e despachar primeiro (desbloqueia QA-011 Sub-área A).
+**How to apply:** FIX-005 front desbloqueia QA-011 Sub-área A — prioridade máxima. QA-010 e QA-011 B/C/D são independentes entre si e podem rodar em paralelo.
