@@ -117,6 +117,25 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
+    void naoDeveAplicarFiltroEmRequestOptions() {
+        // OPTIONS (CORS preflight) deve ser ignorado independente do path
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        req.setMethod("OPTIONS");
+        req.setRequestURI("/api/v1/pedidos");
+
+        assertThat(filter.shouldNotFilter(req)).isTrue();
+    }
+
+    @Test
+    void naoDeveAplicarFiltroEmActuator() {
+        // /actuator/** é path público — usado pelo health check do load balancer
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        req.setRequestURI("/actuator/health");
+
+        assertThat(filter.shouldNotFilter(req)).isTrue();
+    }
+
+    @Test
     void deveRenovarCookieQuandoJwtEstaVencendo() throws Exception {
         MockHttpServletRequest req = reqComCookie("jwt-velho");
         req.setRequestURI("/api/v1/auth/me");

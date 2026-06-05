@@ -9,8 +9,8 @@ gates:
   build: ok
   lint: na
   testes: ok
-  testes_total: 352
-  testes_novos: 0
+  testes_total: 354
+  testes_novos: 2
   cobertura_pct: na
   branch_convencao: ok
   territorio: ok
@@ -88,4 +88,5 @@ Nenhuma — tarefa fechada.
 - `infra/security/JwtAuthenticationFilter.java` (modificado: `shouldNotFilter()` → allowlist explícita)
 - `integration/AbstractIntegrationTest.java` (modificado: adicionados `postAutenticado()` e `deleteAutenticado()`)
 - `integration/FecharMesIntegrationTest.java` (modificado: auth + URLs + remover `requestBodyEntity()`)
+- `infra/security/JwtAuthenticationFilterTest.java` (modificado: +2 testes — `OPTIONS` e `/actuator/health` na allowlist)
 - `docs/sprints/03-folha-pagamento/status/FIX-005-back-padronizar-api-v1.md` (novo — este arquivo)
