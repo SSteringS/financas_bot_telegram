@@ -19,7 +19,7 @@ export type TipoConta = 'CORRENTE' | 'POUPANCA'
 
 // ── Funcionário ───────────────────────────────────────────────────────────────
 
-/** Shape do response de GET /api/funcionarios e GET /api/funcionarios/{id} */
+/** Shape do response de GET /api/v1/funcionarios e GET /api/v1/funcionarios/{id} */
 export interface Funcionario {
   id: number
   nome: string
@@ -38,7 +38,7 @@ export interface Funcionario {
   atualizadoEm: string
 }
 
-/** Body para POST /api/funcionarios e PUT /api/funcionarios/{id} */
+/** Body para POST /api/v1/funcionarios e PUT /api/v1/funcionarios/{id} */
 export interface FuncionarioRequest {
   nome: string
   salarioBase: number
@@ -55,7 +55,7 @@ export interface FuncionarioRequest {
 
 // ── Vales ─────────────────────────────────────────────────────────────────────
 
-/** Shape do response de GET /api/funcionarios/{id}/vales (ValeResponse.java) */
+/** Shape do response de GET /api/v1/funcionarios/{id}/vales (ValeResponse.java) */
 export interface Vale {
   id: number
   funcionarioId: number
@@ -68,7 +68,7 @@ export interface Vale {
   dataCriacao: string        // LocalDateTime → ISO string
 }
 
-/** Body para POST /api/funcionarios/{id}/vales (ValeRequest.java) */
+/** Body para POST /api/v1/funcionarios/{id}/vales (ValeRequest.java) */
 export interface ValeRequest {
   descricao: string
   valor: number
@@ -77,7 +77,7 @@ export interface ValeRequest {
 
 // ── Adiantamentos ─────────────────────────────────────────────────────────────
 
-/** Shape do response de GET /api/funcionarios/{id}/adiantamentos (AdiantamentoResponse.java) */
+/** Shape do response de GET /api/v1/funcionarios/{id}/adiantamentos (AdiantamentoResponse.java) */
 export interface Adiantamento {
   id: number
   funcionarioId: number
@@ -92,7 +92,7 @@ export interface Adiantamento {
   criadoEm: string           // LocalDateTime → ISO string
 }
 
-/** Body para POST /api/funcionarios/{id}/adiantamentos (AdiantamentoRequest.java) */
+/** Body para POST /api/v1/funcionarios/{id}/adiantamentos (AdiantamentoRequest.java) */
 export interface AdiantamentoRequest {
   descricao: string
   valorTotal: number
@@ -103,7 +103,7 @@ export interface AdiantamentoRequest {
 
 // ── Fechamentos ───────────────────────────────────────────────────────────────
 
-/** Shape do response de GET/POST /api/funcionarios/{id}/fechamentos (PedidoFolhaResponse.java) */
+/** Shape do response de GET/POST /api/v1/funcionarios/{id}/fechamentos (PedidoFolhaResponse.java) */
 export interface Fechamento {
   id: number
   funcionarioId: number
