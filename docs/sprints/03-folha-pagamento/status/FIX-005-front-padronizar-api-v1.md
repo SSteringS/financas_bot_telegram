@@ -7,7 +7,7 @@ responsavel: claude-front
 estado: concluido
 gates:
   build: ok
-  lint: na
+  lint: ok
   testes: ok
   testes_total: 83
   testes_novos: 0
