@@ -1,6 +1,6 @@
 # Sprint 03 — Folha de Pagamento
 
-**Status:** 🟡 em andamento — fase BE/FE + FIX concluídas; QA-009 ✅; QA-010/011 + FIX-005 front pendentes (2026-06-05)
+**Status:** 🟡 em andamento — fase BE/FE + FIX concluídas; QA-009 ✅; FIX-005 front ✅; QA-010/011 pendentes (2026-07-14)
 
 **Objetivo:** entregar a gestão de folha de pagamento doméstica — cadastro de funcionários, vales, adiantamentos parcelados e fechamento mensal.
 
@@ -55,7 +55,7 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 | FIX-003 | qa-gaps-fechar-mes | ✅ concluido (PR #105 → develop) |
 | FIX-004 | consolidar-pacote-vo-em-enums | ✅ concluido (PR #107 → develop) |
 | FIX-005 back | padronizar-api-v1-jwt-allowlist | ✅ concluido (PR #109 → develop) |
-| FIX-005 front | padronizar-api-v1-front | 🔴 pendente (folha.ts ainda usa `/api/funcionarios`) |
+| FIX-005 front | padronizar-api-v1-front | ✅ concluido (PR #117 → develop) |
 
 ### QA — Cobertura + E2E Expansão (2026-06-05)
 
@@ -63,7 +63,7 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 |----|------|--------|
 | QA-009 | cobertura-testes-backend | ✅ concluido (PR #115 → develop) — 61 testes novos (417 total) |
 | QA-010 | cobertura-testes-frontend | 🔵 pronto-pra-execucao |
-| QA-011 | expansao-e2e-cenarios-positivos | 🔵 pronto-pra-execucao (Sub-áreas B/C/D; Sub-área A desbloqueia com FIX-005 front) |
+| QA-011 | expansao-e2e-cenarios-positivos | 🔵 pronto-pra-execucao (todas Sub-áreas A/B/C/D — FIX-005 front ✅) |
 | BE-030 | telegram-file-url-configuravel | ✅ concluido (PR #113 → develop) |
 
 ---
@@ -73,13 +73,13 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 Fila de execução paralela disponível:
 
 ```
-FIX-005 front     (front — produto quebrado sem isso; desbloqueia QA-011 Sub-área A)
-QA-010            (front — independente)
-QA-011 B/C/D      (front — independente; Sub-área A aguarda FIX-005 front)
+QA-010     (front — independente)
+QA-011     (front — Sub-áreas A/B/C/D todas desbloqueadas)
 ```
 
 QA-009 ✅ concluída (PR #115) — 61 testes novos, 417 total.
-BE-030 ✅ concluída — QA-011 Sub-área A só precisa ainda do FIX-005 front.
+BE-030 ✅ concluída.
+FIX-005 front ✅ concluída (PR #117) — `/api/v1/funcionarios` atualizado.
 
 ---
 
