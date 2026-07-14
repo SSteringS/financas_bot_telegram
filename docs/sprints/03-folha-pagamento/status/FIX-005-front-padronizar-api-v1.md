@@ -16,7 +16,7 @@ gates:
   territorio: ok
 commits:
   - 308bf96
-pr: null
+pr: "https://github.com/SSteringS/financas_bot_telegram/pull/117"
 desvios: 0
 pendencias_humano: 0
 ---
