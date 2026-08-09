@@ -27,9 +27,9 @@
 `GlobalTelegramExceptionHandler` já tinha `@RestControllerAdvice(basePackages = "...adapters.in.telegram")` da sessão anterior. Commit dedicado apenas atualiza `docs/PENDENCIAS-TECNICAS.md`.
 
 ### Task 3 — FIX-keystore-password-secret
-`application-prod.properties`: `server.ssl.key-store-password=finbot123` → `server.ssl.key-store-password=${keystore_password}`.
+`application-prod.properties`: `server.ssl.key-store-password=<keystore-password>` → `server.ssl.key-store-password=${keystore_password}`.
 
-⚠️ **AÇÃO MANUAL OBRIGATÓRIA ANTES DO DEPLOY:** adicionar a chave `keystore_password` com valor `finbot123` no secret `finbot-prod-secrets` no AWS Secrets Manager. Sem isso o app não sobe em prod.
+⚠️ **AÇÃO MANUAL OBRIGATÓRIA ANTES DO DEPLOY:** adicionar a chave `keystore_password` com valor `<keystore-password>` no secret `finbot-prod-secrets` no AWS Secrets Manager. Sem isso o app não sobe em prod.
 
 ### Task 4 — FIX-revisar-msgs-erro-bot
 - `InvalidCaptionException` (comprovante): mensagem de erro agora traz formato esperado com exemplos
@@ -60,5 +60,5 @@ Nenhuma nova pendência criada nesta sessão. Ver `docs/PENDENCIAS-TECNICAS.md` 
 Abrir PR de `feature/backend-polish-evo07` → `develop`.
 
 Antes do merge, verificar:
-- [ ] ⚠️ Adicionar `keystore_password=finbot123` no AWS Secrets Manager (`finbot-prod-secrets`) — **obrigatório**
+- [ ] ⚠️ Adicionar `keystore_password=<keystore-password>` no AWS Secrets Manager (`finbot-prod-secrets`) — **obrigatório**
 - [ ] A migration V3 será aplicada automaticamente pelo Flyway no deploy — sem ação manual além do merge

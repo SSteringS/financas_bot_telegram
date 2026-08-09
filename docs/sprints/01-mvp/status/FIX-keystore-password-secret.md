@@ -9,18 +9,18 @@
 
 ## O que foi feito
 
-- Substituída a linha `server.ssl.key-store-password=finbot123` por `server.ssl.key-store-password=${keystore_password}` em `application-prod.properties`.
+- Substituída a linha `server.ssl.key-store-password=<keystore-password>` por `server.ssl.key-store-password=${keystore_password}` em `application-prod.properties`.
 - Nenhuma outra mudança de código necessária — o `spring.config.import=aws-secretsmanager:finbot-prod-secrets` já existente injeta o valor automaticamente em runtime.
 
 ---
 
 ## ⚠️ AÇÃO MANUAL OBRIGATÓRIA ANTES DO PRÓXIMO DEPLOY EM PROD
 
-> **Antes de qualquer deploy em produção:** adicionar a chave `keystore_password` com valor `finbot123` (senha atual do keystore p12 em `/opt/finbot/keystore.p12`) no segredo `finbot-prod-secrets` no AWS Secrets Manager (console AWS → Secrets Manager → `finbot-prod-secrets` → "Retrieve secret value" → "Edit").
+> **Antes de qualquer deploy em produção:** adicionar a chave `keystore_password` com valor `<keystore-password>` (senha atual do keystore p12 em `/opt/finbot/keystore.p12`) no segredo `finbot-prod-secrets` no AWS Secrets Manager (console AWS → Secrets Manager → `finbot-prod-secrets` → "Retrieve secret value" → "Edit").
 >
 > **Sem essa chave, o app falha ao subir com erro de placeholder não resolvido.**
 >
-> Sugestão: aproveitar a oportunidade para trocar o valor `finbot123` por algo aleatório mais forte (`openssl rand -base64 24`). Isso exige reasinar o keystore PKCS12 com a nova senha, o que pode ser feito antes ou junto da migração para Let's Encrypt + domínio real.
+> Sugestão: aproveitar a oportunidade para trocar o valor `<keystore-password>` por algo aleatório mais forte (`openssl rand -base64 24`). Isso exige reasinar o keystore PKCS12 com a nova senha, o que pode ser feito antes ou junto da migração para Let's Encrypt + domínio real.
 
 ---
 
@@ -39,7 +39,7 @@ Nenhuma. Mudança trivial: 1 linha no properties.
 ## Decisões pendentes (esperando humano)
 
 - Adicionar `keystore_password` no AWS Secrets Manager antes do próximo deploy (ver aviso acima).
-- Decidir se rotaciona a senha do keystore agora (oportunidade) ou mantém `finbot123` até migração Let's Encrypt.
+- Decidir se rotaciona a senha do keystore agora (oportunidade) ou mantém `<keystore-password>` até migração Let's Encrypt.
 
 ---
 

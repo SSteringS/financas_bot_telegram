@@ -47,7 +47,7 @@ sudo systemctl restart systemd-journald
 
 ### P2 — Secret `keystore_password` no Secrets Manager
 
-Confirmar que `finbot-prod-secrets` tem a chave `keystore_password=finbot123`. Sem isso o app **não sobe** após redeploy.
+Confirmar que `finbot-prod-secrets` tem a chave `keystore_password=<keystore-password>`. Sem isso o app **não sobe** após redeploy.
 
 ```bash
 aws secretsmanager get-secret-value --secret-id finbot-prod-secrets --query SecretString --output text

@@ -2,6 +2,8 @@
 # Task 1: Resumo parametrizado (cenários 1.1–1.11)
 #
 # Como usar:
+#   0. Copie http-client.env.json.example para http-client.env.json (gitignored) e preencha
+#      "admin_key" com o valor de app.admin.api-key do seu application-dev.properties
 #   1. Selecione o environment "dev" no canto superior direito do IntelliJ
 #   2. Siga os passos de autenticação abaixo (0 → 1)
 #   3. O cookie finbot_session é armazenado automaticamente — pode rodar os testes em sequência
@@ -27,7 +29,7 @@ POST {{base_url}}/api/v1/auth/exchange
 Content-Type: application/json
 
 {
-  "token": "cbiRX4DxfSqGV8l3R0W8EM9AIadicQt8Q_8vvgfhIFA"
+  "token": "TOKEN_AQUI"
 }
 
 ###
