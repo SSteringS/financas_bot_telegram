@@ -42,7 +42,7 @@ Execute os testes abaixo com o ambiente dev rodando (`mvn spring-boot:run -Dspri
 
 | # | Ação | Esperado | Resultado | Observação |
 |---|---|---|---|---|
-| 3.1 | **Antes do deploy:** adicionar chave `keystore_password = finbot123` no secret `finbot-prod-secrets` no AWS Secrets Manager | Chave adicionada | | |
+| 3.1 | **Antes do deploy:** adicionar chave `keystore_password = <keystore-password>` no secret `finbot-prod-secrets` no AWS Secrets Manager | Chave adicionada | | |
 | 3.2 | **Após o deploy:** `sudo journalctl -u finbot.service -n 50 \| grep -E "Started\|keystore\|ERROR"` | App subiu sem `Could not resolve placeholder 'keystore_password'` | | |
 
 ---

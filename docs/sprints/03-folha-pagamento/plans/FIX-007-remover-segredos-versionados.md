@@ -34,7 +34,7 @@ Registro explícito para evitar que a urgência seja mal calibrada por quem ler 
 |---|---|---|---|
 | Token Telegram gen-1 | `README.md:128` | **Não** — token morto. Rotacionado em 2026-08-09 (gen-2 → gen-3) | `getMe` com o token do README falharia; prod usa outro |
 | `admin_api_key` `UJ…k=` | `http/http-client.env.json:4`, `runbooks/ROTEIRO-INTEGRACAO-FRONT-BACK.md:79,99` | **Não** — é a chave de **dev**. O humano conferiu `finbot-prod-secrets` em 2026-08-09: a de prod começa com `T8` | Comparação de prefixo feita pelo humano |
-| `keystore_password` `finbot123` | `infra/provision/bootstrap.sh:146` + 18 ocorrências em `docs/**` | **Não diretamente** — é a senha de um PKCS12 self-signed que, após a migração do webhook para a Caddy, só termina TLS no loopback. Explorar exige acesso prévio ao host | Leitura de `Caddyfile.tftpl` + `application-prod.properties:7-10` |
+| `keystore_password` (senha literal do keystore) | `infra/provision/bootstrap.sh:146` + 18 ocorrências em `docs/**` | **Não diretamente** — é a senha de um PKCS12 self-signed que, após a migração do webhook para a Caddy, só termina TLS no loopback. Explorar exige acesso prévio ao host | Leitura de `Caddyfile.tftpl` + `application-prod.properties:7-10` |
 | Senha MySQL `Sa…23` | `runbooks/ROTEIRO-INTEGRACAO-FRONT-BACK.md:22` | **Não** — é a senha do MySQL **local** de desenvolvimento, não do RDS | `application-prod.properties:17` usa `${db_password}` do Secrets Manager |
 
 **Conclusão:** isto é faxina de higiene, não resposta a incidente. Executar com cuidado normal, sem pressa de emergência.
@@ -60,8 +60,8 @@ Reescrever histórico (`git filter-repo`, BFG) em repositório público **não d
 - `README.md:128` — substituir o token literal por `<SEU_TOKEN_AQUI>`, alinhando com o padrão já usado na linha 65 do mesmo arquivo.
 - `docs/runbooks/ROTEIRO-INTEGRACAO-FRONT-BACK.md` — linha 22 (senha MySQL local), linhas 79 e 99 (`X-Admin-Key`). Substituir por placeholders descritivos (`<sua-senha-mysql-local>`, `<sua-admin-api-key>`), mantendo o runbook utilizável.
 - `financas_bot_telegram/http/BE-16-testes.http:30` — substituir o token de sessão por placeholder.
-- **18 ocorrências de `finbot123` em `docs/**`** — arquivos listados em §Referências. Substituir por `<keystore-password>`. **Não reescrever a narrativa histórica dos status reports**; só mascarar o valor.
-- `financas_bot_telegram/infra/provision/bootstrap.sh:146` — trocar `-passout pass:finbot123` por leitura de `keystore_password` a partir de `finbot-prod-secrets`. Falhar alto e claro (`exit 1` com mensagem) se a chave não vier.
+- **18 ocorrências da senha literal do keystore em `docs/**`** — arquivos listados em §Referências. Substituir por `<keystore-password>`. **Não reescrever a narrativa histórica dos status reports**; só mascarar o valor.
+- `financas_bot_telegram/infra/provision/bootstrap.sh:146` — trocar o `-passout pass:<senha literal>` por leitura de `keystore_password` a partir de `finbot-prod-secrets`. Falhar alto e claro (`exit 1` com mensagem) se a chave não vier.
 - `.gitignore` (raiz) — adicionar `http-client.env.json`.
 
 ### Criar
@@ -94,7 +94,8 @@ Registrar no status report qual dos dois casos ocorreu, com o arquivo e linha qu
 
 ## Critérios de aceitação
 
-- [ ] `git grep -n "finbot123"` retorna **zero** ocorrências na árvore de trabalho.
+- [ ] Busca pela senha literal do keystore retorna **zero** ocorrências na árvore de trabalho. Comando reprodutível (recupera o literal do histórico, sem reintroduzi-lo no repo):
+      `git grep -n "$(git show <sha-anterior>:financas_bot_telegram/infra/provision/bootstrap.sh | sed -n 's/.*-passout pass://p')"` — saída registrada no status report.
 - [ ] `git grep -nE "[0-9]{8,10}:AA[A-Za-z0-9_-]{30,}"` retorna **zero** ocorrências.
 - [ ] `git grep -n "UJ"` não retorna a `admin_key` em `http-client.env.json` nem no runbook (conferir manualmente os 3 pontos citados).
 - [ ] `git ls-files financas_bot_telegram/http/http-client.env.json` retorna vazio (arquivo destrackeado).
@@ -154,5 +155,5 @@ Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report válido, **revis�
 ## Referências
 
 - Varredura de segredos, 2026-08-09 — inventário completo de 408 commits, todas as refs.
-- Ocorrências de `finbot123` em docs: `PENDENCIAS-TECNICAS.md:332`; `architecture/estado-atual-dev.md:202,275`; `runbooks/ROTEIRO-INTEGRACAO-FRONT-BACK.md:208`; `sprints/01-mvp/plans/FIX-keystore-password-secret.md:3,22,39,59`; `sprints/01-mvp/status/FIX-keystore-password-secret.md:12,19,23,42`; `sprints/01-mvp/status/DEP-07.md:86,98`; `sprints/01-mvp/status/_RESUMO-overnight-back-2.md:30,32,63`; `sprints/01-mvp/status/_RESUMO-overnight-deploy.md:50`; `sprints/01-mvp/avaliacoes/backend-polish-evo07.md:45`.
+- Ocorrências da senha literal do keystore em docs: `PENDENCIAS-TECNICAS.md:332`; `architecture/estado-atual-dev.md:202,275`; `runbooks/ROTEIRO-INTEGRACAO-FRONT-BACK.md:208`; `sprints/01-mvp/plans/FIX-keystore-password-secret.md:3,22,39,59`; `sprints/01-mvp/status/FIX-keystore-password-secret.md:12,19,23,42`; `sprints/01-mvp/status/DEP-07.md:86,98`; `sprints/01-mvp/status/_RESUMO-overnight-back-2.md:30,32,63`; `sprints/01-mvp/status/_RESUMO-overnight-deploy.md:50`; `sprints/01-mvp/avaliacoes/backend-polish-evo07.md:45`.
 - `docs/sprints/01-mvp/plans/FIX-keystore-password-secret.md` — o FIX que moveu a senha para o Secrets Manager **e documentou o valor em claro**, anulando a própria mitigação. É a origem da maior parte das ocorrências e a evidência que motiva o `CI-002`.

@@ -83,7 +83,7 @@ Nenhuma — tarefa fechada.
 > ✅ **Pendência 1 resolvida (2026-05-27):** humano executou `terraform plan` na branch `feature/dep-07-codificar-provisionamento-ec2` e confirmou que `aws_instance.finbot_app` aparece como `~` (update in-place) — EC2 não será recriada.
 
 > ℹ️ **Pendência 2 movida para runbook:** re-registrar webhook do Telegram após um recreate futuro não é bloqueante do merge — é passo operacional. Documentado em `docs/PENDENCIAS-TECNICAS.md` e no Escopo ADR 0009 acima.
-O cert está em `/opt/finbot/keystore.pem` (copiado pelo bootstrap). O `keystore_password` permanece `finbot123` (hard-coded no script, alinhado com o secret `finbot-prod-secrets`).
+O cert está em `/opt/finbot/keystore.pem` (copiado pelo bootstrap). O `keystore_password` permanece `<keystore-password>` (hard-coded no script, alinhado com o secret `finbot-prod-secrets`).
 
 ---
 
@@ -95,7 +95,7 @@ Manual residual após um recreate:
 1. `terraform apply` sobe a instância nova com o `user_data` (bootstrap executa automaticamente).
 2. Pipeline de deploy (`deploy.yml`) coloca o JAR em `/opt/finbot/app.jar` e reinicia `finbot`.
 3. Re-registrar webhook do Telegram com o novo cert (ver Pendência 2 acima).
-4. Secret `keystore_password=finbot123` já existe em `finbot-prod-secrets` (confirmado).
+4. Secret `keystore_password=<keystore-password>` já existe em `finbot-prod-secrets` (confirmado).
 
 ---
 

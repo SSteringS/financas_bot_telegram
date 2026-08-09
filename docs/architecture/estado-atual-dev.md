@@ -199,7 +199,7 @@ financasbottelegram/
 ### Configurações relevantes em prod
 
 - Porta: 8443 (HTTPS, certificado em `/opt/finbot/keystore.p12`)
-- `ssl.key-store-password=finbot123` — **TODO segurança:** essa senha está hardcoded no properties. Deveria estar no Secrets Manager. Não bloqueia o front, mas é dívida pendente.
+- `ssl.key-store-password=<keystore-password>` — **TODO segurança:** essa senha está hardcoded no properties. Deveria estar no Secrets Manager. Não bloqueia o front, mas é dívida pendente.
 - `spring.jpa.hibernate.ddl-auto=none` em prod (correto — sem DDL automático)
 - `spring.jpa.hibernate.ddl-auto=update` no default (perigoso pra prod, mas acaba sobrescrito pelo profile)
 - `telegram.allowed-user-ids=7436345622` em prod — apenas 1 user ID autorizado (deve ser o seu pessoal)
@@ -272,7 +272,7 @@ Depois disso, seguir o plano da Fase 3 com os ajustes desta análise. Vou propor
 
 Anotando aqui pra não esquecer. Não bloqueia a Fase 3, mas vale tratar antes de "GA":
 
-- `server.ssl.key-store-password=finbot123` hardcoded em `application-prod.properties` — mover pro Secrets Manager.
+- `server.ssl.key-store-password=<keystore-password>` hardcoded em `application-prod.properties` — mover pro Secrets Manager.
 - `telegram.allowed-user-ids` hardcoded em prod (`7436345622`) — quando adicionar o pai, vai precisar de fonte mutável (banco ou Secrets Manager).
 - Pipeline com `-DskipTests` — reativar testes (com H2 ou Testcontainers).
 - Sem Flyway/Liquibase — adicionar.

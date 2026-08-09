@@ -368,7 +368,7 @@ Resolvido em `feature/backend-polish-evo07` (commit `fix(BE-15b)`). `GlobalTeleg
 
 ### ~~`server.ssl.key-store-password` hardcoded em `application-prod.properties`~~
 
-Resolvido em `feature/backend-polish-evo07` (commit `fix(FIX-keystore-password-secret)`). Trocado `finbot123` por `${keystore_password}`. **Ação manual obrigatória do humano antes do próximo deploy:** adicionar chave `keystore_password` com valor `finbot123` no segredo `finbot-prod-secrets` no AWS Secrets Manager.
+Resolvido em `feature/backend-polish-evo07` (commit `fix(FIX-keystore-password-secret)`). Trocado `<keystore-password>` por `${keystore_password}`. **Ação manual obrigatória do humano antes do próximo deploy:** adicionar chave `keystore_password` com valor `<keystore-password>` no segredo `finbot-prod-secrets` no AWS Secrets Manager.
 
 ### ~~Revisar mensagens de erro/ajuda do bot~~
 

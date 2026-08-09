@@ -1,6 +1,6 @@
 # FIX — Mover `keystore_password` pro Secrets Manager
 
-> Hoje `server.ssl.key-store-password=finbot123` está hardcoded em `application-prod.properties`. Mover pra Secrets Manager pra reduzir surface de exposição.
+> Hoje `server.ssl.key-store-password=<keystore-password>` está hardcoded em `application-prod.properties`. Mover pra Secrets Manager pra reduzir surface de exposição.
 
 ---
 
@@ -19,7 +19,7 @@
 Trocar a linha:
 
 ```properties
-server.ssl.key-store-password=finbot123
+server.ssl.key-store-password=<keystore-password>
 ```
 
 Por:
@@ -36,7 +36,7 @@ Mais nada precisa mudar no código — o Spring Cloud AWS já injeta valores do 
 
 O status report DEVE conter um aviso explícito:
 
-> **Antes do próximo deploy em prod:** adicionar chave `keystore_password` com valor `finbot123` (o valor atual do keystore p12) ao segredo `finbot-prod-secrets` no AWS Secrets Manager. Sem essa chave, o app falha ao subir com erro de placeholder.
+> **Antes do próximo deploy em prod:** adicionar chave `keystore_password` com valor `<keystore-password>` (o valor atual do keystore p12) ao segredo `finbot-prod-secrets` no AWS Secrets Manager. Sem essa chave, o app falha ao subir com erro de placeholder.
 
 Isso é tarefa manual do humano via console AWS. O implementador não tem acesso pra fazer.
 
@@ -56,6 +56,6 @@ Isso é tarefa manual do humano via console AWS. O implementador não tem acesso
 `docs/sprints/01-mvp/status/FIX-keystore-password-secret.md`. Cobrir:
 - Confirmação da mudança no properties
 - **Alerta destacado** sobre a ação manual do humano no Secrets Manager
-- Sugestão pro humano: trocar o valor atual `finbot123` por algo random (`openssl rand -base64 24`) já que vai ser oportunidade de rotacionar a senha do keystore. Mas isso obriga regerar/reassinar o keystore. Pode ser feito junto, ou ficar pra evolução de Let's Encrypt depois.
+- Sugestão pro humano: trocar o valor atual `<keystore-password>` por algo random (`openssl rand -base64 24`) já que vai ser oportunidade de rotacionar a senha do keystore. Mas isso obriga regerar/reassinar o keystore. Pode ser feito junto, ou ficar pra evolução de Let's Encrypt depois.
 
 Atualizar `docs/PENDENCIAS-TECNICAS.md` movendo este item pra "Itens resolvidos".

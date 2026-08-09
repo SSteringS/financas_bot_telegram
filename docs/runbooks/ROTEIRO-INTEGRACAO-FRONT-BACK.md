@@ -19,7 +19,7 @@ Encanamento de dados de ponta a ponta (auth, cookie, CORS, listagem, detalhe, co
 
 ### 1. MySQL local rodando
 
-- Banco `financas_bot_telegram_db` em `localhost:3306`, usuário `root`, senha `Satyan123` (conforme `application-dev.properties`).
+- Banco `financas_bot_telegram_db` em `localhost:3306`, usuário `root`, senha `<sua-senha-mysql-local>` — use a mesma que estiver em `spring.datasource.password` no seu `application-dev.properties` (arquivo local, gitignored).
 - Flyway aplica as migrations no boot (`baseline-on-migrate=true`). A V2 cria o requisitante `id=1` (Pedro Marques).
 - **Precisa ter pedidos no banco pra ter o que listar.** Como o bot é webhook, ele não recebe mensagens em localhost — então o banco dev só terá pedidos se já existirem de testes anteriores, ou se você inserir manualmente. Ver seção "Semear dados" abaixo.
 
@@ -76,7 +76,7 @@ VALUES
 |---|---|
 | Base URL backend | `http://localhost:8080` |
 | Base URL frontend | `http://localhost:5173` |
-| Admin API key (dev) | `UJIL3/O6yVw8gHQt3kFdiVqrcAkVAs3xr0ybGmTEj/k=` |
+| Admin API key (dev) | `<sua-admin-api-key>` — valor de `app.admin.api-key` no seu `application-dev.properties` (local, gitignored) |
 | Requisitante de teste | `id = 1` (Pedro Marques) |
 | Cookie de sessão | `finbot_session` (HttpOnly, SameSite=Lax, Secure=false em dev) |
 
@@ -96,9 +96,10 @@ Comando do passo 0.3:
 
 ```bash
 curl -i -X POST http://localhost:8080/admin/api/v1/requisitantes/1/convite \
-  -H "X-Admin-Key: UJIL3/O6yVw8gHQt3kFdiVqrcAkVAs3xr0ybGmTEj/k="
+  -H "X-Admin-Key: <sua-admin-api-key>"
 ```
 
+- Substitua `<sua-admin-api-key>` pelo valor de `app.admin.api-key` do seu `application-dev.properties`.
 - Sem o header (ou com chave errada) → deve dar **401**. Teste rápido tirando o `-H`.
 - O `url` retornado usa `localhost:5173` porque `app.frontend.base-url` aponta pra lá.
 - **O token é de uso único e expira em 7 dias.** Cada login novo precisa de um token novo (gere de novo se reutilizar).

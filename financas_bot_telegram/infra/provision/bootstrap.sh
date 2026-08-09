@@ -135,15 +135,50 @@ KEYSTORE_PATH="$FINBOT_HOME/keystore.p12"
 if [ ! -f "$KEYSTORE_PATH" ]; then
     log "Gerando keystore self-signed para o webhook..."
     PUBLIC_IP=$(curl -sf http://169.254.169.254/latest/meta-data/public-ipv4 || echo "localhost")
-    dnf install -y openssl
+    dnf install -y openssl jq
+
+    # A senha do keystore vem do Secrets Manager. Precisa ser exatamente a mesma que a
+    # aplicação lê em application-prod.properties (server.ssl.key-store-password=$${keystore_password}),
+    # senão o Spring Boot não consegue abrir o p12 e o serviço não sobe.
+    # Permissão do instance profile: aws_iam_policy.ec2_secrets_policy (infra/security.tf).
+    if ! command -v aws &>/dev/null; then
+        log "ERRO: AWS CLI ausente — impossível ler keystore_password de finbot-prod-secrets. Abortando."
+        exit 1
+    fi
+
+    AWS_DEFAULT_REGION=$(curl -sf http://169.254.169.254/latest/meta-data/placement/region) || {
+        log "ERRO: não foi possível descobrir a região via IMDS. Abortando."
+        exit 1
+    }
+    export AWS_DEFAULT_REGION
+
+    SECRET_JSON=$(aws secretsmanager get-secret-value \
+        --secret-id finbot-prod-secrets \
+        --query SecretString --output text) || {
+        log "ERRO: falha ao ler o segredo finbot-prod-secrets. Verifique a policy do instance profile. Abortando."
+        exit 1
+    }
+
+    KEYSTORE_PASSWORD=$(printf '%s' "$SECRET_JSON" | jq -r '.keystore_password // empty') || {
+        log "ERRO: conteúdo de finbot-prod-secrets não é JSON parseável. Abortando."
+        exit 1
+    }
+    if [ -z "$KEYSTORE_PASSWORD" ]; then
+        log "ERRO: chave 'keystore_password' ausente ou vazia em finbot-prod-secrets. Abortando sem gerar keystore."
+        exit 1
+    fi
+    export KEYSTORE_PASSWORD
+
     openssl req -x509 -newkey rsa:2048 -keyout /tmp/key.pem -out /tmp/cert.pem \
         -days 3650 -nodes \
         -subj "/CN=$PUBLIC_IP"
+    # -passout env: evita que a senha apareça na lista de processos (ps).
     openssl pkcs12 -export \
         -in /tmp/cert.pem -inkey /tmp/key.pem \
         -out "$KEYSTORE_PATH" \
         -name finbot \
-        -passout pass:finbot123
+        -passout env:KEYSTORE_PASSWORD
+    unset KEYSTORE_PASSWORD SECRET_JSON
     cp /tmp/cert.pem "$FINBOT_HOME/keystore.pem"
     chown finbot:finbot "$KEYSTORE_PATH" "$FINBOT_HOME/keystore.pem"
     rm -f /tmp/key.pem /tmp/cert.pem
