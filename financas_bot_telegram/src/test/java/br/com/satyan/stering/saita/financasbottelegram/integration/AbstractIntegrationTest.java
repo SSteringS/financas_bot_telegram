@@ -81,4 +81,24 @@ public abstract class AbstractIntegrationTest {
         headers.add(HttpHeaders.COOKIE, cookie);
         return restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), responseType);
     }
+
+    protected <T> ResponseEntity<T> postAutenticado(
+            String url, String cookie, String jsonBody, Class<T> responseType) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.COOKIE, cookie);
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        return restTemplate.exchange(
+                url, HttpMethod.POST,
+                new HttpEntity<>(jsonBody, headers),
+                responseType);
+    }
+
+    protected ResponseEntity<Void> deleteAutenticado(String url, String cookie) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.COOKIE, cookie);
+        return restTemplate.exchange(
+                url, HttpMethod.DELETE,
+                new HttpEntity<>(headers),
+                Void.class);
+    }
 }

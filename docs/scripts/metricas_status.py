@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Metricas dos status reports do projeto (docs/status/*.md).
+"""Metricas dos status reports do projeto.
 
 Le o frontmatter YAML de cada status report e agrega um punhado de metricas
 que MUDAM COMPORTAMENTO -- nao vanity metrics. A escolha e deliberada:
@@ -13,8 +13,11 @@ Por que isto existe: o status report e um *output contract* (ADR 0007). Como o
 frontmatter e YAML parseavel, da pra montar um painel do projeto sem esforco.
 Este script e essa leitura agregada.
 
+Por default varre `docs/status` (legado) + `docs/sprints/<NN>/status` (ADR 0010).
+Pode-se sobrepor com `--dir <path>` (repetivel).
+
 Uso:
-    python3 docs/scripts/metricas_status.py [--dir docs/status] [--json]
+    python3 docs/scripts/metricas_status.py [--dir <path> ...] [--json]
 
 Sem dependencias externas obrigatorias: usa PyYAML se disponivel, senao cai
 num parser minimo embutido (suficiente pro schema plano + bloco `gates:`).
@@ -138,10 +141,27 @@ def _as_int(v) -> int | None:
     return None
 
 
-def coletar(status_dir: Path) -> dict:
-    arquivos = sorted(
-        p for p in status_dir.glob("*.md") if not p.name.startswith("_")
-    )
+def coletar(status_dirs) -> dict:
+    """Coleta metricas. Aceita Path unico (compat) ou lista de Paths."""
+    if isinstance(status_dirs, Path):
+        status_dirs = [status_dirs]
+    # coleta + dedupe por filename: se mesmo nome aparece em multiplas pastas
+    # (ex: docs/status/ legado vs docs/sprints/01-mvp/status/), prefere a versao
+    # em sprint/ (sob docs/sprints/) pra refletir ADR 0010.
+    por_nome = {}
+    for d in status_dirs:
+        for p in d.glob("*.md"):
+            if p.name.startswith("_"):
+                continue
+            existente = por_nome.get(p.name)
+            if existente is None:
+                por_nome[p.name] = p
+            else:
+                em_sprint = lambda x: "sprints" in x.parts
+                if em_sprint(p) and not em_sprint(existente):
+                    por_nome[p.name] = p
+    arquivos = sorted(por_nome.values(), key=lambda p: p.name)
+
     com_fm: list = []
     sem_fm: list = []
     for p in arquivos:
@@ -256,19 +276,47 @@ def imprimir(m: dict) -> None:
     print()
 
 
+def _default_status_dirs() -> list:
+    """Acha todas as pastas `status/` sob `docs/`: docs/status + docs/sprints/<NN>/status."""
+    docs_root = Path(__file__).resolve().parent.parent  # docs/
+    dirs = []
+    legacy = docs_root / "status"
+    if legacy.is_dir():
+        dirs.append(legacy)
+    sprints_root = docs_root / "sprints"
+    if sprints_root.is_dir():
+        for sprint_dir in sorted(sprints_root.iterdir()):
+            if sprint_dir.is_dir():
+                sd = sprint_dir / "status"
+                if sd.is_dir():
+                    dirs.append(sd)
+    return dirs
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="Metricas dos status reports.")
-    default_dir = Path(__file__).resolve().parent.parent / "status"
-    ap.add_argument("--dir", default=str(default_dir), help="pasta dos status reports")
+    ap.add_argument(
+        "--dir",
+        action="append",
+        help="pasta dos status reports (repetivel); default = docs/status + docs/sprints/*/status",
+    )
     ap.add_argument("--json", action="store_true", help="saida em JSON")
     args = ap.parse_args(argv)
 
-    status_dir = Path(args.dir)
-    if not status_dir.is_dir():
-        print("erro: pasta nao encontrada: {}".format(status_dir), file=sys.stderr)
-        return 2
+    if args.dir:
+        status_dirs = [Path(d) for d in args.dir]
+    else:
+        status_dirs = _default_status_dirs()
 
-    m = coletar(status_dir)
+    if not status_dirs:
+        print("erro: nenhuma pasta de status encontrada", file=sys.stderr)
+        return 2
+    for d in status_dirs:
+        if not d.is_dir():
+            print("erro: pasta nao encontrada: {}".format(d), file=sys.stderr)
+            return 2
+
+    m = coletar(status_dirs)
     if args.json:
         print(json.dumps(m, ensure_ascii=False, indent=2))
     else:

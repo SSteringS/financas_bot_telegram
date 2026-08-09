@@ -1,0 +1,2 @@
+- [Domínio e escala do bot](project_dominio_finbot.md) — escala doméstica (~dezenas/mês), não otimizar por throughput
+- [EVO-09 decisões arquiteturais](project_evo09_decisoes_arquiteturais.md) — ADR 0016: Vale=Pedido, sem entidade fechamento_mes, idempotência por query

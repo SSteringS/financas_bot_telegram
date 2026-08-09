@@ -116,4 +116,46 @@ describe('Home', () => {
       expect(screen.getByRole('button', { name: /Pago \(1\)/ })).toBeInTheDocument()
     })
   })
+
+  it('clicar em "Ver foto/PDF do pedido" abre modal de foto', async () => {
+    renderHome('/?mes=2026-05')
+    await waitFor(() => screen.getAllByRole('button', { name: /ver foto\/pdf do pedido/i }))
+    const botoesFoto = screen.getAllByRole('button', { name: /ver foto\/pdf do pedido/i })
+    fireEvent.click(botoesFoto[0])
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByText('Foto/PDF do pedido')).toBeInTheDocument()
+  })
+
+  it('clicar em "Ver comprovante" abre modal de comprovante', async () => {
+    renderHome('/?mes=2026-05')
+    await waitFor(() => screen.getAllByRole('button', { name: /ver comprovante de/i }))
+    const botoesComp = screen.getAllByRole('button', { name: /ver comprovante de/i })
+    fireEvent.click(botoesComp[0])
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByText('Comprovante')).toBeInTheDocument()
+  })
+
+  it('modais são mutuamente exclusivos: abrir foto fecha comprovante', async () => {
+    renderHome('/?mes=2026-05')
+    await waitFor(() => screen.getAllByRole('button', { name: /ver comprovante de/i }))
+
+    fireEvent.click(screen.getAllByRole('button', { name: /ver comprovante de/i })[0])
+    expect(screen.getByText('Comprovante')).toBeInTheDocument()
+
+    fireEvent.click(screen.getAllByRole('button', { name: /ver foto\/pdf do pedido/i })[0])
+    expect(screen.queryByText('Comprovante')).not.toBeInTheDocument()
+    expect(screen.getByText('Foto/PDF do pedido')).toBeInTheDocument()
+  })
+
+  it('modais são mutuamente exclusivos: abrir comprovante fecha foto', async () => {
+    renderHome('/?mes=2026-05')
+    await waitFor(() => screen.getAllByRole('button', { name: /ver foto\/pdf do pedido/i }))
+
+    fireEvent.click(screen.getAllByRole('button', { name: /ver foto\/pdf do pedido/i })[0])
+    expect(screen.getByText('Foto/PDF do pedido')).toBeInTheDocument()
+
+    fireEvent.click(screen.getAllByRole('button', { name: /ver comprovante de/i })[0])
+    expect(screen.queryByText('Foto/PDF do pedido')).not.toBeInTheDocument()
+    expect(screen.getByText('Comprovante')).toBeInTheDocument()
+  })
 })

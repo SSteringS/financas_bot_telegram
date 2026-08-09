@@ -2,6 +2,7 @@ package br.com.satyan.stering.saita.financasbottelegram.adapters.out.persistence
 
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.StatusPedido;
 import br.com.satyan.stering.saita.financasbottelegram.domain.enums.TipoPagamento;
+import br.com.satyan.stering.saita.financasbottelegram.domain.enums.CategoriaPedido;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,7 +22,11 @@ public class PedidoPagamentoEntity {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "requisitante_id", nullable = false)
+    /**
+     * FK para {@code requisitante.id}. Null para pedidos sistema (categoria=FOLHA),
+     * obrigatório para pedidos do Telegram.
+     */
+    @Column(name = "requisitante_id")
     private Long requisitanteId;
 
     @Column(name = "telegram_user_id")
@@ -58,4 +63,33 @@ public class PedidoPagamentoEntity {
     @CreationTimestamp
     @Column(name = "data_criacao", updatable = false)
     private LocalDateTime dataCriacao;
+
+    // ── Campos V6: folha de pagamento (STI) ──────────────────────────────────
+
+    /** Categoria do pedido no contexto da folha — null para pedidos normais do Telegram. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "categoria")
+    private CategoriaPedido categoria;
+
+    /** FK para {@code funcionario.id} — obrigatório quando categoria não é null. */
+    @Column(name = "funcionario_id")
+    private Long funcionarioId;
+
+    /**
+     * Indica se o vale já foi considerado no fechamento do mês.
+     * {@code false} para vales abertos; {@code true} após o {@code FecharMesUseCase}.
+     */
+    @Column(name = "fechado", nullable = false)
+    private Boolean fechado = false;
+
+    /** Breakdown legível do cálculo da folha (preenchido apenas para categoria=FOLHA). */
+    @Column(name = "observacao", columnDefinition = "VARCHAR(1000)")
+    private String observacao;
+
+    /**
+     * Mês de referência do fechamento (primeiro dia do mês — ex: 2026-05-01).
+     * Obrigatório para categoria=FOLHA; null para VALE e pedidos normais.
+     */
+    @Column(name = "mes_referencia")
+    private LocalDate mesReferencia;
 }

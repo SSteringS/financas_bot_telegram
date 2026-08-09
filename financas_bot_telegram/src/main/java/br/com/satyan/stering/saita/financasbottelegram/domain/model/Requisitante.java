@@ -15,4 +15,6 @@ public class Requisitante {
     private String email;
     private boolean ativo;
     private LocalDateTime criadoEm;
+    @Builder.Default
+    private Canal canalPreferido = Canal.TELEGRAM;
 }

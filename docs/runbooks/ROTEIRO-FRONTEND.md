@@ -126,7 +126,7 @@ financas_bot_telegram/
     │   ├── especificacao-tecnica.md
     │   └── design-proposals/                  (mockups das variantes A/B/C)
     ├── plans/                                 (planos de fase)
-    │   └── FASE-3-VISUALIZACAO.md
+    │   └── BACKLOG-produto.md
     ├── runbooks/                              (roteiros de execução)
     │   └── ROTEIRO-FRONTEND.md                (este arquivo)
     ├── status/                                (relatórios pós-tarefa)
@@ -185,10 +185,10 @@ git checkout -b feature/frontend-setup
 
 ### 4.1. Anatomia de uma sessão
 
-O fluxo recomendado pra cada tarefa do `docs/plans/FASE-3-VISUALIZACAO.md`:
+O fluxo recomendado pra cada tarefa do `docs/plans/BACKLOG-produto.md`:
 
 1. **Cole o prompt da tarefa** (templates abaixo) na conversa do Claude Code
-2. Ele lê o `docs/plans/FASE-3-VISUALIZACAO.md`, a especificação técnica e os mockups, e implementa
+2. Ele lê o `docs/plans/BACKLOG-produto.md`, a especificação técnica e os mockups, e implementa
 3. **Você revisa o diff** — IntelliJ mostra um marcador no gutter (lateral) e abre uma janela de diff lado-a-lado quando você clica. Ou, mais formal: `View → Tool Windows → Git` → aba `Local Changes` mostra todos os arquivos modificados, clique pra abrir diff
 4. Se algo não bate com o esperado, **peça ajustes específicos** ("o botão de comprovante deveria ter padding maior no mobile" etc)
 5. Quando satisfeito, **roda os testes/validação**: `npm run lint`, `npm run dev`, abre no navegador
@@ -198,7 +198,7 @@ git add .
 git commit -m "[FE-XX] descrição curta"
 git push origin feature/frontend-setup
 ```
-7. Marca a tarefa como `[x]` no `docs/plans/FASE-3-VISUALIZACAO.md`
+7. Marca a tarefa como `[x]` no `docs/plans/BACKLOG-produto.md`
 8. Vai pra próxima tarefa
 
 ### 4.2. Quando o Claude Code atrasa ou trava
@@ -242,10 +242,10 @@ Pra cada tarefa abaixo: **copie o prompt** e cole no Claude Code. Ele vai ler os
 **Prompt:**
 
 ```
-Vou trabalhar na tarefa FE-01 do arquivo docs/plans/FASE-3-VISUALIZACAO.md.
+Vou trabalhar na tarefa FE-01 do arquivo docs/plans/BACKLOG-produto.md.
 
 Antes de começar, leia:
-1. docs/plans/FASE-3-VISUALIZACAO.md (a tarefa FE-01 inteira)
+1. docs/plans/BACKLOG-produto.md (a tarefa FE-01 inteira)
 2. docs/architecture/especificacao-tecnica.md (seção 4 — estrutura do projeto React)
 
 Crie a pasta `frontend/` na raiz do repo e faça scaffold de um projeto Vite + React + TypeScript com Tailwind CSS.
@@ -292,10 +292,10 @@ git push -u origin feature/frontend-setup
 **Prompt:**
 
 ```
-Vou trabalhar na tarefa FE-02 do docs/plans/FASE-3-VISUALIZACAO.md, com uma extensão: também vou adicionar MSW pra mockar a API enquanto o backend não está pronto.
+Vou trabalhar na tarefa FE-02 do docs/plans/BACKLOG-produto.md, com uma extensão: também vou adicionar MSW pra mockar a API enquanto o backend não está pronto.
 
 Leia:
-1. docs/plans/FASE-3-VISUALIZACAO.md tarefa FE-02
+1. docs/plans/BACKLOG-produto.md tarefa FE-02
 2. docs/architecture/especificacao-tecnica.md seção 2 (contratos da API)
 
 Faça duas coisas:
@@ -334,9 +334,9 @@ git push
 **Prompt:**
 
 ```
-Vou trabalhar na FE-03 do docs/plans/FASE-3-VISUALIZACAO.md.
+Vou trabalhar na FE-03 do docs/plans/BACKLOG-produto.md.
 
-Leia docs/plans/FASE-3-VISUALIZACAO.md tarefa FE-03.
+Leia docs/plans/BACKLOG-produto.md tarefa FE-03.
 
 Crie:
 - src/api/client.ts: wrapper sobre fetch com get<T>(path, params) e post<T>(path, body), credentials:'include' sempre. Em 401 dispara um event customizado que será capturado pelo router depois pra navegar pra /erro?motivo=sessao-expirada (por enquanto, só console.warn). Em outros erros lança ApiError(codigo, mensagem).
@@ -367,9 +367,9 @@ deve retornar dados do MSW
 **Prompt:**
 
 ```
-Vou trabalhar na FE-04 do docs/plans/FASE-3-VISUALIZACAO.md.
+Vou trabalhar na FE-04 do docs/plans/BACKLOG-produto.md.
 
-Leia a tarefa FE-04 inteira no docs/plans/FASE-3-VISUALIZACAO.md.
+Leia a tarefa FE-04 inteira no docs/plans/BACKLOG-produto.md.
 
 Instale react-router-dom.
 
@@ -401,11 +401,11 @@ Visual ainda simples — vamos polir nas próximas tarefas. Foco é fluxo corret
 **Prompt:**
 
 ```
-Vou trabalhar na FE-05 do docs/plans/FASE-3-VISUALIZACAO.md.
+Vou trabalhar na FE-05 do docs/plans/BACKLOG-produto.md.
 
 Antes de começar, ABRA E LEIA o arquivo docs/architecture/design-proposals/variante-c-timeline.html no navegador (ou peça pra eu te mostrar). Esse é o design de referência. O cartão de pedido aparece várias vezes lá. PRECISA replicar fielmente o visual: foto pequena, descrição, valor grande, status badge (Pendente=âmbar, Pago=verde), datas, e (somente se PAGO) o botão verde grande "Ver comprovante" largura total.
 
-Leia também a tarefa FE-05 no docs/plans/FASE-3-VISUALIZACAO.md.
+Leia também a tarefa FE-05 no docs/plans/BACKLOG-produto.md.
 
 Crie:
 - src/components/PedidoCard.tsx (props: pedido: PedidoResumo, onAbrirComprovante: () => void)
@@ -433,7 +433,7 @@ Acessibilidade: botão tem aria-label, área de toque mínima 44x44.
 **Prompt:**
 
 ```
-Tarefa FE-06 do docs/plans/FASE-3-VISUALIZACAO.md.
+Tarefa FE-06 do docs/plans/BACKLOG-produto.md.
 
 Crie:
 - src/components/FiltroStatus.tsx (props: value: 'TUDO'|'PENDENTE'|'PAGO', onChange, contadores: {tudo, pendente, pago})
@@ -459,7 +459,7 @@ Adicione esses componentes ao /_showcase pra eu validar visualmente.
 **Prompt:**
 
 ```
-Tarefa FE-07 do docs/plans/FASE-3-VISUALIZACAO.md.
+Tarefa FE-07 do docs/plans/BACKLOG-produto.md.
 
 Instale @tanstack/react-query.
 
@@ -501,7 +501,7 @@ Visual: replicar mockup variante C o mais fiel possível.
 **Prompt:**
 
 ```
-Tarefa FE-08 do docs/plans/FASE-3-VISUALIZACAO.md.
+Tarefa FE-08 do docs/plans/BACKLOG-produto.md.
 
 Crie src/components/CabecalhoApp.tsx que:
 - Mostra "Olá, {requisitante.nome}" usando useAuth
@@ -525,7 +525,7 @@ Integre na Home.tsx no topo, acima dos filtros.
 **Prompt:**
 
 ```
-Tarefa FE-09 do docs/plans/FASE-3-VISUALIZACAO.md, com a decisão fixada: opção (a) — modal sobre a tela com imagem grande e botão de download.
+Tarefa FE-09 do docs/plans/BACKLOG-produto.md, com a decisão fixada: opção (a) — modal sobre a tela com imagem grande e botão de download.
 
 Crie:
 - src/components/ModalComprovante.tsx
@@ -560,7 +560,7 @@ Adicione handler do MSW pra /api/v1/pedidos/{id}/comprovante: retorna 302 com Lo
 **Prompt:**
 
 ```
-Tarefa FE-10 do docs/plans/FASE-3-VISUALIZACAO.md.
+Tarefa FE-10 do docs/plans/BACKLOG-produto.md.
 
 Instale vite-plugin-pwa.
 
@@ -601,7 +601,7 @@ Atualize index.html com:
 **Prompt:**
 
 ```
-Tarefa FE-11 do docs/plans/FASE-3-VISUALIZACAO.md.
+Tarefa FE-11 do docs/plans/BACKLOG-produto.md.
 
 Faça uma passagem de acessibilidade no projeto inteiro:
 

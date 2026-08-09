@@ -65,4 +65,25 @@ export const client = {
     })
     return handleResponse<T>(response)
   },
+
+  async put<T>(path: string, body: unknown): Promise<T> {
+    const response = await fetch(buildUrl(path), {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    return handleResponse<T>(response)
+  },
+
+  async delete<T>(path: string): Promise<T> {
+    const response = await fetch(buildUrl(path), {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    // DELETE 204 No Content — retornar undefined como T
+    if (response.status === 204) return undefined as T
+    return handleResponse<T>(response)
+  },
 }

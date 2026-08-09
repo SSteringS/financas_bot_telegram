@@ -1,72 +1,101 @@
 # STATE — onde o projeto está agora
 
-> **Doc vivo de orientação.** Existe pra uma sessão que começa fria (planner, back, front ou reviewer) se situar em 1 minuto, sem re-derivar contexto. **Curto de propósito.** Detalhe mora nos planos (`docs/plans/`), status reports (`docs/status/`) e ADRs (`docs/decisions/`).
+> **Doc vivo de orientação.** Existe pra uma sessão que começa fria (planner, back, front ou reviewer) se situar em 1 minuto, sem re-derivar contexto. **Curto de propósito.** Detalhe mora nos planos (`docs/plans/`), status reports (`docs/sprints/<NN>/status/`) e ADRs (`docs/decisions/`).
 >
-> **Última atualização:** 2026-05-26 (pelo planner).
-> **Fonte:** este resumo é derivado dos status reports em `docs/status/`. O **estado real de merge em `develop` é do humano** (ele é o integrador — ADR 0004). Quando um status diz "aguardando revisão / não mergeado", está marcado abaixo.
+> **Última atualização:** 2026-06-01 (sprint 03 em execução — BE-023 mergeada; suíte E2E Fase 1 planejada; integration branch criada; 16 dispatches prontos).
+> **Fonte:** este resumo é derivado dos status reports em `docs/sprints/<NN>/status/`. O **estado real de merge em `develop` é do humano** (ele é o integrador — ADR 0004).
 
 ---
 
-## Fase atual
+## Sprint atual
 
-**Fase 3 — Camada de visualização** (plano-mãe: `docs/plans/FASE-3-VISUALIZACAO.md`).
-Adiciona uma camada de leitura pro requisitante (Pedro): API REST + front React (PWA) + deploy em AWS, com auth por link mágico. A operação do bot de Telegram continua igual.
+**Sprint 03 — Folha de pagamento** (`docs/sprints/03-folha-pagamento/README.md`).
 
-Sub-fases: **3a Backend** → **3b Front** → **3c Deploy** → **3d Evolução pós-MVP** (não fazer agora).
+**Modo:** 🟠 **em execução** — BE-023 ✅ mergeada em develop (PR #81, 2026-06-01). Próximo: despachar BE-024 + QA-001.
 
----
+**Branch de integração:** `integration/03-folha-pagamento` ✅ criada e pushada. Destino dos PRs das tasks QA-001..004 (e outras features da sprint antes de develop).
 
-## Onde estamos
-
-### 3a — Backend: **concluída** (conforme status reports)
-API REST completa: DTOs+OpenAPI (BE-04), listagem/detalhe/resumo (BE-05/06/09), pre-signed URL + endpoints de imagem (BE-07/08), auth completa (token admin → exchange JWT → filtro → CORS, BE-10 a BE-13), testes de integração com Testcontainers (BE-14), handler genérico de exceções do webhook (BE-15, gate de deploy), e o resumo parametrizado por mês/busca (BE-16). Base (Flyway, refatoração de persistência, backfill de testes) em BE-00/00B/01a. Polish + EVO-07 (aceitar document/PDF) na branch `feature/backend-polish-evo07` (212 testes, BUILD SUCCESS).
-
-### 3b — Front: **concluída** (conforme status reports)
-Fase 3b inteira (FE-03 a FE-11) na branch `feature/frontend-fase3-completa`. Em cima dela, **FE-12** corrigiu os dois bugs da revisão (contadores que colapsavam ao filtrar; header travado no mês corrente) ligando o front ao contrato `mes`/`busca`/`todos` da BE-16. **FE-12 estava como "aguardando revisão, não mergeado" no seu último status** — confirmar com o humano se já entrou em `develop`.
-
-### 3c — Deploy: **em andamento**
-- **DEP-00** (domínio): ✅ resolvido — domínio é **`satyansaita.com`**.
-- **DEP-01** (Route 53 + ACM): ✅ concluído.
-- **DEP-02** (S3 + CloudFront do front): ✅ concluído. Front no apex `satyansaita.com` (bucket `finbot-frontend-prod-776658251579`, distribuição `E1WG4Q8MG3V9HY`), HTTPS válido, SPA fallback ok.
-- **DEP-03** (subdomínio `api.satyansaita.com` → EC2 atrás de proxy reverso): ✅ implementado e validado (Caddy + Let's Encrypt no ar; `curl /api/v1/resumo` → 401 `SESSAO_AUSENTE` via `Server: Caddy`). **Aguardando revisão do Reviewer** antes do merge. Plano: `docs/plans/DEP-03-api-subdominio-proxy.md` · evidência: `docs/status/DEP-03.md`.
-- **DEP-04** (GitHub Actions: build + sync S3 + invalidate CloudFront, via OIDC): 📝 plano escrito (`docs/plans/DEP-04-pipeline-deploy-front.md`); pendente execução pelo back. Introduz OIDC (não havia). Consome `frontend_bucket_name` e `cloudfront_distribution_id` do DEP-02.
-- **DEP-05** (prod do back: CORS `allowed-origin` + cookie `Domain=satyansaita.com`): 📝 plano escrito (`docs/plans/DEP-05-cors-cookie-prod.md`); corrige o domínio errado no `application-prod.properties`. Pendente execução pelo back.
-- **DEP-06** (teste E2E em prod): runbook manual pronto (`docs/runbooks/RUNBOOK-dep06-e2e-prod.md`); é o passo final do humano, depois de tudo aplicado.
-- **Overnight de deploy:** `docs/plans/MASTER-PROMPT-overnight-deploy.md` — prompt pra rodar DEP-05/DEP-04/DEP-07 (code-only) numa sessão noturna do back.
-- **DEP-07** (codificar o provisionamento da EC2 — fim do snowflake): 📝 plano escrito (`docs/plans/DEP-07-codificar-provisionamento-ec2.md`); estratégia em ADR 0009. Captura Caddy/journald/`finbot.service`/keystore num `bootstrap.sh` versionado no `user_data`. Escopo: garantir recreate futuro (não reconcilia a instância atual).
-- **DEP-08** (webhook → Caddy/Let's Encrypt + aposentar keystore): 📝 plano escrito (`docs/plans/DEP-08-webhook-https-caddy.md`). Fase 1 (bot.satyansaita.com + re-apontar webhook) é baixo risco; Fase 2 (app HTTP no loopback, Caddy único TLS, fechar 8443, deletar keystore) **precisa de ADR de topologia TLS**. Fecha o débito self-signed e simplifica o DEP-07.
+**Dispatches disponíveis:** 16 tasks em `docs/sprints/03-folha-pagamento/plans/DISPATCH-*.md`.
 
 ---
 
-## Próximos passos prováveis
+## Sprint 03 — estado das tasks
 
-1. Confirmar/efetuar merge das branches da Fase 3 em `develop` (back polish/EVO-07 e front, incluindo FE-12).
-2. Tocar o trilho de deploy restante: **DEP-03 → DEP-04 → DEP-05 → DEP-06**.
-3. Itens de workflow (ver abaixo).
+### ✅ Mergeado em develop
+
+- **BE-023** — V6 DDL folha de pagamento (PR #81). ⚠️ Pendência: rodar `SHOW CREATE TABLE` no banco dev pra confirmar DDL (item do humano).
+
+### 🔵 Habilitadas — despachar agora
+
+- **BE-024** — Entidades JPA + repositórios (depende de BE-023 ✅). `DISPATCH-BE-024-*.md`.
+- **QA-001** — Setup Playwright base (Lote A, independente). `DISPATCH-QA-001-*.md`. **PR destino: `integration/03-folha-pagamento`** (não develop).
+
+### ⏳ Aguarda dispatch sequencial
+
+| Task | Depende de | Dispatch |
+|---|---|---|
+| BE-025 | BE-024 ✅ em develop | pronto |
+| BE-026 | BE-024 ✅ em develop | pronto ⚠️ cria FolhaController |
+| BE-027 | BE-024 + **BE-026 mergeada** | pronto (serializada) |
+| BE-028 | BE-024 + BE-026 + BE-027 | pronto ⚠️ PASSO ZERO: nullable |
+| BE-029 | BE-028 | pronto |
+| FE-015 | BE-025 | pronto |
+| FE-016 | BE-028 + FE-015 | pronto |
+| FE-017 | FE-016 | pronto |
+| QA-002 | QA-001 em integration | pronto |
+| QA-003 | BE-023 ✅ + QA-001 em integration | pronto (Lote B) |
+| QA-004 | QA-002 + QA-003 em integration | pronto (Lote B) |
+
+### ✅ Executado pelo planner (sem dispatch)
+
+- **QA-005** — `docs/runbooks/ROTEIRO-E2E.md` criado.
+- **QA-006** — `PRE-MERGE-CHECKLIST.md` atualizado com gate `exige_e2e_full`.
+
+### Decisão pendente
+
+- **§7 — vales na lista do Pedro:** Opção A (filtrar GET) ou B (tag visual). Não bloqueia tasks atuais — resolve como FIX pós-sprint.
+- **ADR 0016:** `Proposed` — homologar antes de despachar BE-025+ (código Java novo).
+- **ADR mock mídia Telegram:** necessário para QA-004 cenário foto+caption (Fase 1.1 da suíte E2E).
 
 ---
 
-## Pendências bloqueantes / ações manuais antes do deploy
+## Sprints anteriores
 
-- ⚠️ **Deploy do back BLOQUEADO — disco da EC2 cheio.** Volume raiz é só 2 GB e encheu (`No space left on device` no deploy). App segue de pé no JAR antigo (sem outage). Mitigação imediata: liberar espaço (rm `/tmp/app.jar`, vacuum do journal, `dnf clean all`). Fix durável planejado: `docs/plans/FIX-crescer-volume-ec2.md` (crescer pra 10 GB gp3 + capar journald). Pendente execução pelo back/humano.
-- ⚠️ **Secrets Manager:** adicionar a chave `keystore_password` (valor `finbot123`) no secret `finbot-prod-secrets`. Sem isso o app **não sobe em prod** (origem: `FIX-keystore-password-secret`).
-- **Ícones do PWA são placeholders** — trocar os PNGs (`icone-192/512`, `apple-touch-icon`) por arte real antes do deploy do front.
-- **Domínio errado no `application-prod.properties` (back)** — `app.cors.allowed-origin`, `app.cookie.domain` e `app.frontend.base-url` apontam pra `finbot.satyan.com.br` (resquício antigo); devem virar `https://satyansaita.com` / `satyansaita.com`. Como está, CORS bloqueia o front e o cookie de sessão não cola. **Escopo do DEP-05** (plano escrito) — bloqueador do front↔API.
-- ~~**Domínio errado no `frontend/.env.production` (front)**~~ — ✅ corrigido manualmente pelo humano (2026-05-27): `VITE_API_BASE_URL=https://api.satyansaita.com`.
+**Sprint 02b — Kaizen (workflow/processo):** ✅ **fechada** em 2026-05-31. WF-01..WF-08 concluídos. Retro em `docs/retrospectivas/RETRO-02b-kaizen-workflow.md`.
+
+**Sprint 02 — Canal WhatsApp:** ✅ **fechada** em 2026-05-30 com FE-14 mergeado (PR #80). Falta abrir PR `develop → main` pro deploy (não bloqueante).
+
+**Sprint 01 — MVP Fase 3:** ✅ concluída (histórico em `docs/sprints/01-mvp/`).
+
+---
+
+## Fluxo de branches desta sprint
+
+```
+develop ──── integration/03-folha-pagamento ──── feature/qa-001-setup-playwright-base
+             (destino PRs QA-001..004)           feature/qa-002-scripts-orquestracao-stack
+                                                  feature/qa-003-fixtures-...
+                                                  feature/qa-004-specs-mvp-...
+
+develop ──── feature/be-024-...  (PR direto pra develop)
+             feature/be-025-...
+             feature/fe-015-...
+             etc.
+```
+
+- **feature/qa-NNN → integration:** implementador abre e pode auto-aceitar o PR.
+- **feature/be-NNN / fe-NNN → develop:** PR + Reviewer obrigatório.
+- **integration → develop:** planner abre no fim da sprint; humano homologa.
+
+---
+
+## Pendências abertas (não bloqueantes)
+
+- **DEP-07:** PR #64 aguarda merge + `terraform apply` (in-place confirmado).
+- **DEP-08:** webhook via Caddy/LE — Fase 2, aguarda ADR de topologia TLS.
+- **PR `develop → main`** (deploy sprint 02): não aberto ainda.
+- **BE-20 / PREP-WA fases 4,8,9:** bloqueado por chip WhatsApp Business + Business Verification (externo).
 - Demais débitos: `docs/PENDENCIAS-TECNICAS.md`.
-
----
-
-## Workflow / processo (meta, não-produto)
-
-Backlog vivo em `docs/plans/BACKLOG-evolucao-workflow.md`. Estado dos itens em voo:
-
-- **FIX-gitattributes-eol:** ✅ feito (mata o drift CRLF/LF que aparecia no `terraform plan`). Falta só o PR pra `develop`.
-- **CI-01** (gate de CI no caminho pra `develop`): plano escrito. **Decidido (2026-05-26): PR→develop, com o CI rodando no PR.** Branch protection **adiada** (humano não vai ligar por ora) → o gate é **informativo, não bloqueante**. Pendente: execução do `ci.yml` pelo back. (Ligar branch protection no GitHub fica pra quando o humano quiser tornar o gate bloqueante.)
-- **Codegen do `tipos.ts`** (FE-13): plano escrito (`docs/plans/FE-13-codegen-tipos-openapi.md`). Pendente execução pelo front.
-- **Script de métricas** dos status reports: ✅ `docs/scripts/metricas_status.py`. **Regex de task-id** aceita `CI-`: ✅.
-- **Reviewer:** **adotado pra toda task (2026-05-26)** — revisão independente em sessão separada antes do merge (ADR 0005). Já em uso.
-- **Governança:** ADR 0004 (taxonomia), ADR 0005 (sessões por papel). Retroativos: ADR 0006 (hostnames), ADR 0007 (reporting com gates), ADR 0008 (Terraform módulo único). ADR 0009 (provisionamento da EC2 codificado).
 
 ---
 
@@ -74,13 +103,13 @@ Backlog vivo em `docs/plans/BACKLOG-evolucao-workflow.md`. Estado dos itens em v
 
 | Preciso de… | Vou em… |
 |---|---|
-| O que construir (spec de task) | `docs/plans/` |
-| O que foi feito (execução) | `docs/status/` |
+| O que construir (spec de task) | `docs/sprints/03-folha-pagamento/plans/` |
+| Dispatch pronto pra colar no agente | `docs/sprints/03-folha-pagamento/plans/DISPATCH-*.md` |
+| O que foi feito (execução) | `docs/sprints/<NN>/status/` |
 | Decisão arquitetural canônica | `docs/decisions/` (ADRs) |
 | Regra que o agente obedece | `CLAUDE.md` |
 | Conceito pra revisitar | `docs/aprendizado/` |
 | Definição de pronto / gates | `docs/runbooks/PRE-MERGE-CHECKLIST.md` |
+| Como rodar a suíte E2E | `docs/runbooks/ROTEIRO-E2E.md` |
 | Instruções por papel | `docs/roles/` |
 | Débito técnico conhecido | `docs/PENDENCIAS-TECNICAS.md` |
-</content>
-</invoke>

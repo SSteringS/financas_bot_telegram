@@ -1,137 +1,92 @@
-# Pasta `docs/` — Cérebro Compartilhado do Projeto
+# Pasta `docs/` — cérebro compartilhado do projeto
 
-Esta pasta é o canal de comunicação entre todas as instâncias de Claude que trabalham neste projeto: a instância de planejamento (que conversa com o humano via Cowork) e as instâncias implementadoras (que rodam no Claude Code do IntelliJ ou via CLI).
+Canal de comunicação entre todas as instâncias de Claude que trabalham neste projeto (planner no Cowork desktop, implementadores no Claude Code, Reviewer/Architect/Engenheiro de IA em sessões separadas) e o humano.
 
-A regra geral é simples: **quem implementa lê daqui antes de codar; quem implementa escreve aqui depois de cada tarefa; quem planeja lê aqui pra entender o estado real do projeto.**
+**Regra geral:** quem implementa lê daqui antes de codar; quem implementa escreve aqui depois de cada task; quem planeja lê aqui pra entender o estado real do projeto; quem revisa verifica daqui contra a realidade.
 
 ---
 
-## Estrutura
+## Mapa
 
 ```
 docs/
-├── README.md                         (este arquivo)
-├── STATE.md                          (doc vivo: "onde estamos agora" — ler primeiro)
-├── architecture/                     (fonte da verdade técnica)
-│   ├── especificacao-tecnica.md
-│   └── design-proposals/             (mockups visuais)
-├── plans/                            (planos de execução por fase)
-│   ├── _TEMPLATE.md                  (modelo de plano de task — bloco de intake)
-│   └── FASE-X-NOME.md
-├── runbooks/                         (roteiros de execução com instruções e prompts)
-│   └── ROTEIRO-FRONTEND.md
-├── status/                           (relatórios pós-tarefa, escritos pelos implementadores)
-│   ├── _TEMPLATE.md
-│   ├── BE-XX-titulo.md
-│   └── FE-XX-titulo.md
-└── decisions/                        (ADRs — Architecture Decision Records)
-    ├── _TEMPLATE.md
-    └── NNNN-titulo.md
+├── README.md                       (este arquivo)
+├── STATE.md                        (doc vivo: "onde estamos agora" — ler primeiro em sessão nova)
+├── PENDENCIAS-TECNICAS.md          (débito técnico conhecido a revisitar)
+│
+├── architecture/                   (spec técnica do produto/sistema)
+├── decisions/                      (ADRs — decisões canônicas imutáveis)
+├── roles/                          (papéis das sessões Claude — ADR 0005)
+├── skills/                         (capacidades técnicas reutilizáveis — ADR 0015)
+├── runbooks/                       (sequências operacionais repetíveis)
+├── aprendizado/                    (conceitos formativos pro humano revisitar)
+├── retrospectivas/                 (RETROs de sprint)
+│
+├── plans/                          (só BACKLOGs cross-sprint vivos)
+├── sprints/<NN>-<slug>/            (trabalho por sprint)
+│   ├── plans/                      (planos de task da sprint)
+│   ├── status/                     (status reports da sprint)
+│   └── avaliacoes/                 (avaliações do Reviewer)
+│
+├── templates/                      (templates canônicos dos 4 artefatos)
+└── scripts/                        (Python pra processar metadata dos artefatos)
 ```
 
 ---
 
 ## Pasta por pasta
 
-### `architecture/` — Fonte da verdade técnica
-
-Decisões fixadas sobre stack, contratos, modelo de dados, design visual. Esta pasta dita o que deve ser construído.
-
-**Quem escreve**: o Claude planejador, sempre com aprovação do humano.
-
-**Quem lê**: tudo e todos. Antes de codar qualquer coisa, o implementador consulta aqui pra confirmar o contrato.
-
-**Regra crítica**: ninguém — humano, planejador, ou implementador — altera arquivos desta pasta sem decisão deliberada e registro em `decisions/`. Se o implementador, durante a execução, perceber que algo precisa mudar (ex: um campo do DTO que não estava previsto), ele **para**, escreve em `status/` o que descobriu, e o humano decide se atualiza `architecture/` antes de prosseguir.
-
-### `plans/` — O que ainda falta fazer
-
-Planos de execução por fase, com tarefas atômicas. Cada tarefa tem ID, descrição, arquivos esperados, critério de aceitação e dependências.
-
-**Quem escreve**: o Claude planejador.
-
-**Quem lê**: humano (pra orquestrar) e implementadores (pra saber o que fazer).
-
-**Convenção**: nomes de arquivo no formato `FASE-N-NOME-EM-CAIXA-ALTA.md`. Tarefas dentro com IDs do tipo `BE-01`, `FE-01`, `DEP-01`, `EVO-01`.
-
-### `runbooks/` — Roteiros de execução
-
-Instruções práticas pra um humano ou agente seguir, com prompts prontos pra Claude Code. Mais "como fazer" do que "o que fazer".
-
-**Quem escreve**: o Claude planejador.
-
-**Quem lê**: humano (especialmente).
-
-**Convenção**: `ROTEIRO-AREA.md` (ex: `ROTEIRO-FRONTEND.md`, `ROTEIRO-DEPLOY.md`).
-
-### `status/` — Diário de bordo das tarefas concluídas
-
-Relatórios curtos escritos pelos implementadores depois de fechar cada tarefa. Documentam o que foi feito, qualquer desvio do plano, decisões locais tomadas durante a execução, e próximos passos.
-
-**Quem escreve**: implementadores (Claude Code do IntelliJ).
-
-**Quem lê**: o Claude planejador na próxima sessão (pra entender o que mudou desde a última conversa).
-
-**Convenção**: nome de arquivo é `<TASK-ID>-titulo-curto.md` (ex: `BE-01-migration-sql.md`, `FE-05-pedido-card.md`). Use o template `_TEMPLATE.md` desta pasta como base.
-
-### `decisions/` — Decisões importantes com data e contexto (ADRs)
-
-Quando algo muda de rumo no projeto, registra aqui — não no commit, não no chat, aqui. Pra você saber em 6 meses por que uma escolha foi feita.
-
-**Quem escreve**: humano com ajuda do Claude planejador. Implementadores **não** escrevem ADR sozinhos.
-
-**Quem lê**: todos, sempre que precisarem entender histórico.
-
-**Convenção**: `NNNN-titulo-em-kebab-case.md` numerado sequencialmente (`0001-`, `0002-`, ...). Use o template `_TEMPLATE.md` desta pasta como base. ADRs nunca são deletados nem editados depois de aceitos — se uma decisão é revogada, cria-se um ADR novo que **supersedes** o antigo.
+| Pasta | Pergunta que responde | Quem escreve | Quem lê |
+|---|---|---|---|
+| `architecture/` | *Como o produto é desenhado tecnicamente?* | Arquiteto (planner em decisões pequenas) | Implementadores antes de codar |
+| `decisions/` | *Por que decidimos assim?* — ADR canônico (ADR 0004) | Arquiteto/planner/eng de IA propõem (`Proposed`); humano homologa (`Accepted`). Imutável após `Accepted`. | Todos, pra não recriar discussão |
+| `roles/` | *Quem é cada agente Claude?* (ADR 0005) | Planner (engenheiro de IA propõe via ADR) | A sessão que vai virar aquele papel |
+| `skills/` | *O que o agente sabe fazer?* (ADR 0015) | Quem materializa a skill após o gatilho (regra do 2x ou contexto raro) | Roles que carregam via frontmatter `skills:` / `skills_available:` |
+| `runbooks/` | *Que sequência seguimos pra essa operação?* | Planner/arquiteto | Quem executa a operação |
+| `aprendizado/` | *Que conceito técnico eu quero poder revisitar?* | Planner/arquiteto/eng de IA (regra obrigatória do CLAUDE.md) | Humano em refresh memorial |
+| `retrospectivas/` | *O que aprendemos nesta sprint?* | Planner conduz, todos contribuem | Próximas sprints |
+| `plans/` | *Que backlogs cross-sprint estão vivos?* | Planner | Humano + agentes pra entender direção |
+| `sprints/<NN>/plans/` | *Qual o input contract da task?* | Planner | Implementador antes de codar |
+| `sprints/<NN>/status/` | *O que o implementador entregou?* (output contract, ADR 0007) | Implementador (back/front) | Reviewer + planner |
+| `sprints/<NN>/avaliacoes/` | *A entrega bate com a realidade?* (verificação adversarial) | Reviewer | Planner antes de mergear |
+| `templates/` | *Qual o esqueleto canônico de cada artefato?* | Planner mantém | Todos copiam pra preencher |
+| `scripts/` | *Como agregar metadata dos artefatos?* | Planner/eng de IA | Quem quer ver painel do projeto |
 
 ---
 
-## Fluxo de trabalho
+## Workflow de uma task (visão integrada)
 
-### Quando o humano pede algo novo ao planejador
+```
+Planner escreve plano       Implementador roda          Implementador escreve         Reviewer verifica          Humano homologa
+em sprints/<NN>/plans/  →   código no território   →   status em sprints/<NN>/  →   avaliação em sprints/  →   merge pra develop
+                                                       status/                       <NN>/avaliacoes/
+(input contract)                                       (output contract — sintaxe)   (verificação — semântica)
+```
 
-1. Planejador lê `architecture/` e `status/` pra ver o estado atual
-2. Discute com humano, gera ou atualiza `plans/` e/ou `runbooks/`
-3. Se a discussão alterou o rumo do projeto, registra ADR em `decisions/`
-
-### Quando um implementador (Claude Code) executa uma tarefa
-
-1. Lê o plano relevante em `plans/` (ex: tarefa BE-05 em `plans/FASE-3-VISUALIZACAO.md`)
-2. Lê os contratos em `architecture/` pra confirmar o que deve construir
-3. Lê o último relatório em `status/` da tarefa anterior, se aplicável (pra herdar contexto)
-4. Executa a tarefa
-5. **Antes de fechar a sessão**, escreve `status/<TASK-ID>-titulo.md` seguindo o template
-6. Commit + push da implementação E do arquivo de status no mesmo commit
-
-### Quando o planejador volta pra próxima sessão
-
-1. Lê `status/` pra atualizar mental modelo do estado do projeto
-2. Conversa com humano sobre próximos passos
-3. Atualiza `plans/` se necessário
+Decisões cross-task viram ADR (`decisions/`) — fora do ciclo da task. Conceito formativo vira aprendizado (`aprendizado/`). Capacidade reusável vira skill (`skills/`). Sequência operacional vira runbook (`runbooks/`).
 
 ---
 
-## Regras críticas pra os implementadores
+## Hierarquia de autoridade (em caso de conflito entre fontes)
 
-Se você é uma instância de Claude rodando no Claude Code do IntelliJ trabalhando neste projeto, leia com atenção:
+1. **ADR `Accepted`** — canônico, imutável (ADR 0004).
+2. **CLAUDE.md** — regra operacional universal.
+3. **`docs/roles/<papel>.md`** — delta do papel.
+4. **`docs/skills/<skill>.md` + `docs/runbooks/<runbook>.md`** — capacidade / sequência.
+5. **`docs/sprints/<NN>/plans/<task>.md`** — input contract de uma task.
 
-1. **Antes de implementar**, leia: o plano da tarefa atual (`plans/`) **e** os arquivos relevantes em `architecture/`. Não pule essa etapa, mesmo que pareça redundante.
-
-2. **Não altere `architecture/`** durante a execução de uma tarefa. Se descobrir que o contrato precisa mudar, pare e documente em `status/<TASK-ID>-titulo.md` na seção "Decisões pendentes". O humano decide se atualiza `architecture/` antes de você prosseguir.
-
-3. **Não invente decisões de produto**. Se faltar algo no plano (ex: comportamento ambíguo, nome de variável, escolha de biblioteca não especificada), pare e pergunte ao humano. Anote a pergunta em `status/`.
-
-4. **Sempre escreva o relatório de status ao terminar**, mesmo que a tarefa tenha sido trivial. O relatório custa 2 minutos e economiza horas de re-explicação na próxima sessão.
-
-5. **Seu commit fecha quando os dois arquivos estão lá**: o código da feature **e** o `status/<TASK-ID>-titulo.md`. Sem o status, a tarefa não está fechada.
+Em conflito: vence o mais alto.
 
 ---
 
-## Templates
+## Onde achar coisa específica
 
-Use os arquivos `_TEMPLATE.md` em cada subpasta como ponto de partida. Eles têm a estrutura mínima esperada.
-
-- `plans/_TEMPLATE.md` — plano de task (contrato de entrada, com bloco de intake)
-- `status/_TEMPLATE.md` — relatório pós-tarefa
-- `decisions/_TEMPLATE.md` — ADR
-
-Os templates **não** são tarefas. São apenas modelos. Não comite versões "preenchidas" do `_TEMPLATE.md` — sempre crie um arquivo novo com o nome certo (`BE-XX-titulo.md`, `0001-titulo.md`).
+- **"Onde estamos agora?"** → `STATE.md`
+- **"Que decisão foi essa?"** → `decisions/<NNNN>-<slug>.md`
+- **"Como esta feature funciona?"** → `architecture/<feature>.md`
+- **"Qual o estado dessa task?"** → `sprints/<NN>/status/<TASK-ID>-<slug>.md` (frontmatter `estado:`)
+- **"O que falta na sprint?"** → `sprints/<NN>/plans/` (planos com `estado: pronto-pra-execucao` ou similar)
+- **"Que conceito é esse?"** → `aprendizado/<topico>.md` + índice em `aprendizado/README.md`
+- **"Como rodar essa operação?"** → `runbooks/<nome>.md`
+- **"Que papel é esse?"** → `roles/<papel>.md` + índice em `roles/README.md`
+- **"Que débito técnico tem?"** → `PENDENCIAS-TECNICAS.md`

@@ -4,6 +4,8 @@ import { AuthGuard } from './components/AuthGuard'
 import { Entrar } from './paginas/Entrar'
 import { Erro } from './paginas/Erro'
 import { Home } from './paginas/Home'
+import { FuncionariosPage } from './paginas/folha/FuncionariosPage'
+import { FolhaFuncionarioPage } from './paginas/folha/FolhaFuncionarioPage'
 
 const Showcase = import.meta.env.DEV ? lazy(() => import('./paginas/_Showcase').then((m) => ({ default: m.Showcase }))) : null
 
@@ -33,6 +35,22 @@ function AppRoutes() {
           element={
             <AuthGuard>
               <Home />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/folha"
+          element={
+            <AuthGuard>
+              <FuncionariosPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/folha/funcionarios/:id"
+          element={
+            <AuthGuard>
+              <FolhaFuncionarioPage />
             </AuthGuard>
           }
         />

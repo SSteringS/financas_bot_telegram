@@ -33,6 +33,16 @@ aws.s3.bucket-name=bot-financas-pagamentos-dev
 aws.s3.region=us-east-1
 financasbot.s3.base-url=https://s3.amazonaws.com/bot-financas-pagamentos-dev/
 
+# WhatsApp Cloud API — para testes locais, use a Sandbox/número de teste da Meta
+whatsapp.graph-api-base-url=https://graph.facebook.com
+whatsapp.graph-api-version=v20.0
+whatsapp.phone-number-id=CHANGE_ME
+whatsapp.access-token=CHANGE_ME
+whatsapp.verify-token=CHANGE_ME
+whatsapp.app-secret=CHANGE_ME
+# CSV de waIds autorizados no formato E.164 sem '+' (ex: 5511999998888)
+whatsapp.allowed-wa-ids=CHANGE_ME
+
 # Auth admin
 app.admin.api-key=dev-admin-key-apenas-para-testes-locais
 app.frontend.base-url=http://localhost:5173

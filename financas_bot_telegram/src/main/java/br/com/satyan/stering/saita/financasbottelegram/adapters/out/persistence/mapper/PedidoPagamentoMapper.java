@@ -23,6 +23,12 @@ public class PedidoPagamentoMapper {
                 .dataPedido(entity.getDataPedido())
                 .dataPagamento(entity.getDataPagamento())
                 .dataCriacao(entity.getDataCriacao())
+                // V6: folha de pagamento
+                .categoria(entity.getCategoria())
+                .funcionarioId(entity.getFuncionarioId())
+                .fechado(entity.getFechado())
+                .observacao(entity.getObservacao())
+                .mesReferencia(entity.getMesReferencia())
                 .build();
     }
 
@@ -42,6 +48,12 @@ public class PedidoPagamentoMapper {
         entity.setDataPedido(domain.getDataPedido());
         entity.setDataPagamento(domain.getDataPagamento());
         entity.setDataCriacao(domain.getDataCriacao());
+        // V6: folha de pagamento
+        entity.setCategoria(domain.getCategoria());
+        entity.setFuncionarioId(domain.getFuncionarioId());
+        entity.setFechado(domain.getFechado() != null ? domain.getFechado() : false);
+        entity.setObservacao(domain.getObservacao());
+        entity.setMesReferencia(domain.getMesReferencia());
         return entity;
     }
 }

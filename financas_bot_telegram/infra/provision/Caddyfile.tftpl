@@ -1,0 +1,7 @@
+api.${domain_name} {
+    reverse_proxy https://localhost:8443 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+}

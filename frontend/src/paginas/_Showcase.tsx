@@ -93,6 +93,7 @@ export function Showcase() {
             key={pedido.id}
             pedido={pedido}
             onAbrirComprovante={() => setAberto(pedido.id)}
+            onAbrirFotoPedido={() => {}}
           />
         ))}
       </div>

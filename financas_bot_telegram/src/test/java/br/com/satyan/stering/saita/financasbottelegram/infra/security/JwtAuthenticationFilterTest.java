@@ -93,9 +93,9 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    void naoDeveAplicarFiltroEmWebhook() throws Exception {
+    void naoDeveAplicarFiltroEmWebhookTelegram() throws Exception {
         MockHttpServletRequest req = new MockHttpServletRequest();
-        req.setRequestURI("/webhook");
+        req.setRequestURI("/webhook/telegram");
 
         assertThat(filter.shouldNotFilter(req)).isTrue();
     }
@@ -114,6 +114,25 @@ class JwtAuthenticationFilterTest {
         req.setRequestURI("/api/v1/pedidos");
 
         assertThat(filter.shouldNotFilter(req)).isFalse();
+    }
+
+    @Test
+    void naoDeveAplicarFiltroEmRequestOptions() {
+        // OPTIONS (CORS preflight) deve ser ignorado independente do path
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        req.setMethod("OPTIONS");
+        req.setRequestURI("/api/v1/pedidos");
+
+        assertThat(filter.shouldNotFilter(req)).isTrue();
+    }
+
+    @Test
+    void naoDeveAplicarFiltroEmActuator() {
+        // /actuator/** é path público — usado pelo health check do load balancer
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        req.setRequestURI("/actuator/health");
+
+        assertThat(filter.shouldNotFilter(req)).isTrue();
     }
 
     @Test

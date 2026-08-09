@@ -14,6 +14,62 @@ Não confundir com `docs/plans/` (planos de tarefa ativos) nem com a seção "Fa
 
 ## Itens abertos
 
+### ~~Dois pacotes paralelos para enums de domínio (`domain/enums/` e `domain/vo/`)~~ ✅ resolvido em FIX-004
+
+**Contexto (identificado na revisão da sprint 03, 2026-06-04):** o domínio tem dois pacotes para enums:
+- `domain/enums/` — pré-existente: `StatusPedido`, `TipoArquivo`, `TipoPagamento`, `TipoUploadS3`
+- `domain/vo/` — criado na sprint 03: `CategoriaPedido`, `FormaPagamento`
+
+São convenções diferentes para a mesma coisa. `vo` vem de Value Object (DDD); `enums` é nomenclatura direta. Funcionam igual em código mas criam confusão: onde colocar o próximo enum?
+
+**Fix sugerido:** escolher uma convenção e consolidar. Opção recomendada: mover os enums de `vo/` para `enums/` (mais enums → `enums/` já é o padrão do projeto) e deletar `vo/`. Exige atualizar imports em ~10 arquivos.
+
+**Esforço:** baixo (~15 min com IDE ou `sed`).
+
+**Prioridade:** baixa. Não afeta comportamento, só coerência estrutural.
+
+---
+
+### `DataIntegrityViolationException` importada na application layer (FecharMesServiceImpl)
+
+**Contexto (identificado no review BE-026/029, 2026-06-04):** `FecharMesServiceImpl` (`application/services/`) importa `org.springframework.dao.DataIntegrityViolationException` (linha 21) para capturar violação de UNIQUE INDEX no passo 8 e traduzir para `FechamentoDuplicadoException`. Em arquitetura hexagonal estrita, esse catch deveria viver no adapter de saída (`PedidoPagamentoRepositoryAdapter.save()`), que traduz a exceção antes de ela chegar na application layer. Mesmo padrão existe em `RegistrarComprovanteServiceImpl` (pré-existente).
+
+**Fix sugerido:** Mover o catch para `PedidoPagamentoRepositoryAdapter.save()`:
+```java
+// adapter catches DataIntegrityViolationException → lança PedidoDuplicadoPortException (domain exception)
+// service só conhece PedidoDuplicadoPortException
+```
+
+**Esforço:** baixo — mas requer cuidado para não quebrar o `@Transactional` (a exceção deve ser lançada dentro da transação para garantir rollback).
+
+**Prioridade:** baixa. O comportamento está correto e testado (B2 do FIX-003). É dívida arquitetural, não bug.
+
+---
+
+### `/api/funcionarios/**` sem autenticação JWT
+
+**Contexto (identificado no review BE-026/029, 2026-06-04):** `JwtAuthenticationFilter.shouldNotFilter` só aplica JWT para paths `/api/v1/**`. Os endpoints `/api/funcionarios/**` (FolhaController, FuncionarioController) são servidos sem autenticação. Pré-existente desde BE-025 — aceito como design intencional desta fase.
+
+**Fix sugerido:** Estender o filtro ou adicionar `HttpSecurity` com `authorizeRequests()` para cobrir `/api/funcionarios/**`. Alternativa: mover esses endpoints para `/api/v1/funcionarios/**` (mudança de URL — requer atualização no frontend).
+
+**Esforço:** baixo a médio (depende se muda URL ou não).
+
+**Prioridade:** ~~média~~ → **alta** — promovido pelo humano em 2026-06-04. Plano criado: `docs/sprints/03-folha-pagamento/plans/FIX-005-proteger-api-funcionarios-jwt.md`.
+
+---
+
+### Duplicação `parseMes`/`parseMesYearMonth` em FolhaController
+
+**Contexto (identificado no review BE-026/029, 2026-06-04):** Dois métodos privados idênticos em `FolhaController` (linhas 156 e 167). Funciona, mas risco de divergência em manutenção futura.
+
+**Fix sugerido:** Unificar em um único método `parseMesYearMonth`.
+
+**Esforço:** trivial (3 linhas).
+
+**Prioridade:** baixa.
+
+---
+
 ### `terraform.tfstate` e `.tfstate.backup` commitados em `financas_bot_telegram/infra/`
 
 **Contexto:** `terraform.tfstate`, `terraform.tfstate.backup` e a pasta `.terraform/` estão versionados no repositório. O backend remoto é S3 (`finbot-tfstate-satyans`), então esses arquivos locais são resíduo — a fonte da verdade é o state no S3. Ter o state local versionado cria risco: alguém pode confundir o arquivo local (potencialmente desatualizado) com o state real, ou pior, rodar `terraform` sem ter inicializado o backend S3 e sobrescrever o state remoto.
@@ -108,6 +164,141 @@ Se o usuário enviar foto de comprovante com legenda `123 pix` (esquecendo o `#`
 
 ---
 
+### Reavaliar fluxo de idempotência do webhook conforme a tabela cresce
+
+**Contexto:** o adapter WhatsApp (e, após o refactor agnóstico, o Telegram) deduplica mensagens entrantes via tabela `mensagem_processada` no MySQL, com claim-then-process na mesma transação — ver `docs/architecture/adapter-whatsapp-cloud-api.md` §4.3. É uma **consulta/escrita SQL a mais por mensagem entrante**, não um cache. Decisão consciente: SQL resolve pro começo, mas é dívida a monitorar.
+
+**Por que não tratar agora:** no volume atual (família, milhares de mensagens/ano) o custo é irrelevante e a unique key mantém o lookup eficiente. Otimizar agora seria especulação.
+
+**Fix sugerido (quando virar problema, guiado por métricas — ver item abaixo):**
+- Cache em memória (ex.: Caffeine com TTL curto) na frente do SQL pra absorver redeliveries quentes, mantendo o SQL como fonte persistente;
+- Índice dedicado / revisão do plano de query se o `EXPLAIN` acusar;
+- Limpeza/retenção agressiva de linhas antigas (job agendado);
+- Particionamento por data, em último caso.
+
+**Esforço:** baixo a médio, dependendo da abordagem.
+
+**Prioridade:** baixa. Revisitar **com base nas métricas de latência de banco**, não por suposição.
+
+---
+
+### Instrumentar latência de consultas ao banco e de chamadas externas (métricas)
+
+**Contexto:** a frente de observability da Sprint 02 prevê logs + alarmes, mas falta **medir tempo**. Com a idempotência adicionando query por mensagem, e o adapter WhatsApp fazendo chamadas externas (Graph API: envio + 2 passos de download de mídia; S3: upload), precisamos de visibilidade de latência pra (a) decidir o refactor de idempotência por dado e (b) enxergar lentidão/erro nos pontos fora do nosso controle. Ver `docs/architecture/adapter-whatsapp-cloud-api.md` §8.1.
+
+**Fix sugerido:**
+- Métricas de **tempo por consulta ao banco** (claim de idempotência + escritas de pedido/comprovante).
+- Métricas de **tempo e taxa de erro de chamadas externas** (Graph API, S3).
+- Métrica de **tempo de processamento fim-a-fim da mensagem entrante, segmentado por tipo** (`PEDIDO` vs `COMPROVANTE`), com dimensões `canal` e `resultado` (sucesso/falha). Os dois tipos carregam mídia (foto/PDF), então o custo bruto é parecido; segmentar é útil porque os caminhos são diferentes (strategies/usecases distintos, comprovante faz lookup do pedido pai), os modos de falha diferem, e deixa visível se uma regressão atinge um tipo mais que o outro. É a métrica de experiência real do usuário.
+- Forma idiomática: **Micrometer** (já vem no Spring Boot) → export pro **CloudWatch** (IAM `CloudWatchAgentServerPolicy` já está na EC2). Calibrar pra não virar ruído.
+
+**Esforço:** médio.
+
+**Prioridade:** média. Casa com a frente de observability da Sprint 02 — o planner deve incorporar na task de observability, que a própria sprint sugere fazer **cedo** (rede de segurança pra debugar a migração de canal).
+
+---
+
+### Padronizar criação do `RestClient` via Builder (uniformizar Telegram com BE-18)
+
+**Contexto:** o BE-18 (envio de mensagens HTTP) introduziu o sender com `RestClient.Builder` auto-configurado pelo Spring Boot, em vez do padrão atual do projeto (`AppConfig` expõe um `RestClient` singleton). A justificativa registrada no próprio status do BE-18 foi viabilizar `@RestClientTest` (slice de teste que amarra o Builder a um `MockRestServiceServer`). O próprio implementador classificou isso como "leve inconsistência" entre os adapters.
+
+A análise do Arquiteto (2026-05-27) mostrou que **dá pra ter os dois lados**: manter o padrão "singleton no `AppConfig`" e **ainda** ganhar `@RestClientTest`, desde que o singleton seja **construído a partir do `RestClient.Builder` auto-configurado** (em vez de `RestClient.create()` direto). A slice intercepta o Builder; como o singleton vem dele, o mock vale pro singleton inteiro.
+
+**Fix sugerido:**
+
+1. No `AppConfig` do Telegram, trocar a criação direta pelo padrão de fábrica via Builder:
+
+   ```java
+   // de:
+   @Bean
+   RestClient telegramRestClient() {
+       return RestClient.create(/* ... */);
+   }
+
+   // para:
+   @Bean
+   RestClient telegramRestClient(RestClient.Builder builder) {
+       return builder
+           .baseUrl(/* ... */)
+           .defaultHeader(/* ... */)
+           .build();
+   }
+   ```
+
+2. Documentar a convenção no `AppConfig` com um comentário curto, pra adapters futuros (WhatsApp/Discord) seguirem o mesmo padrão de fábrica: **singleton, construído a partir do Builder auto-configurado**.
+
+3. (Verificar) Segundo o status do BE-18, "os adapters Telegram não têm testes" — então provavelmente não há testes pra reescrever. Se houver, migrar pra `@RestClientTest` + `MockRestServiceServer`.
+
+**Esforço:** baixo (~15–30 min).
+
+**Prioridade:** baixa-média. Não bloqueia o WhatsApp; é alinhamento de convenção **antes que o segundo adapter consolide a divergência**. Bom candidato a **FIX rápido** (`FIX-padronizar-restclient-builder.md` ou similar), idealmente entrando junto ou antes do refactor da porta agnóstica da Sprint 02.
+
+**Referências:**
+- Status BE-18 (justificativa original do `RestClient.Builder`)
+- `docs/architecture/adapter-whatsapp-cloud-api.md` §5.3 (convenção registrada)
+- Discussão Arquiteto ↔ humano, 2026-05-27
+
+---
+
+### Coluna `pedido_pagamento.data_pagamento` é redundante (e mente via API)
+
+**Contexto:** descoberto revisando o esquema em 2026-05-28. A coluna `pedido_pagamento.data_pagamento` (`LocalDate`) duplica informação que já vive em `comprovante.data_pagamento` (`LocalDateTime`). Pior: o estado atual da coluna é **inconsistente**:
+
+- **Quem escreve no `pedido_pagamento.data_pagamento`:** ninguém no código de produção. Só o backfill da migração `V2` preencheu, baseado no `comprovante.data_pagamento` existente. O `RegistrarComprovanteServiceImpl` muda o `status` do pedido pra `PAGO`, mas **não** popula `data_pagamento`. Logo, pra todo pedido criado pelo bot pós-V2 (a maioria), o valor é sempre `NULL` mesmo após o pagamento.
+- **Quem lê:** `ListarPedidosServiceImpl` e `BuscarPedidoServiceImpl`, que repassam o valor pros DTOs `PedidoResumoDTO` e `PedidoDetalheDTO` (`dataPagamento`, exposto na API REST com `@Schema "Data em que o pagamento foi efetuado"`). O front consome — e provavelmente vê `null` nesse campo pra todo pedido novo PAGO.
+
+Resultado: a API expõe um campo que **mente** (`null` quando deveria ter dado).
+
+**Fix sugerido (caminho A, recomendado):** dropar a coluna via Flyway, e derivar `dataPagamento` no service a partir do `comprovante.data_pagamento` (truncando `LocalDateTime` → `LocalDate`) quando o pedido estiver `PAGO`. Mantém o contrato da API (`PedidoResumoDTO.dataPagamento` continua existindo) com **valor real**, e elimina a duplicação — single source of truth fica no `comprovante`.
+
+**Caminho B (alternativa, não recomendado):** popular a coluna no `RegistrarComprovanteServiceImpl` quando muda pra PAGO. Mata a inconsistência atual mas mantém a duplicação e o risco de divergência no futuro.
+
+**Escopo do A:**
+- Migração Flyway nova (drop column).
+- `PedidoPagamentoEntity` e `PedidoPagamento` (domain) — remover campo.
+- `PedidoPagamentoMapper` — remover linha.
+- `ListarPedidosServiceImpl` e `BuscarPedidoServiceImpl` — derivar do comprovante (query/lookup quando `status=PAGO`).
+- Testes — ajustar mappers e DTOs; testar a derivação.
+
+**Esforço:** baixo-médio. **Prioridade:** **média.** Não bloqueia nada hoje (front aceita `null`), mas vira **alta** se o front começar a depender de "data de pagamento confiável" (ex.: agrupar por mês de pagamento, filtros).
+
+---
+
+### ~~Scripts E2E fora do type-check estático do TypeScript (QA-002 Obs 3)~~
+
+**Contexto:** `frontend/e2e/tsconfig.json` existe mas não é referenciado em `frontend/tsconfig.json` (que só referencia `tsconfig.app.json` e `tsconfig.node.json`). Consequência: `npm run build` / `tsc -b` **não** verifica os scripts de E2E (`subir-stack.ts`, `aguardar-saude.ts`, `derrubar-stack.ts`). O `tsx` (via esbuild) os executa corretamente em runtime — mas erros de tipo só aparecem quando o script falha durante a execução dos testes, não na fase de build.
+
+Adicionalmente, rodar `tsc -p e2e/tsconfig.json` isolado falha com TS5097 porque `e2e/tsconfig.json` herda de `tsconfig.app.json` (que tem `moduleResolution: bundler` com `allowImportingTsExtensions: true`) mas **desabilita** `allowImportingTsExtensions` — enquanto `subir-stack.ts` usa importações com extensão `.ts`.
+
+**Identificado:** revisão QA-002 (Obs 3, 2026-06-01).
+
+**Fix sugerido (duas opções):**
+- **(a) Remover `e2e/tsconfig.json`** e aceitar que os scripts rodam via `tsx` sem type-check estático (mais honesto com a realidade atual).
+- **(b) Corrigir `e2e/tsconfig.json`** para herdar de `tsconfig.node.json` em vez de `tsconfig.app.json`, e adicionar a referência em `tsconfig.json` — dá type-check real mas requer calibração das opções.
+
+**Esforço:** baixo (~30 min).
+
+**Prioridade:** baixa. Pode ser feito em QA-003, QA-004, ou como FIX separado pós-sprint 03.
+
+> ~~**Resolvido em QA-003 (2026-06-03):** `e2e/tsconfig.json` corrigido — `allowImportingTsExtensions false→true`. O `tsconfig.json` principal ainda não referencia `e2e/tsconfig.json` explicitamente, mas o TS5097 que impedia a verificação estática isolada foi resolvido. Opção (b) parcialmente implementada.~~
+
+---
+
+### `playwright.config.ts`: `outputDir` e `outputFolder` do reporter HTML apontam pro mesmo diretório (QA-001 Obs 2)
+
+**Contexto:** a implementação de QA-001 definiu `outputDir: './playwright-report'` e `reporter: [['html', { outputFolder: 'playwright-report' }]]`. O `outputDir` é onde o Playwright grava artifacts de debug (traces, vídeos, screenshots de falha) — o padrão semântico é `'./test-results'`. O `outputFolder` é onde o reporter HTML grava o relatório. Misturar os dois no mesmo diretório (`playwright-report/`) cria confusão ao inspecionar falhas: artifacts de debug e HTML ficam juntos.
+
+O `.gitignore` já ignora `test-results/` separadamente — esse diretório será criado pelo Playwright de toda forma, ficando fora do `.gitignore` se `outputDir` permanecer em `playwright-report`.
+
+**Identificado:** revisão QA-001 (Obs 2, 2026-06-01).
+
+**Fix sugerido:** restaurar `outputDir` para `'./test-results'` (já no `.gitignore`) e manter `playwright-report/` apenas para o relatório HTML. Alteração de 1 linha em `frontend/playwright.config.ts`.
+
+**Esforço:** baixíssimo (1 linha).
+
+**Prioridade:** baixa. Não quebra nenhum teste. Ideal corrigir em QA-004 (já nota no plano) antes de a suíte estar em uso ativo.
+
+---
 
 ## Itens resolvidos
 

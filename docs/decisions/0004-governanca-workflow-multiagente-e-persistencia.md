@@ -39,7 +39,7 @@ Manter essa topologia nesta fase (projeto financeiro, solo) — automação de m
 | `CLAUDE.md` | **Regra operacional** que o agente DEVE obedecer (território, branch, gates) |
 | `docs/aprendizado/` | **Conceito formativo** pro humano revisitar |
 | `docs/plans/` | **Spec de task** (input contract) |
-| `docs/status/` | **Relatório de execução** (output contract, com frontmatter/gates) |
+| `docs/sprints/<NN>/status/` | **Relatório de execução** (output contract, com frontmatter/gates) |
 | `docs/avaliacoes/` | **Revisão/avaliação** de entrega |
 | `docs/PENDENCIAS-TECNICAS.md` | **Débito técnico** conhecido |
 
@@ -94,6 +94,6 @@ Os gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md` deixam de ser disciplina manu
 ## Referências
 
 - `docs/aprendizado/structured-outputs.md` (output schema, sintaxe ≠ semântica)
-- `docs/runbooks/PRE-MERGE-CHECKLIST.md` e `docs/status/_TEMPLATE.md`
+- `docs/runbooks/PRE-MERGE-CHECKLIST.md` e `docs/templates/_TEMPLATE-status.md`
 - `docs/plans/CI-01-gate-pr-develop.md` (enforcement)
 - Discussão de auditoria do workflow com humano + ChatGPT, 2026-05-26

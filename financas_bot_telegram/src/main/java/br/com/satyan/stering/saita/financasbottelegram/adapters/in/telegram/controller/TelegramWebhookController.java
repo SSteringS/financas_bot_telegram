@@ -1,8 +1,10 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.controller;
 
-import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.service.UpdateOrchestratorService;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidUpdateException;
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.mapper.TelegramMessageMapper;
+import br.com.satyan.stering.saita.financasbottelegram.application.dto.PaymentMessageDTO;
 import br.com.satyan.stering.saita.financasbottelegram.application.exceptions.UnauthorizedUserException;
+import br.com.satyan.stering.saita.financasbottelegram.application.port.in.MensagemEntrantePortIn;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.slf4j.Logger;
@@ -19,16 +21,19 @@ public class TelegramWebhookController {
 
   private static final Logger logger = LoggerFactory.getLogger(TelegramWebhookController.class);
 
-  private final UpdateOrchestratorService updateOrchestratorService;
+  private final TelegramMessageMapper telegramMessageMapper;
+  private final MensagemEntrantePortIn mensagemEntrantePortIn;
   private final List<String> allowedUserIds;
 
-  public TelegramWebhookController(UpdateOrchestratorService updateOrchestratorService,
+  public TelegramWebhookController(TelegramMessageMapper telegramMessageMapper,
+      MensagemEntrantePortIn mensagemEntrantePortIn,
       @Value("${telegram.allowed-user-ids}") List<String> allowedUserIds) {
-    this.updateOrchestratorService = updateOrchestratorService;
+    this.telegramMessageMapper = telegramMessageMapper;
+    this.mensagemEntrantePortIn = mensagemEntrantePortIn;
     this.allowedUserIds = allowedUserIds;
   }
 
-  @PostMapping("/webhook")
+  @PostMapping("/webhook/telegram")
   public ResponseEntity<Void> receberMensagem(@RequestBody Update update, HttpServletRequest request) {
     logger.info("Recebendo mensagem do Telegram: {}", update);
     request.setAttribute("__update", update);
@@ -36,7 +41,8 @@ public class TelegramWebhookController {
     validateRequest(update);
     authorizeUser(update);
 
-    updateOrchestratorService.process(update);
+    PaymentMessageDTO dto = telegramMessageMapper.toPaymentMessageDTO(update);
+    mensagemEntrantePortIn.processar(dto);
     logger.info("Mensagem do usuário {} processada com sucesso.", update.getMessage().getFrom().getId());
 
     return ResponseEntity.ok().build();
@@ -54,8 +60,4 @@ public class TelegramWebhookController {
       throw new InvalidUpdateException("Update recebido sem 'message' ou 'from'.");
     }
   }
-
-
-
 }
-

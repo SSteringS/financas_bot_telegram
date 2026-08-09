@@ -8,9 +8,11 @@ import org.springframework.web.client.RestClient;
 @Configuration
 public class AppConfig {
 
+  // Singleton construído a partir do RestClient.Builder auto-configurado — mantém compatibilidade
+  // com @RestClientTest; padrão da spec §5.3 (docs/architecture/adapter-whatsapp-cloud-api.md).
   @Bean
-  public RestClient restClient() {
-    return RestClient.create();
+  public RestClient restClient(RestClient.Builder builder) {
+    return builder.build();
   }
 
   @Bean

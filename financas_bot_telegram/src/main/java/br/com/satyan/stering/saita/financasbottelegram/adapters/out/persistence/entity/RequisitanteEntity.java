@@ -1,5 +1,6 @@
 package br.com.satyan.stering.saita.financasbottelegram.adapters.out.persistence.entity;
 
+import br.com.satyan.stering.saita.financasbottelegram.domain.model.Canal;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.Getter;
@@ -29,4 +30,8 @@ public class RequisitanteEntity {
 
     @Column(name = "criado_em")
     private LocalDateTime criadoEm;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "canal_preferido", nullable = false, length = 20)
+    private Canal canalPreferido = Canal.TELEGRAM;
 }

@@ -1,6 +1,6 @@
 # Checklist de pré-merge (gates verificáveis)
 
-Define a **definição de pronto** de qualquer tarefa BE/FE/DEP antes de mergear em `develop`. Cada gate é **machine-checkable**: tem um comando e uma condição de passagem. Os gates aqui mapeiam 1:1 com o bloco `gates:` do frontmatter do status report (`docs/status/_TEMPLATE.md`).
+Define a **definição de pronto** de qualquer tarefa BE/FE/DEP antes de mergear em `develop`. Cada gate é **machine-checkable**: tem um comando e uma condição de passagem. Os gates aqui mapeiam 1:1 com o bloco `gates:` do frontmatter do status report (`docs/templates/_TEMPLATE-status.md`).
 
 Conceito: o status report é um *output schema* (forma garantida, parseável). Este checklist é a *validação* desse output — porque schema válido não garante verdade (um report pode dizer `testes: ok` sem que seja). O Claude de planejamento (ou um script) confere os gates contra a realidade antes do merge.
 
@@ -15,7 +15,7 @@ Conceito: o status report é um *output schema* (forma garantida, parseável). E
 | `build` | Back: `./mvnw -q -DskipTests package` · Front: `npm run build` | Sai com código 0, sem erro de compilação/TS |
 | `lint` | Front: `npm run lint` · Back: `na` (não há linter configurado) | Sem erros. `na` quando a stack não tem linter |
 | `testes` + `testes_total` + `testes_novos` | Back: `./mvnw test` · Front: `npm test` | Todos verdes. Anotar o total e quantos foram adicionados nesta tarefa |
-| `branch_convencao` | `git rev-parse --abbrev-ref HEAD` e `git merge-base --is-ancestor origin/develop HEAD` | Nome bate `^feature/(be\|fe\|dep\|fix\|hotfix\|evo\|ci)-\d+[a-z]?-` **e** saiu de `develop` (develop é ancestral). Ver regra de branch no CLAUDE.md |
+| `branch_convencao` | `git rev-parse --abbrev-ref HEAD` e `git merge-base --is-ancestor origin/develop HEAD` | Nome bate `^(feature/(be|fe|dep|evo|ci|qa)-\d{3}[a-z]?-|fix/\d{3}-|hotfix/\d{3}-)` **e** develop é ancestral (direto para fix/hotfix/integration; via integration para feature/). Pattern: `^(feature/(be|fe|dep|evo|ci|qa)-\d{3}[a-z]?-|fix/\d{3}-|hotfix/\d{3}-|integration/\d{2}-)`. Ver CLAUDE.md |
 | `territorio` | `git diff --name-only origin/develop...HEAD` | Todos os caminhos alterados estão dentro do território da instância (ver tabela abaixo) |
 
 ### Territórios (pra o gate `territorio`)
@@ -39,17 +39,30 @@ O gate `territorio` falha quando uma instância altera **código fora** do seu t
 - [ ] Todo componente/classe com lógica não-trivial tem ao menos 1 teste (regra do CLAUDE.md)
 - [ ] `branch_convencao` ok (nome correto + saiu de develop)
 - [ ] `territorio` ok (não vazou pra fora da pasta da instância)
-- [ ] Status report criado em `docs/status/<TASK-ID>-*.md` com frontmatter válido
+- [ ] Se o plano declara `exige_e2e_full: true`: `npm run e2e:full` verde, e campo `e2e_full` preenchido no status report (ver `docs/architecture/desenho-testes-automatizados.md` §9.2 para schema).
+- [ ] Status report criado em `docs/sprints/<NN>/status/<TASK-ID>-*.md` com frontmatter válido
 - [ ] `desvios` e `pendencias_humano` no frontmatter batem com as seções em prosa
 - [ ] `estado` coerente com os gates (só `concluido` se tudo ok e sem pendência)
 - [ ] **Não** fez push pra `develop` — parou pra revisão (salvo instrução explícita)
 
+## Checklist do Reviewer (auditoria independente)
+
+Executar **numa sessão separada** depois que o implementador abre o PR. Gates bloqueantes impedem o merge se inconsistentes.
+
+- [ ] `build` e `testes` verdes no CI (ou verificação local equivalente)
+- [ ] `territorio` ok — diff do PR não vaza pra fora do território da instância
+- [ ] Status report presente em `docs/sprints/<NN>/status/<TASK-ID>-*.md` com frontmatter válido
+- [ ] `testes_novos` condiz com os arquivos adicionados/alterados
+- [ ] `desvios` e `pendencias_humano` declarados — sem omissão intencional
+- [ ] Se `exige_e2e_full: true` no plano: confirmar que `e2e_full.executado: true` e `e2e_full.status: verde` no status report (ver `docs/architecture/desenho-testes-automatizados.md` §9.2). Caso contrário, **rejeitar** com pendência bloqueante.
+- [ ] `playwright-report/` **não** está no diff do PR (não deve ser commitado)
+
 ## Agregação (o ganho de ter schema)
 
-Como o frontmatter é YAML parseável, dá pra montar um painel do projeto sem esforço — um script lê todos os `docs/status/*.md`, extrai o frontmatter e responde coisas como: quais tarefas estão `bloqueado`, quantos `desvios` abertos por área, soma de `testes_total`, quais branches fogem da convenção. Não precisa existir agora; o schema só deixa a porta aberta pra isso.
+Como o frontmatter é YAML parseável, dá pra montar um painel do projeto sem esforço — um script lê todos os `docs/sprints/<NN>/status/*.md`, extrai o frontmatter e responde coisas como: quais tarefas estão `bloqueado`, quantos `desvios` abertos por área, soma de `testes_total`, quais branches fogem da convenção. Não precisa existir agora; o schema só deixa a porta aberta pra isso.
 
 ## Relação com outros docs
 
-- Schema do status report: `docs/status/_TEMPLATE.md`
+- Schema do status report: `docs/templates/_TEMPLATE-status.md`
 - Convenção de branch e territórios: `CLAUDE.md` (seção "Fluxo de branches" e "Regra de ouro")
 - Por que validar mesmo com schema válido: `docs/aprendizado/structured-outputs.md` (sintaxe ≠ semântica)
