@@ -4,11 +4,11 @@ sprint: 03-folha-pagamento
 data: 2026-08-09
 avaliador: claude-reviewer
 status_report: docs/sprints/03-folha-pagamento/status/FIX-007-remover-segredos-versionados.md
-veredito_codigo: aprovado_com_ressalvas
-veredito_final: aprovado_com_ressalvas
-correcoes_obrigatorias: 1                  # R1 — dependência de IMDSv1 no bootstrap.sh
-observacoes_count: 7
-rodadas: 1
+veredito_codigo: aprovado
+veredito_final: aprovado
+correcoes_obrigatorias: 0                  # R1 verificado como resolvido na rodada 2
+observacoes_count: 9
+rodadas: 2
 roteiro_executado: false
 gates_verificados_contra_realidade: confere
 skills_eficazes: []
@@ -260,3 +260,98 @@ Explícitas, não omitidas:
 Ordem sugerida: corrigir R1 → ajustar o texto de R2 e R3 no status report → merge. R4 a R7 podem ir em follow-up.
 
 **Lembrete que o plano pede que seja repetido no merge:** este FIX **não é remediação**. Os valores já commitados num repo público devem ser considerados coletados. A rotação (pendência 1 do status report) é o que resolve, e ela continua pendente do humano.
+
+---
+---
+
+# Rodada 2 — reverificação após as correções (`ab12ba4`, `bcc756b`)
+
+**Escopo:** `delta-review` de `49856b5..HEAD`. Base inalterada (`ad6a60a`). Arquivos tocados: `bootstrap.sh`, plano, status report, e este próprio artefato (commitado pelo implementador em `ab12ba4`).
+
+## R2.1 — R1 (correção obrigatória): **RESOLVIDO**
+
+As 5 linhas de descoberta manual de região saíram. Reexecutei o bloco do keystore extraído do arquivo **renderizado** (simulador de `templatefile`, `UNKNOWN VARS: none`), sob `set -euo pipefail`, com stub de `curl` que emula instância com `HttpTokens=required` (GET sem token → 401 → `curl -sf` sai 22):
+
+| Caso | Cenário | Exit | Keystore | Observado |
+|---|---|---|---|---|
+| C1 | IMDSv2 obrigatório (curl 401), secret íntegro | 0 | gerado | abre com a senha do secret; **não** abre com senha vazia; `subject=CN=localhost` |
+| C1b | IMDSv1 permitido, secret íntegro | 0 | gerado | idem, `subject=CN=203.0.113.10` |
+| C2 | `{"db_password":"x"}` | 1 | ausente | msg de chave ausente/vazia |
+| C3 | `{"keystore_password":""}` | 1 | ausente | idem |
+| C4 | secret não-JSON | 1 | ausente | msg de JSON não parseável |
+| C5 | `aws` sai 255 (AccessDenied) | 1 | ausente | msg de `get-secret-value` |
+| C6 | `PATH` sem AWS CLI | 1 | ausente | msg de CLI ausente |
+| **R1a** | `aws` sai 253 — *"You must specify a region"* | 1 | ausente | cai no caminho de `get-secret-value`, msg já cita região/credenciais |
+| **R1b** | `aws` sai 253 — *"Unable to locate credentials"* | 1 | ausente | idem |
+| **X1** | `aws` sai **0** com saída **vazia** | 1 | ausente | pego pelo teste de chave vazia |
+| **X2** | `aws` devolve literal `None` (secret binário) | 1 | ausente | pego pelo caminho de JSON não parseável |
+
+**C1 é a prova direta do R1:** o cenário que antes abortava o provisionamento agora completa. R1a/R1b/X1/X2 são casos que eu adicionei além do harness do implementador, procurando exatamente a pergunta feita ("sobrou caminho em que a falha de resolução de região passe silenciosa?"). **Não sobrou.** Todo modo de falha do `aws` — inclusive sucesso com saída vazia — termina em `exit 1` com mensagem, e nenhum deles gera keystore.
+
+**Interação com `set -euo pipefail`: correta.** `VAR=$(cmd) || { ...; exit 1; }` suprime o `-e` e entrega o controle ao handler (verificado em execução, não por leitura). O caminho do `jq` é o último comando do pipeline, então independe de `pipefail` — mas `pipefail` não o prejudica. Nenhuma variável nova fica sujeita a `-u`.
+
+**Efeito colateral da remoção do `export AWS_DEFAULT_REGION`: nenhum.** Verifiquei que nada mais no `bootstrap.sh` lê a variável, e que os dois consumidores reais de região da aplicação são independentes dela: `finbot.service:7` (`Environment=AWS_REGION=us-east-1`) e `application-prod.properties:12` (`spring.cloud.aws.region.static=us-east-1`).
+
+**Comentário do script:** a justificativa em `bootstrap.sh:149-152` está tecnicamente correta e é o tipo de registro que impede a regressão ser reintroduzida.
+
+## R2.2 — R2 (harness): tabela **não** superdeclara mais
+
+Os 4 caminhos de falha do script são exatamente: CLI ausente (`:144`), `get-secret-value` (`:155`), JSON não parseável (`:160`), chave ausente/vazia (`:164`). A tabela mapeia C6/C5/C4/C2-C3 nessa ordem e diz explicitamente que C2 e C3 são o mesmo caminho. Confere com o que executei. O stub de `curl` que afirmava a premissa deixou de existir junto com o ramo.
+
+## R2.3 — R3 (blast radius): substância certa, **uma frase otimista demais**
+
+Verificado e correto: `exit 1` ocorre antes do `systemctl start` (`:189-192`); `systemctl enable finbot` está em `:56` e `systemctl enable caddy` em `:113` (este último fora do `if`, portanto sempre executa); ambos rodam **antes** do bloco do keystore, logo as units ficam habilitadas mesmo quando o bootstrap aborta.
+
+**Impreciso:** "os `systemctl enable` fazem um reboot recuperar os serviços". Um reboot recupera o **Caddy**. Não recupera o **finbot**: `application-prod.properties:7` aponta `server.ssl.key-store=/opt/finbot/keystore.p12`, que é justamente o arquivo que não foi criado — o app não sobe, e `Restart=on-failure` o coloca em crash-loop. Além disso `user_data` não reexecuta em reboot (cloud-init `once`), então o keystore continua ausente. Correção de redação, não de código; sem impacto no merge.
+
+## R2.4 — R4 (frontmatter): aceito
+
+`commits:` lista `d1c5e08`, `49856b5`, `ab12ba4`. A ausência de `bcc756b` é autorreferência impossível e está explicada na mensagem do próprio commit. Não me incomoda.
+
+## R2.5 — R5 (plano): comando agora reprodutível
+
+`ad6a60a` fixo e `tr -d '[:space:]'` presente. Executei o comando exatamente como escrito no plano: zero ocorrências. A ratificação virou pendência 3 e `pendencias_humano` subiu para 4, coerente.
+
+**Nota nova (baixa, para a mesma ratificação):** o critério vizinho — `git grep -n "UJ"` — usa um fragmento de 2 caracteres. Medi o maior prefixo comum entre qualquer token do repo e a `admin_key` de `ad6a60a`: **2 de 44 caracteres**. Não há exposição relevante, mas como verificação o critério é inútil (casa com dezenas de tokens não relacionados). Vale reescrevê-lo no mesmo formato dos outros na hora da ratificação.
+
+## R2.6 — R6/R7: registrados corretamente
+
+Pendências técnicas 6 e 7 do status report descrevem a causa (default de `imds-support` entre AL2 e AL2023) e a correção. Confirmei que `ec2.tf:18-40` de fato não declara `metadata_options`.
+
+**Confirmação empírica do R7:** no caso C1 acima, com IMDSv2 obrigatório, o cert saiu com `subject=CN=localhost` — a degradação silenciosa de `bootstrap.sh:137` é real, não teórica. É pré-existente e não é regressão deste FIX. Único reparo: o comentário novo em `:149-152` diz que consultar o IMDS na unha foi evitado "aqui", enquanto 12 linhas acima o script faz exatamente isso; ao fechar a pendência 6, vale cruzar as duas referências.
+
+## R2.7 — Gates reverificados por execução nesta rodada
+
+| Gate | Comando | Resultado |
+|---|---|---|
+| Sintaxe | `bash -n` no template e no renderizado | OK nos dois |
+| Render | simulador de `templatefile` | `UNKNOWN VARS: none` |
+| Testes | `mvn -f financas_bot_telegram/pom.xml test` (exit 0) + agregação de `target/surefire-reports/*.txt` | **422 testes, 0 falhas, 0 erros, 0 skipped** |
+| Segredos | 4 literais recuperados de `ad6a60a` em variável + `git grep -F --text --untracked` | 0 arquivos com hit em todos |
+| Token Telegram | `git grep -nE "[0-9]{8,10}:AA[A-Za-z0-9_-]{30,}"` | 0 |
+| Destrackeamento | `git ls-files .../http-client.env.json` | vazio |
+| Comportamento | 11 casos do harness da §R2.1 | conforme tabela |
+
+## R2.8 — Regressões introduzidas pela correção
+
+**Nenhuma.** Procurei especificamente por: consumidor órfão de `AWS_DEFAULT_REGION` (não há), quebra de escapes do `templatefile` pelo comentário novo (não há `${` no texto inserido; render limpo), identificador inexistente na mensagem de erro nova (`aws_iam_policy.ec2_secrets_policy` existe em `security.tf:28`), e novo caminho silencioso (nenhum; X1/X2 fecham as duas brechas plausíveis).
+
+## R2.9 — Validações que continuam bloqueadas
+
+Inalteradas em relação à rodada 1, e **nenhuma delas depende do R1 agora**, porque a correção eliminou a premissa em vez de exigir sua verificação:
+
+1. Existência da chave `keystore_password` em `finbot-prod-secrets` — sem credencial AWS. Continua sendo a pendência 2 do implementador e é o **maior risco remanescente do merge**.
+2. `HttpTokens` real da instância — sem credencial AWS. Deixou de ser bloqueante: o script agora funciona nas duas configurações (C1 e C1b).
+3. `terraform plan` — sem backend S3; coberto parcialmente pelo simulador de render.
+4. Execução em AL2023 real — o harness roda em MSYS.
+
+## R2.10 — Veredito da rodada 2
+
+### **APROVADO — bloqueio removido, liberado para merge.**
+
+O R1 está resolvido pela raiz: a premissa foi **eliminada**, não verificada. Reproduzi o cenário que antes abortava (IMDSv2 obrigatório) e ele agora completa; testei quatro modos de falha adicionais que não estavam no harness do implementador e todos terminam em `exit 1` com mensagem e sem keystore. R2 e R3 foram corrigidos em substância — resta apenas o reparo de redação da §R2.3, que não é condição de merge. R4 a R7 estão adequadamente encaminhados como pendências.
+
+**Condições que acompanham o merge (não bloqueiam):**
+- Confirmar a chave `keystore_password` em `finbot-prod-secrets` **antes do próximo recreate da EC2** — não antes do merge, mas antes de qualquer `terraform apply` que recrie a instância.
+- Rotacionar os segredos expostos (pendência 1). Este FIX interrompe a exposição; não remedia a que já ocorreu.
+- Ajustar a frase de recuperação por reboot na pendência 2 (§R2.3) quando o status report for tocado de novo.

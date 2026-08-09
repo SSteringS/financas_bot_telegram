@@ -98,7 +98,9 @@ Registrar no status report qual dos dois casos ocorreu, com o arquivo e linha qu
       `SECRET=$(git show ad6a60a:financas_bot_telegram/infra/provision/bootstrap.sh | sed -n 's/.*-passout pass://p' | tr -d '[:space:]'); git grep -n --text "$SECRET"`
       (`ad6a60a` = merge-base da branch do FIX com `develop`). Saída registrada no status report.
 - [ ] `git grep -nE "[0-9]{8,10}:AA[A-Za-z0-9_-]{30,}"` retorna **zero** ocorrências.
-- [ ] `git grep -n "UJ"` não retorna a `admin_key` em `http-client.env.json` nem no runbook (conferir manualmente os 3 pontos citados).
+- [ ] A `admin_key` de dev não aparece em `http-client.env.json` nem no runbook (os 3 pontos citados). Busca pelo valor inteiro, não por fragmento:
+      `ADMIN=$(git show ad6a60a:financas_bot_telegram/http/http-client.env.json | jq -r '.dev.admin_key'); git grep -n --text "$ADMIN"`
+      (o critério original buscava o fragmento `"UJ"`, de 2 caracteres — inútil como verificação: o maior prefixo comum entre a chave e qualquer outro token do repo é justamente 2.)
 - [ ] `git ls-files financas_bot_telegram/http/http-client.env.json` retorna vazio (arquivo destrackeado).
 - [ ] `financas_bot_telegram/http/http-client.env.json.example` existe e é válido como JSON.
 - [ ] `.gitignore` cobre `http-client.env.json`.

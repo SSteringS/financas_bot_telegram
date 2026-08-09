@@ -147,9 +147,11 @@ if [ ! -f "$KEYSTORE_PATH" ]; then
     fi
 
     # Região e credenciais ficam por conta do próprio AWS CLI v2, que resolve ambas via IMDS
-    # negociando token IMDSv2. Não consultar o IMDS na unha aqui é deliberado: AMIs AL2023 são
-    # publicadas com imds-support=v2.0, então uma instância nova nasce com HttpTokens=required
-    # e um GET sem token falharia — transformando um detalhe de ambiente em aborto de bootstrap.
+    # negociando token IMDSv2. Não consultar o IMDS na unha para descobrir a região é deliberado:
+    # AMIs AL2023 são publicadas com imds-support=v2.0, então uma instância nova nasce com
+    # HttpTokens=required e um GET sem token falharia — transformando um detalhe de ambiente
+    # em aborto de bootstrap. (O GET de public-ipv4 lá em cima ainda é IMDSv1 e degrada para
+    # CN=localhost sob HttpTokens=required; é pré-existente e está registrado como pendência.)
     SECRET_JSON=$(aws secretsmanager get-secret-value \
         --secret-id finbot-prod-secrets \
         --query SecretString --output text) || {
