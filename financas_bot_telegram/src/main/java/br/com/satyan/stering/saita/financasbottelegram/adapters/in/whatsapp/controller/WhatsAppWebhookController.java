@@ -33,7 +33,10 @@ public class WhatsAppWebhookController {
     private final WhatsAppMessageMapper messageMapper;
     private final MensagemEntrantePortIn mensagemEntrantePortIn;
     private final ObjectMapper objectMapper;
+    private static final String SENTINELA_NAO_CONFIGURADO = "NAO_CONFIGURADO";
+
     private final String verifyToken;
+    private final boolean verifyTokenConfigurado;
     private final List<String> allowedWaIds;
 
     public WhatsAppWebhookController(
@@ -49,7 +52,13 @@ public class WhatsAppWebhookController {
         this.mensagemEntrantePortIn = mensagemEntrantePortIn;
         this.objectMapper = objectMapper;
         this.verifyToken = verifyToken;
-        // Spring converte string vazia em lista com elemento vazio [""] — filtrar para lista vazia de fato.
+        this.verifyTokenConfigurado = !SENTINELA_NAO_CONFIGURADO.equals(verifyToken);
+        if (!verifyTokenConfigurado) {
+            logger.warn(
+                "whatsapp.verify-token nao configurado — handshake do webhook sempre retornara 403"
+            );
+        }
+        // Descarta entradas em branco: uma property vazia chega aqui como lista de um elemento vazio.
         this.allowedWaIds = allowedWaIds.stream().filter(s -> !s.isBlank()).toList();
     }
 
@@ -59,6 +68,12 @@ public class WhatsAppWebhookController {
         @RequestParam("hub.verify_token") String token,
         @RequestParam("hub.challenge") String challenge
     ) {
+        // A sentinela e um literal versionado, logo nao e segredo: sem esta guarda, qualquer um
+        // passaria no handshake e teria o parametro 'hub.challenge' refletido na resposta.
+        if (!verifyTokenConfigurado) {
+            logger.warn("WhatsApp webhook handshake recusado — whatsapp.verify-token nao configurado");
+            return ResponseEntity.status(403).build();
+        }
         if ("subscribe".equals(mode) && verifyToken.equals(token)) {
             logger.info("WhatsApp webhook handshake bem-sucedido.");
             return ResponseEntity.ok(challenge);
