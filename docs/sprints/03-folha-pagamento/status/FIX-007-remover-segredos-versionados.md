@@ -16,6 +16,8 @@ gates:
   territorio: ok
 commits:
   - d1c5e08
+  - 49856b5
+  - ab12ba4
 pr: null
 desvios: 2
 pendencias_humano: 4
@@ -134,7 +136,7 @@ O harness fica em scratchpad, não versionado — não há camada de teste para 
 
 ## Correções pós-revisão
 
-O Reviewer aprovou com ressalvas e apontou **1 correção obrigatória**. Aplicadas em `<commit-fix>`.
+O Reviewer aprovou com ressalvas e apontou **1 correção obrigatória**. Aplicadas em `ab12ba4`.
 
 **R1 (alto, obrigatório) — dependência de IMDSv1 sem fallback.** A primeira versão descobria a região com `curl http://169.254.169.254/latest/meta-data/placement/region` e abortava se falhasse. AMIs AL2023 são publicadas com `imds-support = v2.0`, então instâncias lançadas a partir delas nascem com `HttpTokens = required`, e `ec2.tf:18-41` não declara `metadata_options`. Um GET sem token falharia — e o bloco **só roda em recreate**, exatamente o cenário que aplica esse default. O Reviewer reproduziu o aborto. As 5 linhas foram **removidas**: o AWS CLI v2 resolve região e credenciais sozinho via IMDS negociando token IMDSv2. Se ainda assim falhar, o caminho de erro do `get-secret-value` pega, com mensagem que agora cita explicitamente região/credenciais. O comentário no script registra por que a consulta manual ao IMDS foi deliberadamente evitada.
 
