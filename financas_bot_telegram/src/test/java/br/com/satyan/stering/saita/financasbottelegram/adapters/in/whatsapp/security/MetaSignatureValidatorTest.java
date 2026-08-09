@@ -72,6 +72,26 @@ class MetaSignatureValidatorTest {
         assertThat(validator.isValid(null, "sha256=qualquer")).isFalse();
     }
 
+    @Test
+    void secretSentinela_assinaturaCalculadaComSentinela_retornaFalse() throws Exception {
+        // A sentinela e um literal versionado: se fosse usada como chave HMAC, qualquer um
+        // poderia forjar uma assinatura valida. Deve ser rejeitada mesmo quando o HMAC casa.
+        MetaSignatureValidator naoConfigurado = new MetaSignatureValidator("NAO_CONFIGURADO");
+        byte[] body = "{\"object\":\"whatsapp_business_account\"}".getBytes(StandardCharsets.UTF_8);
+        String signature = "sha256=" + calcularHmac("NAO_CONFIGURADO", body);
+
+        assertThat(naoConfigurado.isValid(body, signature)).isFalse();
+    }
+
+    @Test
+    void secretSentinela_qualquerAssinatura_retornaFalse() throws Exception {
+        MetaSignatureValidator naoConfigurado = new MetaSignatureValidator("NAO_CONFIGURADO");
+        byte[] body = "payload".getBytes(StandardCharsets.UTF_8);
+
+        assertThat(naoConfigurado.isValid(body, "sha256=" + calcularHmac(APP_SECRET, body))).isFalse();
+        assertThat(naoConfigurado.isValid(body, null)).isFalse();
+    }
+
     private String calcularHmac(String secret, byte[] data) throws NoSuchAlgorithmException, InvalidKeyException {
         SecretKeySpec key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
         Mac mac = Mac.getInstance("HmacSHA256");
