@@ -146,16 +146,14 @@ if [ ! -f "$KEYSTORE_PATH" ]; then
         exit 1
     fi
 
-    AWS_DEFAULT_REGION=$(curl -sf http://169.254.169.254/latest/meta-data/placement/region) || {
-        log "ERRO: não foi possível descobrir a região via IMDS. Abortando."
-        exit 1
-    }
-    export AWS_DEFAULT_REGION
-
+    # Região e credenciais ficam por conta do próprio AWS CLI v2, que resolve ambas via IMDS
+    # negociando token IMDSv2. Não consultar o IMDS na unha aqui é deliberado: AMIs AL2023 são
+    # publicadas com imds-support=v2.0, então uma instância nova nasce com HttpTokens=required
+    # e um GET sem token falharia — transformando um detalhe de ambiente em aborto de bootstrap.
     SECRET_JSON=$(aws secretsmanager get-secret-value \
         --secret-id finbot-prod-secrets \
         --query SecretString --output text) || {
-        log "ERRO: falha ao ler o segredo finbot-prod-secrets. Verifique a policy do instance profile. Abortando."
+        log "ERRO: falha ao ler o segredo finbot-prod-secrets. Verifique a policy do instance profile (aws_iam_policy.ec2_secrets_policy) e se o CLI conseguiu resolver região/credenciais via IMDS. Abortando."
         exit 1
     }
 

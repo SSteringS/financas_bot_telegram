@@ -18,7 +18,7 @@ commits:
   - d1c5e08
 pr: null
 desvios: 2
-pendencias_humano: 3
+pendencias_humano: 4
 ---
 
 # FIX-007 — Remover segredos versionados do estado atual do repositório
@@ -34,7 +34,7 @@ Limpeza do **estado atual** de `develop` (o histórico não foi tocado — decis
 - **`financas_bot_telegram/http/BE-16-testes.http`** — o token de sessão literal virou `TOKEN_AQUI`, que já era o termo usado pelo comentário do próprio passo 1 ("Substitua TOKEN_AQUI pelo valor copiado no Passo 0"). Adicionado um passo 0 no cabeçalho apontando para o `.example`, já que o `http-client.env.json` deixou de vir no clone.
 - **`financas_bot_telegram/http/http-client.env.json`** — destrackeado com `git rm --cached` (arquivo local do humano preservado no disco), coberto por nova regra no `.gitignore` da raiz, e substituído por `http-client.env.json.example` com a mesma estrutura e `admin_key` como placeholder.
 - **18 ocorrências da senha do keystore em `docs/**`** — trocadas por `<keystore-password>` em 8 arquivos. Só o valor foi mascarado; a prosa ao redor dos status reports e das avaliações ficou intacta, então a narrativa histórica continua legível.
-- **`financas_bot_telegram/infra/provision/bootstrap.sh`** — o `-passout pass:<literal>` virou leitura de `keystore_password` a partir de `finbot-prod-secrets`, com **quatro caminhos de falha explícitos** (AWS CLI ausente, região não descoberta via IMDS, `get-secret-value` falhando, chave ausente/vazia/JSON inválido). Todos logam e fazem `exit 1` — nenhum gera keystore com senha vazia. O `-passout env:` (em vez de `pass:`) mantém a senha fora da lista de processos.
+- **`financas_bot_telegram/infra/provision/bootstrap.sh`** — o `-passout pass:<literal>` virou leitura de `keystore_password` a partir de `finbot-prod-secrets`, com **quatro caminhos de falha explícitos** (AWS CLI ausente, `get-secret-value` falhando, secret não parseável como JSON, chave ausente ou vazia). Todos logam e fazem `exit 1` — nenhum gera keystore com senha vazia. O `-passout env:` (em vez de `pass:`) mantém a senha fora da lista de processos. Região e credenciais ficam por conta do próprio AWS CLI v2 (ver §Correções pós-revisão, R1).
 
 ### Verificação obrigatória do plano — permissão IAM: **PRESENTE**
 
@@ -115,17 +115,38 @@ BUILD SUCCESS  (46,5 s)
 
 O plano e o dispatch avisam que este é o único ponto executável tocado e que **não tem cobertura de CI**. `bash -n` só prova sintaxe, então o bloco do keystore foi **executado de verdade** num harness: o script foi renderizado como o `templatefile` do Terraform renderiza (`$${` → `${`, `${domain_name}` interpolado), o bloco `KEYSTORE_PATH=...fi` foi extraído do arquivo renderizado (não reescrito à mão) e rodado com stubs de `dnf`, `curl` (IMDS) e `aws`.
 
-| Caso | Payload do `aws` stub | Resultado |
-|---|---|---|
-| 1 — caminho feliz | `{"keystore_password":"Kx7-senha-de-teste",...}` | `keystore.p12` gerado; abre com a senha vinda do secret; **não** abre com a senha literal antiga |
-| 2 — chave ausente | `{"db_password":"x"}` | `ERRO: chave 'keystore_password' ausente ou vazia...` + `exit 1`, sem keystore |
-| 3 — chave vazia | `{"keystore_password":""}` | idem caso 2 |
-| 4 — secret não é JSON | `isto-nao-e-json` | `ERRO: conteúdo de finbot-prod-secrets não é JSON parseável.` + `exit 1`, sem keystore |
-| 5 — `aws` falha (AccessDenied) | `exit 255` | `ERRO: falha ao ler o segredo finbot-prod-secrets. Verifique a policy...` + `exit 1`, sem keystore |
+| Caso | Cenário simulado | Caminho de falha exercitado | Resultado |
+|---|---|---|---|
+| 1 | secret íntegro | — (caminho feliz) | `keystore.p12` gerado; abre com a senha vinda do secret; **não** abre com a senha literal antiga |
+| 2 | `{"db_password":"x"}` | chave ausente | `ERRO: chave 'keystore_password' ausente ou vazia...` + `exit 1`, sem keystore |
+| 3 | `{"keystore_password":""}` | chave vazia | idem caso 2 |
+| 4 | `isto-nao-e-json` | secret não parseável | `ERRO: conteúdo de finbot-prod-secrets não é JSON parseável.` + `exit 1`, sem keystore |
+| 5 | `aws` sai 255 (AccessDenied) | `get-secret-value` falhando | `ERRO: falha ao ler o segredo finbot-prod-secrets. Verifique a policy...` + `exit 1`, sem keystore |
+| 6 | `PATH` sem o AWS CLI | binário ausente | `ERRO: AWS CLI ausente — impossível ler keystore_password...` + `exit 1`, sem keystore |
 
-Nenhum caminho de erro produz keystore com senha vazia. No caso 1, dois ruídos do ambiente Windows apareceram e **não são defeitos do script**: o MSYS converte o argumento `-subj "/CN=..."` em caminho (contornado com `MSYS2_ARG_CONV_EXCL=/CN=`) e o `chown finbot:finbot` falha porque não existe usuário `finbot` local — ambas as linhas são idênticas às de antes deste FIX.
+**Os 4 caminhos de falha do script estão cobertos** (casos 2/3 são o mesmo caminho com entradas diferentes). Nenhum produz keystore com senha vazia.
+
+No caso 1, dois ruídos do ambiente Windows apareceram e **não são defeitos do script**: o MSYS converte o argumento `-subj "/CN=..."` em caminho (contornado com `MSYS2_ARG_CONV_EXCL=/CN=`) e o `chown finbot:finbot` falha porque não existe usuário `finbot` local — ambas as linhas são idênticas às de antes deste FIX.
 
 O harness fica em scratchpad, não versionado — não há camada de teste para user_data no projeto e criar uma está fora do escopo deste FIX (registrado abaixo como pendência técnica).
+
+---
+
+## Correções pós-revisão
+
+O Reviewer aprovou com ressalvas e apontou **1 correção obrigatória**. Aplicadas em `<commit-fix>`.
+
+**R1 (alto, obrigatório) — dependência de IMDSv1 sem fallback.** A primeira versão descobria a região com `curl http://169.254.169.254/latest/meta-data/placement/region` e abortava se falhasse. AMIs AL2023 são publicadas com `imds-support = v2.0`, então instâncias lançadas a partir delas nascem com `HttpTokens = required`, e `ec2.tf:18-41` não declara `metadata_options`. Um GET sem token falharia — e o bloco **só roda em recreate**, exatamente o cenário que aplica esse default. O Reviewer reproduziu o aborto. As 5 linhas foram **removidas**: o AWS CLI v2 resolve região e credenciais sozinho via IMDS negociando token IMDSv2. Se ainda assim falhar, o caminho de erro do `get-secret-value` pega, com mensagem que agora cita explicitamente região/credenciais. O comentário no script registra por que a consulta manual ao IMDS foi deliberadamente evitada.
+
+**R2 (médio) — cobertura superdeclarada do harness.** A versão anterior afirmava 4 caminhos de falha e exercitava 2; pior, o stub de `curl` respondia `us-east-1` incondicionalmente, ou seja, **a fixture afirmava a premissa que carregava o risco em vez de testá-la** — exatamente o defeito que o R1 revelou. Corrigido: o caminho de IMDS deixou de existir e o caso 6 (AWS CLI ausente) foi adicionado. A tabela acima agora reflete cobertura real.
+
+**R3 (médio) — blast radius maior que "sem keystore".** O `exit 1` acontece antes do `systemctl start finbot/caddy` (linhas finais do script). Uma falha de secret deixa a instância recém-criada **sem reverse proxy e sem aplicação**, não só sem keystore — mitigado pelos `systemctl enable` (linhas 56 e 113), que fazem um reboot recuperar os serviços. Redigido nesses termos na pendência 2. Mover o bloco para depois do start dos serviços é decisão do planner, não deste FIX.
+
+**R4 (baixo)** — `commits:` do frontmatter completado.
+
+**R5 (baixo, planner)** — o comando no critério de aceitação reescrito tinha `<sha-anterior>` como placeholder e faltava o `tr -d '[:space:]'`; corrigido no plano para a forma exata que foi executada. A ratificação da reformulação em si continua pendente do planner.
+
+**R6 (baixo, operacional)** e **R7 (informativo, pré-existente)** — registrados como pendências abaixo; nenhum é regressão deste FIX.
 
 ---
 
@@ -151,7 +172,7 @@ O harness fica em scratchpad, não versionado — não há camada de teste para 
 ## Decisões tomadas durante a execução
 
 - **Secret id `finbot-prod-secrets` hardcoded no `bootstrap.sh`**, como o plano escreveu explicitamente, em vez de passá-lo via `templatefile` a partir de `finbot-${var.env}-secrets`. Mantém o escopo no arquivo que o plano autorizou e evita mexer em `ec2.tf`. Custo: o script fica acoplado a prod (registrado como pendência técnica abaixo).
-- **Região via IMDS, sem default.** O CLI v2 resolveria a região sozinho, mas explícito falha de forma diagnosticável. Não há fallback `us-east-1` — cair para um default silencioso é exatamente o tipo de defensividade que esconde erro de provisionamento.
+- **Região resolvida pelo próprio AWS CLI v2**, sem consulta manual ao IMDS e sem fallback `us-east-1`. Era o inverso na primeira versão; ver R1 em §Correções pós-revisão. Um default silencioso continua descartado — esconderia erro de provisionamento.
 - **`jq` instalado junto do `openssl`** no mesmo `dnf install`. `SecretString` volta como string JSON; `--query` do CLI não entra nela. `jq` está no repo do AL2023.
 - **`-passout env:KEYSTORE_PASSWORD`** em vez de `pass:$KEYSTORE_PASSWORD` — `pass:` deixaria a senha visível em `ps` durante o `openssl pkcs12`.
 - **`TOKEN_AQUI` como placeholder no `.http`** em vez de inventar um novo — o comentário do passo 1 já mandava substituir exatamente esse texto.
@@ -161,11 +182,12 @@ O harness fica em scratchpad, não versionado — não há camada de teste para 
 
 ## Decisões pendentes (esperando humano)
 
-**3 pendências.**
+**4 pendências.**
 
 1. **Rotacionar os segredos.** Este FIX **não é remediação** — só interrompe a exposição contínua. Os valores já commitados num repo público devem ser considerados coletados. Rotacionar: `admin_api_key` de dev, `keystore_password` (em `finbot-prod-secrets` **e** reassinando o `/opt/finbot/keystore.p12` da EC2, senão o app não abre o keystore), senha do MySQL local. O token do Telegram gen-1 já foi rotacionado em 2026-08-09.
-2. **Confirmar que a chave `keystore_password` existe em `finbot-prod-secrets` antes do próximo recreate da EC2.** `docs/sprints/01-mvp/status/DEP-07.md:98` afirma que sim ("confirmado"), mas isso é relato de 2026-05 e **não foi verificado nesta task** — não há credencial AWS nesta sessão. Se a chave não existir, o `bootstrap.sh` agora **aborta o provisionamento** em vez de gerar um keystore com senha literal. É o comportamento correto, e é uma mudança real de blast radius: antes o bootstrap sempre passava.
-3. **Push da branch, abertura do PR para `develop` e merge.** Não executados — nada foi enviado ao remoto.
+2. **Confirmar que a chave `keystore_password` existe em `finbot-prod-secrets` antes do próximo recreate da EC2.** `docs/sprints/01-mvp/status/DEP-07.md:98` afirma que sim ("confirmado"), mas isso é relato de 2026-05 e **não foi verificado nesta task** — não há credencial AWS nesta sessão. Mudança real de blast radius: antes o bootstrap sempre passava; agora, se a chave não vier, ele **aborta o provisionamento** com `exit 1`. E o `exit 1` ocorre **antes** do `systemctl start finbot`/`caddy`, então a instância recém-criada fica **sem reverse proxy e sem aplicação**, não apenas sem keystore. Os `systemctl enable` (linhas 56 e 113) fazem um reboot recuperar os serviços, mas o provisionamento em si termina incompleto. Falhar alto continua sendo o comportamento correto — gerar keystore com senha errada quebraria o boot do app de forma mais obscura. Cabe ao planner decidir se vale mover o bloco do keystore para depois do start dos serviços.
+3. **Ratificar (planner) a reformulação do §Critérios de aceitação e da §Referências do plano** — ver Desvio 1. `docs/plans/` é território do planner; a mudança está feita e declarada, mas não autorizada previamente. O Reviewer considerou a substância correta e o critério não afrouxado, e pediu ratificação formal.
+4. **Push da branch, abertura do PR para `develop` e merge.** Não executados — nada foi enviado ao remoto.
 
 ---
 
@@ -173,7 +195,8 @@ O harness fica em scratchpad, não versionado — não há camada de teste para 
 
 - **O `bootstrap.sh` só é exercitado em recreate da EC2.** Se o próximo recreate falhar no keystore, o log tem a mensagem exata: `journalctl -u cloud-init` ou `/var/log/bootstrap.log`, prefixo `[bootstrap] ERRO:`.
 - **Contrato entre o script e a aplicação:** a senha que o `bootstrap.sh` usa para gerar o p12 e a que `application-prod.properties:8` lê (`server.ssl.key-store-password=${keystore_password}`) são **a mesma chave do mesmo segredo**. Trocar o valor no Secrets Manager sem reassinar o keystore existente quebra o boot do app — o keystore só é regerado quando `/opt/finbot/keystore.p12` não existe.
-- **Escapes do `templatefile`:** o `bootstrap.sh` é template do Terraform. `${...}` é interpolação; para um `${...}` literal em bash é preciso `$${...}`. O comentário novo sobre `keystore_password` usa `$${` justamente por isso. `$VAR` sem chaves passa direto.
+- **Escapes do `templatefile`:** o `bootstrap.sh` é template do Terraform. `${...}` é interpolação; para um `${...}` literal em bash é preciso `$${...}`. O comentário novo sobre `keystore_password` usa `$${` justamente por isso. `$VAR` sem chaves passa direto. O Reviewer rodou um simulador de `templatefile` e confirmou **zero variáveis desconhecidas** — o `terraform plan` não quebra.
+- **Worktree do planner** (`financas_bot_telegram-planner`) ainda tem `http-client.env.json` rastreado e vai perder a cópia local no `pull` pós-merge. Impacto baixo — o arquivo é do fluxo do IntelliJ, não do planner; se importar, salvar cópia antes.
 - Um novo dev agora precisa copiar `http-client.env.json.example` → `http-client.env.json` antes de usar o `.http` no IntelliJ. O passo 0 no cabeçalho do arquivo diz isso.
 
 ### Pendências técnicas identificadas (para o planner consolidar)
@@ -183,6 +206,8 @@ O harness fica em scratchpad, não versionado — não há camada de teste para 
 3. **Sem gate de secret scanning no CI.** É a causa-raiz: `docs/sprints/01-mvp/plans/FIX-keystore-password-secret.md` moveu a senha para o Secrets Manager **e documentou o valor em claro**, anulando a própria mitigação. O plano já aponta `CI-002`.
 4. **`infra/prod.tfvars`** ainda tem Account ID e `my_ip`. O plano classificou como não-segredo e adiou; segue em aberto.
 5. **Porta 8443 aberta no security group** — adiamento deliberado do plano (rollback do webhook para a Caddy). Revisitar após alguns dias de tráfego limpo.
+6. **`bootstrap.sh:137` depende de IMDSv1 e degrada em silêncio** (pré-existente, não é regressão deste FIX). Sob `HttpTokens=required` — o default de instâncias novas em AL2023 — o `curl` de `public-ipv4` falha e o `|| echo "localhost"` gera um cert self-signed com `CN=localhost`. Correção natural: buscar token IMDSv2 uma vez e reusar, ou declarar `metadata_options` em `ec2.tf`. Levantado pelo Reviewer como R7.
+7. **`ec2.tf:18-41` não declara `metadata_options`.** A instância fica com o default da AMI, que mudou entre AL2 e AL2023. Tornar explícito remove a classe inteira de surpresa que gerou o R1 e o R7.
 
 ---
 
