@@ -49,6 +49,10 @@ application-dev.properties
 *.env
 *.pem
 
+# Environment do HTTP Client do IntelliJ — contém a admin api-key local.
+# Use http-client.env.json.example como modelo.
+http-client.env.json
+
 # Claude Code local settings
 .claude/settings.local.json
 # Python
