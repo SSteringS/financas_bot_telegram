@@ -1,0 +1,33 @@
+{
+  "name": "block-destructive-command",
+  "skill": "harness-workflow-analyst",
+  "query": "Claude keeps almost running rm -rf and git push --force in our repo. I want to make sure it can never execute either one, no matter the permission mode or who is at the keyboard. What is the cleanest way to enforce this?",
+  "input_files": [],
+  "expected_behavior": [
+    "Restate the scenario in one sentence.",
+    "Answer the DIAGNOSTICO.md question set, marking destructive potential as high and trust level as team-shared.",
+    "Recommend a PreToolUse hook as the primary primitive, citing docs/claude/hooks/01-guia-de-hooks.md.",
+    "State the exit-code contract explicitly: exit 2 blocks the action and its stderr is fed back to Claude; exit 0 proceeds.",
+    "Recommend a permissions.deny rule as a backstop, citing docs/claude/configuracao/03-permissoes.md.",
+    "State at least one rejected alternative (for example only using permissions.deny, or only relying on plan mode) and why it fails the invariant.",
+    "Specify that the hook lives in project settings and is not bypassable by local settings, cited to the relevant configuracao doc.",
+    "Propose a rollout: add hook first, verify with a test invocation, then add the deny rule.",
+    "Propose an adoption metric: count of blocked invocations logged over the first week."
+  ],
+  "forbidden_behavior": [
+    "Recommend only a permission rule without the hook (permission rules can be relaxed per session).",
+    "Recommend only a hook without the deny rule (defense in depth is expected).",
+    "Recommend bypassPermissions mode.",
+    "Skip the exit-code contract.",
+    "Invent a hook event name that is not in docs/claude/hooks/02-referencia-de-hooks.md."
+  ],
+  "success_criteria": [
+    "Hook is the primary primitive with correct doc citation.",
+    "The exit-code contract is stated correctly.",
+    "The recommendation includes both the hook and the deny rule (defense in depth).",
+    "Rollout is ordered and includes a test-fire step before relying on the guardrail."
+  ],
+  "baseline_without_skill": "",
+  "observed_with_skill": "",
+  "status": "PENDING"
+}

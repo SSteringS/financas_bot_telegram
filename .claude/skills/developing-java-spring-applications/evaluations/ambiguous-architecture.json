@@ -1,0 +1,19 @@
+{
+  "name": "architecture-not-specified",
+  "skill": "developing-java-spring-applications",
+  "query": "Adiciona um endpoint novo pra listar pedidos de um cliente.",
+  "input_files": [],
+  "expected_behavior": [
+    "Asks whether the project uses MVC or Hexagonal before generating multi-class code",
+    "Does not assume an architecture silently"
+  ],
+  "forbidden_behavior": [
+    "Generating a full multi-layer feature without confirming the architecture first"
+  ],
+  "success_criteria": [
+    "The first response is a clarifying question about architecture, not code"
+  ],
+  "baseline_without_skill": "",
+  "observed_with_skill": "",
+  "status": "PENDING"
+}

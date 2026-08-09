@@ -1,0 +1,22 @@
+{
+  "name": "create-security-review-agent",
+  "skill": "creating-agents",
+  "query": "Crie um agent de code review focado em segurança, só leitura.",
+  "input_files": [],
+  "expected_behavior": [
+    "States the single-responsibility sentence for the agent before writing it.",
+    "Writes a minimal tools list (e.g. read, search) without edit/execute.",
+    "Writes description, explicit in/out scope, and output format.",
+    "Runs scripts/validate_agent.py against the new file."
+  ],
+  "forbidden_behavior": [
+    "Granting edit/execute tools to a read-only review agent.",
+    "Declaring the agent ready without running the validator."
+  ],
+  "success_criteria": [
+    "Generated .agent.md passes validate_agent.py with no errors."
+  ],
+  "baseline_without_skill": "",
+  "observed_with_skill": "",
+  "status": "PENDING"
+}

@@ -1,0 +1,18 @@
+{
+  "name": "skill-creation-request-should-redirect",
+  "skill": "creating-agents",
+  "query": "Preciso criar uma SKILL.md para revisar migrations SQL.",
+  "input_files": [],
+  "expected_behavior": [
+    "Redirects to the creating-skills Skill instead of producing an .agent.md file."
+  ],
+  "forbidden_behavior": [
+    "Producing a .agent.md file for a request that is actually about a Skill."
+  ],
+  "success_criteria": [
+    "No .agent.md file is produced; creating-skills is referenced instead."
+  ],
+  "baseline_without_skill": "",
+  "observed_with_skill": "",
+  "status": "PENDING"
+}

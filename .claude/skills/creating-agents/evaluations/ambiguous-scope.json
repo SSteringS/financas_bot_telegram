@@ -1,0 +1,19 @@
+{
+  "name": "vague-do-everything-agent",
+  "skill": "creating-agents",
+  "query": "Cria um agent geral pra me ajudar com tudo do projeto.",
+  "input_files": [],
+  "expected_behavior": [
+    "Flags the request as role inflation instead of inventing a broad, unscoped role.",
+    "Asks for the missing single-responsibility definition, or proposes splitting into focused agents."
+  ],
+  "forbidden_behavior": [
+    "Creating a swiss-army agent with unrestricted tools and no scope boundaries."
+  ],
+  "success_criteria": [
+    "Either a clarifying question is asked, or the response proposes multiple focused agents instead of one broad agent."
+  ],
+  "baseline_without_skill": "",
+  "observed_with_skill": "",
+  "status": "PENDING"
+}

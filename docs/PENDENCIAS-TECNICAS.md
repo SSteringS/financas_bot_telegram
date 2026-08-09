@@ -14,6 +14,23 @@ Não confundir com `docs/plans/` (planos de tarefa ativos) nem com a seção "Fa
 
 ## Itens abertos
 
+### Config externalizada via `@Value` avulso, sem agrupamento nem validação de boot
+
+**Contexto (identificado no diagnóstico do FIX-006, 2026-08-08):** as credenciais do WhatsApp são injetadas com `@Value` espalhados por 4 classes (`MetaSignatureValidator`, `WhatsAppWebhookController`, `WhatsAppMessageSenderService`, `WhatsAppMediaDownloaderService`), cada uma com sua própria política de default. Isso produziu dois problemas reais:
+
+1. **Defaults inconsistentes** — `verify-token`/`app-secret`/`allowed-wa-ids` ganharam sentinela no FIX-001; `access-token`/`phone-number-id` ficaram fail-fast. A divergência não estava visível em lugar nenhum, só lendo as 4 classes.
+2. **Falha em cascata, um deploy por vez** — Spring aborta no primeiro bean que falha, então cada deploy revelava só um placeholder quebrado. Ver `docs/aprendizado/spring-placeholder-aninhado-default.md`.
+
+O FIX-006 resolve o sintoma (defaults no `.properties` + teste de regressão que varre placeholders sem default). A dívida estrutural permanece.
+
+**Fix sugerido:** migrar pra `@ConfigurationProperties(prefix = "whatsapp")` + `@Validated`, com um record/classe única concentrando as 5 properties. Ganhos: política de default num lugar só, validação no boot com mensagem legível, e um ponto natural pro WARN de "sentinela ativo". Mesmo padrão se aplica a `telegram.*` e `app.*`.
+
+**Esforço:** médio — toca 4 classes do adapter WhatsApp + testes. Fazer preferencialmente **junto** da BE-20 (ativação do canal), que já vai mexer nessa superfície.
+
+**Prioridade:** média. Não é bug depois do FIX-006, mas é a causa raiz de duas quebras de deploy consecutivas.
+
+---
+
 ### ~~Dois pacotes paralelos para enums de domínio (`domain/enums/` e `domain/vo/`)~~ ✅ resolvido em FIX-004
 
 **Contexto (identificado na revisão da sprint 03, 2026-06-04):** o domínio tem dois pacotes para enums:

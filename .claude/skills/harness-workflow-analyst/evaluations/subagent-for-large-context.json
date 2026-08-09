@@ -1,0 +1,32 @@
+{
+  "name": "subagent-for-large-context",
+  "skill": "harness-workflow-analyst",
+  "query": "I need to understand how authentication flows across about 80 files in a legacy Java monolith so I can plan a refactor. I do not want this exploration to fill up my main conversation with code snippets I will not touch.",
+  "input_files": [],
+  "expected_behavior": [
+    "Restate the scenario in one sentence.",
+    "Answer the DIAGNOSTICO.md question set, flagging context size as large and objective as investigation.",
+    "Recommend a subagent as the primary primitive, citing docs/claude/agentes/02-subagentes.md.",
+    "Explain that the subagent returns a summary and the main session receives only the summary, cited to docs/claude/harness/06-janela-de-contexto.md.",
+    "Recommend a skill only if the investigation pattern will repeat; otherwise state that no skill is needed and justify.",
+    "State at least one rejected alternative (for example reading files in the main session) with the reason it fails the context-preservation requirement.",
+    "Specify guardrails: read-only tool set for the subagent, no edits.",
+    "Propose adoption metric: main-session token growth before and after adopting the pattern."
+  ],
+  "forbidden_behavior": [
+    "Recommend creating a permanent skill without evidence the investigation will repeat.",
+    "Recommend a routine (the scenario is a one-off).",
+    "Recommend giving the subagent edit tools.",
+    "Skip citing docs/claude/harness/06-janela-de-contexto.md when justifying the context isolation benefit.",
+    "Recommend agent teams for a single investigation."
+  ],
+  "success_criteria": [
+    "Subagent is the primary primitive with correct doc citation.",
+    "Tool set is scoped to read/search only.",
+    "The recommendation is honest about the trade-off (extra model call, summary may drop nuance) per TRADE-OFFS.md.",
+    "No permanent artifact (skill, plugin) is proposed unless justified."
+  ],
+  "baseline_without_skill": "",
+  "observed_with_skill": "",
+  "status": "PENDING"
+}

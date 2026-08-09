@@ -1,0 +1,33 @@
+{
+  "name": "scheduled-pr-review",
+  "skill": "harness-workflow-analyst",
+  "query": "I want Claude to review every pull request opened in my GitHub repo automatically and post a summary comment. The review should follow our team review checklist. It must run even when nobody is at their machine.",
+  "input_files": [],
+  "expected_behavior": [
+    "Restate the scenario in one sentence.",
+    "Answer the DIAGNOSTICO.md question set, noting frequency=on-event, interaction=headless/routine, trust=shared team.",
+    "Recommend a routine as the primary primitive, citing docs/claude/agentes/07-rotinas-agendadas.md.",
+    "Recommend a skill that owns the review checklist, cited to docs/claude/skills/01-skills.md.",
+    "Recommend a notification step (GitHub PR comment) at the end of the routine.",
+    "State at least one rejected alternative (for example a local hook) with the reason it fails the offline requirement.",
+    "Specify a permission allowlist restricted to the review tools plus the GitHub comment tool.",
+    "Propose a rollout in ordered steps with a rollback path.",
+    "Propose an adoption metric with baseline and target."
+  ],
+  "forbidden_behavior": [
+    "Recommend bypassPermissions.",
+    "Invent a Claude Code field or primitive not present in docs/claude/.",
+    "Recommend an MCP server without justifying why native tools plus permission allowlist are insufficient.",
+    "Skip the diagnostic questions.",
+    "Fail to separate primitive choice, orchestration, guardrails, and rollout."
+  ],
+  "success_criteria": [
+    "The routine primitive is selected with the correct doc citation.",
+    "The skill is proposed to hold the checklist rather than embedding the checklist in the routine prompt.",
+    "The recommendation includes a rollback path (disable the routine, keep the skill).",
+    "Every technical claim is traceable to a docs/claude/ file."
+  ],
+  "baseline_without_skill": "",
+  "observed_with_skill": "",
+  "status": "PENDING"
+}

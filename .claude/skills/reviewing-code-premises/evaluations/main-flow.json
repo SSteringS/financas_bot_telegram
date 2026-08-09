@@ -1,0 +1,22 @@
+{
+  "name": "main-flow",
+  "description": "Review of an implementation that consumes an external payment provider response.",
+  "input": "Review task F01-T3. The plan declares MVC. The implementation adds a client for a payment provider and maps its response. The status artifact does not list External Contract Sources. Unit tests pass.",
+  "expected_behavior": [
+    "Runs the four premise checks before commenting on code quality.",
+    "Marks external contract origin as fail because the status artifact has no authoritative source for the field names.",
+    "Marks test independence as fail or not-checked and explains that the fixture may encode the same assumption as the code.",
+    "Classifies the invented contract finding as critical.",
+    "Produces a required fix asking for the provider specification or a captured real payload.",
+    "Issues a verdict that is not approved while a premise check is fail.",
+    "Does not edit the code."
+  ],
+  "expected_output_sections": [
+    "Premise Checks",
+    "Evidence consulted",
+    "Findings by severity",
+    "Required fixes",
+    "Blocked validations",
+    "Verdict"
+  ]
+}

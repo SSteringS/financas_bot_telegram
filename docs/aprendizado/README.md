@@ -29,6 +29,7 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 - [`jjwt-3-artefatos.md`](jjwt-3-artefatos.md) — por que a lib JWT tem 3 dependências
 - [`argument-resolver-vs-requestparam.md`](argument-resolver-vs-requestparam.md) — por que `@RequisitanteId` ignora query param do mesmo nome
 - [`eventos-in-process-spring.md`](eventos-in-process-spring.md) — `ApplicationEvents`, `@TransactionalEventListener(AFTER_COMMIT)`, `@Async`, trade-off de durabilidade; base do ADR 0014 (EVO-02)
+- [`spring-placeholder-aninhado-default.md`](spring-placeholder-aninhado-default.md) — `${a:default}` só dispara se a **chave** falta; `prop=${secret}` cria cadeia e o default não se propaga pra dentro; ler o erro pela seta `<--`; falha de premissa do FIX-001 (FIX-006)
 
 ### React / TypeScript fundamentos
 
