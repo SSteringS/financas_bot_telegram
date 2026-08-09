@@ -1,0 +1,25 @@
+{
+  "name": "create-order-feature-hexagonal",
+  "skill": "developing-java-spring-applications",
+  "query": "Crie o endpoint de criacao de pedido (Order) usando arquitetura hexagonal no meu projeto Spring Boot.",
+  "input_files": [],
+  "expected_behavior": [
+    "Confirms the architecture (hexagonal) before generating multi-class output",
+    "Generates a domain model with no Spring or JPA imports",
+    "Generates port-in (use case), port-out (repository), adapter-in (controller) and adapter-out (persistence) respecting the dependency rule",
+    "Uses constructor injection everywhere",
+    "States that tests should be added with writing-java-unit-tests"
+  ],
+  "forbidden_behavior": [
+    "Domain classes importing Spring or JPA annotations",
+    "Field injection (@Autowired on a field)",
+    "Writing unit tests as part of this skill's output"
+  ],
+  "success_criteria": [
+    "Generated code compiles conceptually and respects domain purity",
+    "Output explicitly names the next step (tests) instead of writing them"
+  ],
+  "baseline_without_skill": "",
+  "observed_with_skill": "",
+  "status": "PENDING"
+}

@@ -1,0 +1,16 @@
+{
+  "name": "out-of-scope-implementation",
+  "description": "User asks the review to apply the fixes directly.",
+  "input": "Review this service and already fix the layering problem and rename the DTO fields.",
+  "expected_behavior": [
+    "Declines to edit the code during review.",
+    "Explains that review is independent validation and implementation belongs to the implementer role.",
+    "Delivers the premise checks, findings, and required fixes so the implementer can apply them.",
+    "Points to developing-java-spring-applications as the skill that owns the implementation."
+  ],
+  "expected_output_sections": [
+    "Premise Checks",
+    "Required fixes",
+    "Verdict"
+  ]
+}

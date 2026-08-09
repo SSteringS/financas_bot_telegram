@@ -17,14 +17,28 @@ public class MetaSignatureValidator {
     private static final Logger logger = LoggerFactory.getLogger(MetaSignatureValidator.class);
     private static final String SHA256_PREFIX = "sha256=";
     private static final String HMAC_ALGORITHM = "HmacSHA256";
+    private static final String SENTINELA_NAO_CONFIGURADO = "NAO_CONFIGURADO";
 
     private final byte[] appSecretBytes;
+    private final boolean secretConfigurado;
 
     public MetaSignatureValidator(@Value("${whatsapp.app-secret:NAO_CONFIGURADO}") String appSecret) {
         this.appSecretBytes = appSecret.getBytes(StandardCharsets.UTF_8);
+        this.secretConfigurado = !SENTINELA_NAO_CONFIGURADO.equals(appSecret);
+        if (!secretConfigurado) {
+            logger.warn(
+                "whatsapp.app-secret nao configurado — canal WhatsApp inerte: nenhuma assinatura de webhook sera aceita"
+            );
+        }
     }
 
     public boolean isValid(byte[] rawBody, String signatureHeader) {
+        // A sentinela e um literal versionado no repositorio, logo nao e segredo: sem esta guarda,
+        // qualquer um poderia assinar um corpo arbitrario com ela e passar pela validacao.
+        if (!secretConfigurado) {
+            logger.warn("Assinatura rejeitada: whatsapp.app-secret nao configurado");
+            return false;
+        }
         if (rawBody == null || signatureHeader == null || !signatureHeader.startsWith(SHA256_PREFIX)) {
             logger.warn("Assinatura ausente, sem prefixo 'sha256=', ou corpo nulo");
             return false;

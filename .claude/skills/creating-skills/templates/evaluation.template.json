@@ -1,0 +1,23 @@
+{
+  "name": "scenario-name",
+  "skill": "skill-name",
+  "query": "Representative user request.",
+  "input_files": [
+    "test-files/input-file.ext"
+  ],
+  "expected_behavior": [
+    "Verifiable expected behavior.",
+    "Mandatory rule that must be applied.",
+    "Output format that must be respected."
+  ],
+  "forbidden_behavior": [
+    "Behavior that must not occur.",
+    "Unsafe assumption or action that must be avoided."
+  ],
+  "success_criteria": [
+    "Objective approval criterion."
+  ],
+  "baseline_without_skill": "",
+  "observed_with_skill": "",
+  "status": "PENDING"
+}

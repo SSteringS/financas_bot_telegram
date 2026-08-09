@@ -58,6 +58,21 @@ class WhatsAppWebhookControllerTest {
     }
 
     @Test
+    void handshake_verifyTokenSentinela_naoRefleteChallenge_retorna403() {
+        // A sentinela e um literal versionado: se fosse aceita como token, qualquer um passaria
+        // no handshake e teria o 'hub.challenge' refletido de volta na resposta.
+        WhatsAppWebhookController naoConfigurado = new WhatsAppWebhookController(
+            signatureValidator, messageMapper, mensagemEntrantePortIn,
+            new ObjectMapper(), "NAO_CONFIGURADO", List.of(WA_ID_AUTORIZADO));
+
+        ResponseEntity<String> response =
+            naoConfigurado.handshake("subscribe", "NAO_CONFIGURADO", "<script>alert(1)</script>");
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getBody()).isNull();
+    }
+
+    @Test
     void handshake_modeErrado_retorna403() {
         ResponseEntity<String> response = controller(WA_ID_AUTORIZADO)
             .handshake("unsubscribe", VERIFY_TOKEN, "abc123");

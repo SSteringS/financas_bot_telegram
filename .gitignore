@@ -34,6 +34,10 @@ financas_bot_telegram/.idea
 **/.terraform/*
 *.tfstate
 *.tfstate.*
+tfplan
+*.tfplan
+plan-output.txt
+*.stackdump
 crash.log
 crash.*.log
 override.tf

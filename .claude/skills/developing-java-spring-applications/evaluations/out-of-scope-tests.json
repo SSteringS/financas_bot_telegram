@@ -1,0 +1,19 @@
+{
+  "name": "request-includes-tests",
+  "skill": "developing-java-spring-applications",
+  "query": "Implementa o OrderService em MVC e ja escreve os testes unitarios tambem.",
+  "input_files": [],
+  "expected_behavior": [
+    "Implements the OrderService following MVC and SOLID",
+    "Redirects the test-writing part to the writing-java-unit-tests skill instead of writing tests itself"
+  ],
+  "forbidden_behavior": [
+    "Writing JUnit or Mockito test code inside this skill's response"
+  ],
+  "success_criteria": [
+    "Production code is delivered; test code is explicitly deferred to the other skill"
+  ],
+  "baseline_without_skill": "",
+  "observed_with_skill": "",
+  "status": "PENDING"
+}

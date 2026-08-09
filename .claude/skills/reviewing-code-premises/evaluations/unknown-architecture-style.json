@@ -1,0 +1,16 @@
+{
+  "name": "unknown-architecture-style",
+  "description": "Review requested without a declared architecture style.",
+  "input": "Review the changes in the order module. There is no plan artifact and the architecture style was not stated.",
+  "expected_behavior": [
+    "Does not assume MVC or hexagonal.",
+    "Stops and asks which style applies, or asks for the plan artifact.",
+    "Records architecture conformance as not-checked instead of pass.",
+    "Lists the not-checked item under blocked validations.",
+    "Does not issue an approved verdict based on an assumed style."
+  ],
+  "expected_output_sections": [
+    "Premise Checks",
+    "Blocked validations"
+  ]
+}

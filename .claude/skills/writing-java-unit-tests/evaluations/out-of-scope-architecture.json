@@ -1,0 +1,19 @@
+{
+  "name": "request-is-architecture-not-tests",
+  "skill": "writing-java-unit-tests",
+  "query": "Meu OrderService esta com muita responsabilidade, separa isso pra mim.",
+  "input_files": [],
+  "expected_behavior": [
+    "Redirects to the developing-java-spring-applications skill for the SOLID refactor",
+    "Does not attempt to refactor production architecture itself"
+  ],
+  "forbidden_behavior": [
+    "Refactoring the SOLID violation inside this skill"
+  ],
+  "success_criteria": [
+    "Response points to the other skill instead of performing the refactor"
+  ],
+  "baseline_without_skill": "",
+  "observed_with_skill": "",
+  "status": "PENDING"
+}

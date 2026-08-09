@@ -1,0 +1,23 @@
+{
+  "name": "unit-test-for-use-case-with-mocked-port",
+  "skill": "writing-java-unit-tests",
+  "query": "Escreve os testes unitarios para o PlaceOrderService, mockando o OrderRepositoryPort.",
+  "input_files": [],
+  "expected_behavior": [
+    "Uses @ExtendWith(MockitoExtension.class) and mocks only OrderRepositoryPort",
+    "Uses AssertJ assertThat for assertions",
+    "Covers happy path and at least one failure/edge case (e.g. invalid total)",
+    "Test names describe behavior"
+  ],
+  "forbidden_behavior": [
+    "Mocking the Order domain record or value objects",
+    "Using plain JUnit assertEquals instead of AssertJ",
+    "Testing private methods directly"
+  ],
+  "success_criteria": [
+    "Test class compiles conceptually and each test asserts one behavior"
+  ],
+  "baseline_without_skill": "",
+  "observed_with_skill": "",
+  "status": "PENDING"
+}
