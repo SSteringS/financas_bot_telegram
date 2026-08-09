@@ -105,7 +105,15 @@ Depois remover os arquivos do tracking com `git rm --cached`.
 
 ---
 
-### Substituir cert self-signed por Let's Encrypt + domínio real
+### ~~Substituir cert self-signed por Let's Encrypt + domínio real~~ ✅ resolvido em 2026-08-09
+
+> **Resolvido em 2026-08-09.** O webhook foi repontado de `https://<ip>:8443` (self-signed, exigindo `certificate=@cert.pem` a cada registro) para `https://api.satyansaita.com/webhook/telegram`, atrás da Caddy com Let's Encrypt. `getWebhookInfo` agora reporta `has_custom_certificate: false`. Elimina a quebra silenciosa quando alguém roda `setWebhook` sem o parâmetro do certificado, e desacopla o webhook do recreate da EC2 (o `bootstrap.sh` regenera o keystore em todo replacement).
+>
+> **Pendente de formalização:** o `DEP-08-webhook-https-caddy.md` continua marcado como não executado e o `docs/architecture/estado-atual-prod.md:30` ainda descreve o webhook como self-signed na 8443. Atualizar ambos.
+
+Contexto original abaixo, preservado.
+
+### Substituir cert self-signed por Let's Encrypt + domínio real (histórico)
 
 **Contexto:** hoje o bot usa cert auto-assinado em `/opt/finbot/keystore.p12`, e o webhook do Telegram precisa do cert registrado via `setWebhook` com parâmetro `certificate=@cert.pem`. Toda vez que alguém roda `setWebhook` sem o parâmetro, o cert "desregistra" e o webhook quebra silenciosamente (já aconteceu).
 
@@ -133,15 +141,25 @@ Depois remover os arquivos do tracking com `git rm --cached`.
 
 ---
 
-### Rotação do token do Telegram
+### ~~Rotação do token do Telegram~~ ✅ resolvido em 2026-08-09
 
 **Contexto:** durante o incidente de SSL/webhook, o token completo do bot foi colado no chat com o Claude. Mesmo o canal sendo razoavelmente seguro, token vazado é token vazado.
 
-**Fix sugerido:** rotacionar no BotFather (`/revoke` → `/token`), atualizar `finbot-prod-secrets` com o novo, restart do `finbot.service`.
+> **Resolvido em 2026-08-09**, durante o incidente de bot mudo (token revogado pela Telegram). Executado: `/revoke` no BotFather → novo token em `finbot-prod-secrets` → restart do `finbot.service` → `setWebhook` apontando para `https://api.satyansaita.com/webhook/telegram` (Caddy/Let's Encrypt, sem `certificate=`). Validado com tráfego real.
 
-**Esforço:** baixo (~5 min).
+---
 
-**Prioridade:** alta. Fazer quando puder.
+### Bot injetável: webhook do Telegram sem validação de `X-Telegram-Bot-Api-Secret-Token`
+
+**Contexto (comprovado em 2026-08-09):** durante o diagnóstico do bot mudo, um `POST` sintético partindo da internet aberta para `https://api.satyansaita.com/webhook/telegram` foi **aceito e processado** pela aplicação. O `TelegramWebhookController` não valida nenhum segredo compartilhado — a única barreira é a whitelist `telegram.allowed-user-ids`, conferida contra o campo `message.from.id` que vem **no corpo que o atacante controla** (`TelegramWebhookController.java:51-56`).
+
+Consequência: qualquer pessoa que descubra a URL cria pedido de pagamento no banco, e pode disparar upload para o S3. Já apontado como observação em `QA-004` sem tratamento.
+
+**Fix sugerido:** o `setWebhook` aceita `secret_token`; o Telegram passa a enviar o header `X-Telegram-Bot-Api-Secret-Token` em toda entrega. Validar o header no controller (rejeitar 401/403 quando divergir), guardar o valor em `finbot-prod-secrets`, e re-registrar o webhook com o parâmetro. Aplicar o mesmo raciocínio ao endpoint WhatsApp — este já valida assinatura HMAC (`MetaSignatureValidator`), então serve de referência.
+
+**Esforço:** baixo-médio — controller + config + teste + re-`setWebhook`.
+
+**Prioridade:** **alta.** Não é teórico: a injeção foi executada com sucesso.
 
 ---
 
@@ -314,6 +332,27 @@ O `.gitignore` já ignora `test-results/` separadamente — esse diretório ser�
 **Esforço:** baixíssimo (1 linha).
 
 **Prioridade:** baixa. Não quebra nenhum teste. Ideal corrigir em QA-004 (já nota no plano) antes de a suíte estar em uso ativo.
+
+---
+
+### Link de consulta do comprovante (2ª mensagem do bot) está quebrado
+
+**Contexto (reportado pelo humano em 2026-08-09):** ao enviar um comprovante (`#<id> <tipo>` + foto), o bot responde com **duas** mensagens. A segunda traz um link para consultar o comprovante, e esse link está **quebrado**.
+
+**Decisão consciente:** não tratar agora. O bot voltou a funcionar após o incidente de revogação do token, e a prioridade é retomar o experimento em `docs/experiments/models-claude-experiment/`.
+
+**Estado da investigação — atenção, há divergência não explicada:** inspecionando `PaymentProofStrategy.process()` na branch `fix/006-whatsapp-defaults-no-properties` (2026-08-09), existe **um único** `canalNotificadorPort.enviar()` (linha 94), e a mensagem que ele monta (linhas 91-93) **não contém link nenhum** — só `Pedido:` e `Tipo:`. A segunda mensagem observada em produção não foi localizada nas classes inspecionadas (`PaymentProofStrategy`, `CanalNotificadorPort`, `TelegramMessageSenderService`).
+
+Hipóteses a testar, em ordem:
+1. Produção roda build diferente do estado atual de `develop` (o deploy de 2026-08-08 levou 2,5 meses de código de uma vez).
+2. A segunda mensagem vem de outro ponto do fluxo ainda não mapeado.
+3. O que o humano chama de "segunda mensagem" é outra coisa (ex.: preview de link gerado pelo próprio Telegram a partir de uma URL do S3).
+
+**Primeiro passo de quem pegar:** capturar o **texto literal** das duas mensagens no Telegram e cruzar com `journalctl -u finbot` no momento do envio. Sem isso, qualquer fix é chute — inclusive não está estabelecido se o link é de front (`satyansaita.com/...`), de API (`api.satyansaita.com/...`) ou uma presigned URL do S3 expirada. Existe `ObterUrlComprovanteServiceImpl` gerando presigned URL para leitura, o que torna a hipótese "URL expirada" plausível, mas **não verificada**.
+
+**Esforço:** indefinido até reproduzir.
+
+**Prioridade:** média. É bug funcional visível pro usuário final, mas contornável — o comprovante é consultável pelo site.
 
 ---
 
