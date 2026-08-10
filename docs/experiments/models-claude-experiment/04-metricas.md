@@ -56,8 +56,8 @@ Fonte: JSONL de subagente em `~/.claude/projects/<proj>/<sessionId>/subagents/ag
 | **Q3** | **Mutation score** nas classes tocadas | mutantes mortos ÷ gerados | **PIT (a instalar)** — proxy de qualidade de teste muito superior a cobertura |
 | **Q4** | Critérios de aceitação satisfeitos | binário por critério da spec congelada, **verificado executando** | script + verificação humana |
 | **Q5** | Tamanho do diff | LOC +/−, arquivos, produção vs teste | `git diff --numstat` |
-| **Q6** | Complexidade ciclomática média dos métodos novos/alterados | — | **PMD (a instalar)** |
-| **Q7** | Violações de ruleset no diff | contagem | PMD / Checkstyle |
+| **Q6** | Complexidade ciclomática média **nas classes tocadas** | granularidade de **classe**, não de método (decisão D2) · reportada separada para produção e teste | **PMD (a instalar)** |
+| **Q7** | Violações de ruleset **nas classes tocadas** | contagem, Δ vs commit base · reportada separada para produção e teste | **PMD (a instalar)** — Checkstyle descartado |
 | **Q8** | Fabricação de contrato | nº de campos ou comportamentos de API afirmados sem fonte rastreável | auditoria, usando os evidence labels `confirmed`/`inferred`/`unknown` da skill `artifact-report-contract` |
 | **Q9** | Violação de território ou convenção de branch | gate | `PRE-MERGE-CHECKLIST` |
 

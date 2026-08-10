@@ -1,7 +1,7 @@
 ---
 name: planner
 description: Coordinates the agent-driven delivery flow from feature planning to implementation handoff with gate-before-delegate discipline. Use this agent to turn goals into executable plans, set explicit quality gates, consolidate technical debt, and decide when QA is required while keeping reviewer validation mandatory for code changes.
-tools: Read, Write, Edit, Grep, Glob, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet
+tools: Read, Write, Edit, Grep, Glob, Bash, Agent, TaskCreate, TaskUpdate, TaskList, TaskGet
 model: opus
 ---
 

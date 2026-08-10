@@ -1,8 +1,9 @@
 # As três features
 
-## 1. Rubrica de complexidade — pré-registrada
+> **Estado:** fechado em 2026-08-10 com o humano. Scores recalculados e rastreáveis.
+> **Specs congeladas:** `specs/SPEC-baixa-*.md`, `specs/SPEC-media-*.md`, `specs/SPEC-alta-*.md`.
 
-Complexidade precisa ser **medida antes**, por rubrica, e classificada por **dois avaliadores independentes**. Complexidade assertada pelo autor não sobrevive a revisão.
+## 1. Rubrica de complexidade — pré-registrada
 
 **Pontuação:**
 
@@ -12,74 +13,84 @@ Complexidade precisa ser **medida antes**, por rubrica, e classificada por **doi
 - **+1** se mais de 8 critérios de aceitação
 - **+1** se exige padrão arquitetural novo
 
-**Faixas:** Baixa ≤ 3 · Média 4–7 · **Alta ≥ 8**
+**Faixas:** Baixa ≤ 3 · Média 4–7 · Alta ≥ 8
 
-## 2. Seleção
+> ⚠️ **Limitação declarada.** As três features selecionadas pontuam **2 / 5 / 7**. Nenhuma alcança a faixa "Alta" da rubrica original. A decisão foi deliberada — ver §3. O fator complexidade opera numa faixa mais estreita que o desenho inicial previa, e isso reduz o poder de detectar interação entre complexidade e alocação de modelo. **Declarar como limitação na publicação, não mascarar renomeando faixas.**
 
-| Nível | Feature | Score | Camadas / arquivos | Por que discrimina |
-|---|---|---|---|---|
-| **Baixa (3)** | **FIX — comprovante mal-formado vira pedido novo.** `123 pix` (sem `#`) é classificado como pedido em vez de erro de comprovante; deve responder erro orientativo | domínio(1) + aplicação(1) + regra nova(1) | `LegendaParser`, `PaymentProofStrategy`, `PaymentRequestStrategy`, `MensagemEntranteService.ERROR_MESSAGE` | Exige **decidir a regra de desambiguação**, não só codificar. Sem migration, sem frontend. Fonte: `docs/PENDENCIAS-TECNICAS.md:131` |
-| **Média (5)** | **EVO-04 — resumo mensal pelo bot** (`resumo abril`) | domínio(1) + aplicação(1) + adapter in(1) + adapter out(1) + padrão novo(1) | primeira strategy que **não exige mídia** → força extensão do `TelegramMessageMapper` | A API de resumo já existe (BE-09), então o trabalho é de **integração e extensão de ponto de extensão**, não de CRUD |
-| **Alta (8)** | **Contatos-BE — cadastro de chaves PIX úteis (variante B2)** | domínio(1)+aplicação(1)+API(1)+persistência(1) + backfill(2) + >8 critérios(1) + VO novo(1) | `TipoChavePix`, VO `ChavePix` com normalização, `V8__contatos.sql` com backfill idempotente, unicidade + 409, escopo por requisitante | Metade sem template no repo. Backfill idempotente e normalização por tipo de chave são armadilhas clássicas |
+## 2. Critérios de seleção — aprendidos durante o desenho
 
-## 3. Por que `Contatos` precisa ser a variante B2
+Estes critérios **não estavam** no desenho original. Emergiram ao descartar cinco candidatas e valem para qualquer feature futura do experimento.
 
-O levantamento do domínio mostrou que **`chavePix` já existe — mas só como `String` crua** em `Funcionario` (`@Column(name="chave_pix", length=255)`, validação = apenas `!isBlank()` quando `formaPagamento == PIX`). Não existe entidade, tabela, endpoint, value object ou enum de tipo de chave.
+1. **Domínio vivo.** A feature deve tocar código que roda em produção com dados reais. Descartou `Contatos` com backfill de `funcionario.chave_pix` e `reabertura de mês` — a folha de pagamento nunca foi deployada, logo ambos os backfills operariam sobre tabelas vazias e valiam `+2` fantasma.
+2. **Utilidade real.** A feature tem que ser trabalho que se faria de qualquer jeito. Descartou `trilha de auditoria de status` — cerimônia num bot de um usuário. Complexidade sem utilidade é dívida disfarçada.
+3. **Determinismo do sistema sob teste.** Nada de LLM dentro da feature. O endpoint primário Q1 mede defeitos escapados; um extrator não-determinístico dentro do sistema torna impossível separar defeito de implementação de variação do extrator.
+4. **Aditiva.** Não refatora padrão já implementado. Descartou converter `CategoriaPedido` de enum para tabela — o enum está embutido em JPQL com literal qualificado (`PedidoPagamentoJpaRepository:54,74,82`).
+5. **Sem template quase-literal no repo.** Evita efeito de teto.
 
-**Custo medido de um CRUD típico neste repositório** (vertical `Funcionario`, a mais recente):
+## 3. Seleção
 
-| | Quantidade |
-|---|---|
-| Arquivos de produção | **15 novos** + 1 edição (`RestExceptionHandler`) |
-| Migration | 1 (`V8__*.sql` seria a próxima) |
-| Arquivos de teste | **6** · **41 testes** (13 use case · 7 controller · 14 persistência · 7 integração) |
-| Frontend, se incluído | ~7 arquivos (5 novos, 2 editados) |
-
-**Isso é um problema experimental sério.** `Funcionario` é um template quase perfeito para `Contatos`. Um CRUD puro seria copiar-e-adaptar 15 arquivos: todos os modelos acertariam, **efeito de teto**, poder discriminante próximo de zero, e nove runs caros gastos para não descobrir nada.
-
-A complexidade tem que vir de onde **não há template**.
-
-### Trade-off do escopo de `Contatos`
-
-| | **B1 — CRUD puro** | **B2 — CRUD + regras de domínio + backfill** (recomendado) | **B3 — B2 + interface pelo bot** |
+| Nível | Feature | Score | Spec |
 |---|---|---|---|
-| Escopo | apelido + chave (String) + soft delete + 5 endpoints | B1 + `TipoChavePix` com validação e normalização por tipo (CPF/CNPJ com dígito verificador, e-mail, telefone E.164, aleatória UUID) + escopo por requisitante com teste de isolamento + unicidade `(requisitante, chave_normalizada)` → 409 + migration V8 com backfill de `funcionario.chave_pix` | B2 + strategy nova no bot |
-| Score | 4 → Média | **8 → Alta** | 10+ → Alta |
-| Template no repo | Cópia quase literal de `Funcionario` | Metade tem template, metade não existe | Terreno inexplorado |
-| Poder discriminante | **Próximo de zero (efeito de teto)** | **Alto** | Alto, com variância enorme |
-| Risco | Desperdiça ~9 runs caros | Médio | **Alto** — exige mexer no `TelegramMessageMapper` para texto puro; a ordem das strategies é `findFirst()` não-determinística; risco de colisão de regex |
+| **Baixa** | Comprovante mal-formado sem `#` vira pedido novo | **2** | `specs/SPEC-baixa-comprovante-malformado.md` |
+| **Média** | Contatos — agenda de chaves PIX (backend-only, sem backfill) | **5** | `specs/SPEC-media-contatos.md` |
+| **Alta** | Extração de valor do boleto por código de barras | **7** | `specs/SPEC-alta-extracao-boleto.md` |
 
-**Recomendação: B2, backend-only.** O frontend fica fora — o subagente `frontend` não existe no repositório — e é entregue depois, fora do experimento. O bot fica fora: habilitar mensagem de texto puro tem custo real e transformaria a feature em pesquisa exploratória, o oposto do que um experimento controlado precisa.
+### Scores rastreáveis
 
-## 4. Esqueleto da spec de `Contatos` — a refinar pelo humano
+**Baixa — comprovante mal-formado = 2**
 
-> Refinar até **"o quê"**. Parar. Congelar. Não descer para plano técnico.
+| Item | Pontos |
+|---|---|
+| Camada domínio (`LegendaParser`) | +1 |
+| Camada aplicação (`MensagemEntranteService`, strategies) | +1 |
+| **Total** | **2** |
 
-- Entidade `Contato`: apelido, chave, tipo de chave, `ativo` (soft delete), `criado_em`, `atualizado_em`
-- **Escopo por requisitante** — decisão de modelagem nº 1. `Funcionario` é global (a tabela V6 não tem `requisitante_id`); `Pedido` é por requisitante (`@RequisitanteId` + `IsolamentoRequisitanteIntegrationTest`). `Contato` segue o padrão de `Pedido`, com teste de isolamento próprio
-- `TipoChavePix` = `CPF` | `CNPJ` | `EMAIL` | `TELEFONE` | `ALEATORIA`
-- **Normalização e validação por tipo**, com dígito verificador para CPF e CNPJ, E.164 para telefone, UUID para aleatória
-- **Unicidade** por `(requisitante_id, chave_normalizada)` → conflito retorna **409**
-- 5 endpoints REST sob `/api/v1/contatos` — a rota fica protegida automaticamente pela allowlist positiva do `JwtAuthenticationFilter`, sem configuração adicional
-- Soft delete seguindo a convenção do repo (`ativo BOOLEAN NOT NULL DEFAULT TRUE`)
-- **Migration `V8__contatos.sql` com backfill idempotente** de `funcionario.chave_pix` para contatos do requisitante dono
-- Critérios de aceitação numerados e **executáveis** — mais de 8, conforme a rubrica
+Sem migration, sem integração externa, ≤8 critérios, sem padrão novo.
 
-## 5. Convenções do repositório que a spec deve respeitar
+**Média — Contatos = 5**
 
-Extraídas do código existente, para que a spec não precise repeti-las e para que desvio delas conte como defeito:
+| Item | Pontos |
+|---|---|
+| Camadas: domínio, aplicação, API, persistência | +4 |
+| Mais de 8 critérios de aceitação | +1 |
+| **Total** | **5** |
 
-- **Arquitetura hexagonal com padrão "port + service"** (o mais novo, usado em EVO-09): `application/port/in/XxxPortIn.java` (interface pura) + `application/services/XxxServiceImpl.java` (`@Service`). Não usar o padrão antigo `application/usecases/`.
-- **Persistência em 3 arquivos por agregado:** `XxxJpaRepository` (Spring Data) + `XxxRepositoryAdapter` (`@Component`, implementa o port out) + `XxxMapper` (`@Component`, escrito à mão — o repo **não usa MapStruct**).
-- **DTOs:** classes Lombok em `application/dto/`, sufixo `Request`/`Response`; response com factory estática `from(DomainEntity)`. Não há records.
-- **Validação:** Bean Validation no DTO para regras simples; **validações condicionais e cross-field vão no use case**, lançando `IllegalArgumentException` → 400 `PARAMETRO_INVALIDO`. Regra explícita documentada no JavaDoc de `FuncionarioRequest`.
-- **Erros:** `RestExceptionHandler` (`@RestControllerAdvice` restrito a `adapters.in.rest`), payload `ErroDTO` = `{codigo, mensagem}`. Uma feature nova adiciona `@ExceptionHandler` aqui.
-- **Migration Flyway:** `V<n>__snake_case.sql`, cabeçalho em comentário explicando o porquê, MySQL 8 / InnoDB / utf8mb4, `BIGINT AUTO_INCREMENT`, `criado_em`/`atualizado_em`, `CHECK` nomeadas espelhando as regras do use case, prefixos `fk_`/`chk_`/`uq_`/`idx_`, comentário sobre impacto de lock.
-- **Testes de integração:** Testcontainers com MySQL 8 real (não H2), `AbstractIntegrationTest` com container singleton, Flyway rodando de verdade, autenticação JWT real via `autenticarComo(Long)`, limpeza em `@AfterEach` respeitando ordem de FK. **Não existe `putAutenticado` na base** — oportunidade de reuso se Contatos tiver PUT.
+O `+2` de migration com backfill foi **removido**: o backfill previsto lia `funcionario.chave_pix`, e `funcionario` está vazia em produção. A migration continua (tabela nova), mas **sem backfill** — não pontua.
 
-## 6. Riscos das features
+**Alta — extração de boleto = 7**
 
-1. **Efeito de teto em `Contatos`.** O template `Funcionario` é forte. A variante B2 mitiga concentrando o trabalho onde não há template, mas o risco sobrevive — se o piloto mostrar qualidade equivalente em todas as configurações, a feature alta não discrimina.
-2. **Complexidade confundida com domínio.** A feature alta não é só mais complexa: é outro subdomínio. Insolúvel com 3 features. Declarar como limitação.
-3. **EVO-04 depende de um ponto de extensão nunca exercitado.** Todo o pipeline do bot assume mídia anexada; as duas strategies existentes lançam `PhotoProcessingException` se `fileBytes == null`, e `supports()` roda sobre a legenda. Mensagem de texto puro provavelmente não chega com `caption` preenchida — a extensão do `TelegramMessageMapper` é parte legítima da feature, mas aumenta a variância.
-4. **Ordem das strategies é `findFirst()` sobre a lista injetada** — não determinística nem explicitamente controlada. Uma strategy nova com regex ampla pode colidir com as existentes.
+| Item | Pontos |
+|---|---|
+| Camadas: domínio (parser + dígito verificador), aplicação, adapter in (Telegram), adapter out (leitor), infra (dependência nova no runtime e na EC2) | +5 |
+| Mais de 8 critérios de aceitação | +1 |
+| Padrão novo: pipeline de extração com validação e fallback | +1 |
+| **Total** | **7** |
+
+Não pontua integração externa: a leitura é feita por biblioteca local, **sem chamada de rede**. Foi decisão explícita — usar API de LLM daria `+2` (score 9) ao custo de reintroduzir custo recorrente, termos de uso de dados financeiros de terceiro, e não-determinismo dentro do sistema sob teste, violando o critério 3.
+
+## 4. Convenções do repositório que as specs pressupõem
+
+Extraídas do código existente. **Desvio delas conta como defeito na auditoria cega.** Verificadas contra o repo em 2026-08-10.
+
+- **Ports:** padrão atual é `application/port/in/XxxPortIn` + `application/services/XxxServiceImpl` (`@Service`). O pacote `application/usecases/` é **legado** — não criar coisa nova ali.
+- **JPA vive no adapter.** Entidades `@Entity` em `adapters/out/persistence/entity/`. `domain/` tem POJO puro.
+- **Persistência = 3 arquivos por agregado:** `XxxJpaRepository` + `XxxRepositoryAdapter` (`@Component`) + `XxxMapper` (`@Component`, à mão — **sem MapStruct**).
+- **DTOs:** classes Lombok em `application/dto/`, sufixo `Request`/`Response`, factory estática `from(...)`. **Sem records.**
+- **Validação:** Bean Validation no DTO para regra simples; condicional e cross-field no service, lançando `IllegalArgumentException` → 400 `PARAMETRO_INVALIDO`.
+- **Erros REST:** `RestExceptionHandler`, payload `ErroDTO = {codigo, mensagem}`.
+- **Migration Flyway:** `V<n>__snake_case.sql`, **próxima livre é `V8`**. MySQL 8 / InnoDB / utf8mb4, `BIGINT AUTO_INCREMENT`, `criado_em`/`atualizado_em`, `CHECK` nomeadas, prefixos `fk_`/`chk_`/`uq_`/`idx_`, cabeçalho comentado com o porquê e impacto de lock.
+- **Auth:** `JwtAuthenticationFilter` usa **allowlist positiva** — todo path sob `/api/` exige JWT exceto `/api/v1/auth/exchange`. Controller novo sob `/api/v1/**` já nasce protegido.
+- **Testes de integração:** Testcontainers com **MySQL 8 real** (não H2), `AbstractIntegrationTest` com container singleton, Flyway rodando, auth JWT real via `autenticarComo(Long)`, limpeza em `@AfterEach` respeitando ordem de FK.
+- **Property que aponta pra secret:** default vai no `.properties`, não no `@Value` — placeholder aninhado não herda default do externo (`docs/aprendizado/spring-placeholder-aninhado-default.md`).
+
+## 5. Riscos das features
+
+1. **Faixa estreita de complexidade (2/5/7).** O contraste Baixa × Alta é de 5 pontos, menor que o previsto. Reduz poder de detectar interação complexidade × papel. Declarado como limitação.
+2. **Baixa e Alta tocam o mesmo despacho por regex.** Ambas mexem na decisão entre `PaymentRequestStrategy` e `PaymentProofStrategy`. Como **nenhum branch experimental é mergeado** e todo run parte do mesmo baseline, não há conflito real entre runs. Mas se as duas forem implementadas de verdade depois, exigem reconciliação — anotar no backlog.
+3. **Ordem das strategies é `findFirst()`** sobre a lista injetada, não determinística nem controlada. Strategy nova com regex ampla pode colidir. Vale para Baixa e Alta.
+4. **Efeito de teto na Média.** `Funcionario` é template forte para `Contatos`. Sem o backfill, a feature ficou mais próxima de CRUD puro — o risco de teto **aumentou** em relação à variante B2 original. Monitorar no piloto: se todas as configurações acertarem, a Média perde poder discriminante e o screening fica comprometido.
+5. **Alta depende de especificação externa não verificada.** Posições de campo da linha digitável e formato de boleto de concessionária vêm da especificação FEBRABAN. Não foram verificadas no desenho — a task inclui essa pesquisa, e isso é parte legítima da complexidade.
+
+## 6. Complexidade precisa de segundo avaliador
+
+A rubrica exige classificação por **dois avaliadores independentes**. Os scores acima foram atribuídos por um só (agente `planner`, com verificação contra o código). **Pendência bloqueante da Fase 2:** um segundo avaliador aplica a rubrica às três specs sem ver esta tabela, e as divergências são registradas.

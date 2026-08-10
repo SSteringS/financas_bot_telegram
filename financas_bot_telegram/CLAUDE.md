@@ -13,23 +13,55 @@ Este módulo é o backend do projeto. O Claude do **front não deve tocar nesta 
 
 ## Arquitetura hexagonal
 
+Package raiz: `br.com.satyan.stering.saita.financasbottelegram`
+
 ```
 adapters/
   in/
-    telegram/          ← recebe updates do webhook do Telegram
-      strategy/        ← Strategy por tipo de mensagem (PaymentRequest, PaymentProof)
+    rest/              ← API REST consumida pelo frontend
+      RestExceptionHandler.java   ← @RestControllerAdvice restrito a adapters.in.rest
+      admin/ auth/ pedido/ resumo/ funcionario/ folha/
+    telegram/          ← webhook do Telegram
+      controller/ mapper/ exception/ exceptionhandler/
+    whatsapp/          ← webhook da Meta Cloud API
+      controller/ mapper/ dto/ security/ exception/ exceptionhandler/
   out/
-    s3/service/        ← upload de imagens para S3
-    telegram/service/  ← download de arquivos e envio de mensagens
+    persistence/       ← JpaRepository + RepositoryAdapter + entity/ + mapper/
+    s3/service/        ← upload para S3
+    telegram/          ← service/ (envio, download) + notificador/
+    whatsapp/          ← service/ (envio, download de mídia) + dto/
 application/
-  usecases/            ← interfaces dos casos de uso (ports)
-  services/            ← implementações dos casos de uso
+  port/in/             ← ports de entrada (padrão ATUAL)
+  port/out/            ← ports de saída (repositórios, storage, notificador)
+  services/            ← implementações dos casos de uso (@Service)
+  strategy/            ← Strategy por tipo de mensagem (PaymentRequest, PaymentProof)
+  dto/                 ← DTOs Lombok, sufixo Request/Response
+  usecases/            ← ⚠️ LEGADO — interfaces de caso de uso do padrão antigo
+  exceptions/ config/
 domain/
-  entity/              ← entidades JPA (PedidoPagamento, Comprovante)
-infra/                 ← beans de configuração (RestClient, etc.)
+  model/               ← POJOs de domínio (PedidoPagamento, Comprovante, Requisitante...)
+  entity/              ← ⚠️ POJOs de domínio da folha (Funcionario, Adiantamento) — ver nota
+  enums/               ← StatusPedido, TipoArquivo, FormaPagamento, CategoriaPedido...
+  service/             ← LegendaParser (lógica de domínio pura)
+  event/ exceptions/
+infra/
+  security/            ← JwtService, JwtAuthenticationFilter, CookieFactory,
+                         @RequisitanteId + ArgumentResolver, WebMvcConfig
+  AppConfig.java       ← RestClient e beans de infra
+  OpenApiConfig.java
 ```
 
-Package raiz: `br.com.satyan.stering.saita.financasbottelegram`
+### Convenções que valem hoje
+
+- **Ports:** o padrão atual é `application/port/in/XxxPortIn` (interface) + `application/services/XxxServiceImpl` (`@Service`). O pacote **`application/usecases/` é legado** — ainda usado pelas verticais antigas (pedido, resumo, auth). **Não criar coisa nova ali.**
+- **JPA vive no adapter, não no domínio.** As entidades anotadas com `@Entity` ficam em `adapters/out/persistence/entity/` (`FuncionarioEntity`, `ComprovanteEntity`...). `domain/` tem POJOs puros, sem anotação de persistência.
+- **Persistência = 3 arquivos por agregado:** `XxxJpaRepository` (Spring Data) + `XxxRepositoryAdapter` (`@Component`, implementa o port out) + `XxxMapper` (`@Component`, **escrito à mão** — o repo não usa MapStruct).
+- **DTOs:** classes Lombok em `application/dto/`, sufixo `Request`/`Response`; response com factory estática `from(...)`. **Não há records.**
+- **Validação:** Bean Validation no DTO para regras simples; validação **condicional / cross-field vai no service**, lançando `IllegalArgumentException` → 400 `PARAMETRO_INVALIDO`.
+- **Erros REST:** `RestExceptionHandler` com payload `ErroDTO = {codigo, mensagem}`. Cada canal tem seu próprio advice, restrito por `basePackages`.
+- **Testes de integração:** Testcontainers com **MySQL 8 real** (não H2), `AbstractIntegrationTest` com container singleton, Flyway rodando de verdade, auth JWT real via `autenticarComo(Long)`, limpeza no `@AfterEach` respeitando ordem de FK.
+
+> ⚠️ **Débito conhecido:** `domain/model/` e `domain/entity/` são dois pacotes paralelos para a mesma coisa — `entity/` surgiu na sprint 03 (folha) e `model/` é o original. Ao criar POJO de domínio novo, usar **`domain/model/`**. Registrado em `docs/PENDENCIAS-TECNICAS.md`.
 
 ## Perfis Spring
 
@@ -57,14 +89,42 @@ Pré-requisitos: MySQL local rodando, `application-dev.properties` preenchido.
 mvn package -DskipTests -f financas_bot_telegram/pom.xml
 ```
 
-## Endpoints REST (em desenvolvimento)
+## Endpoints
 
-O bot Telegram consome o webhook em `POST /webhook`.
-Os endpoints de consulta para o frontend estão sendo desenvolvidos na branch `feature/api-consulta-pedidos-comprovantes`.
+### Webhooks (públicos — sem JWT)
+
+| Rota | Canal |
+|---|---|
+| `POST /webhook/telegram` | Telegram |
+| `POST /webhook/whatsapp` | Meta Cloud API (valida `X-Hub-Signature-256`) |
+| `GET /webhook/whatsapp` | handshake de verificação da Meta |
+
+### API REST
+
+| Prefixo | Controller |
+|---|---|
+| `/api/v1/auth` | `AuthController` |
+| `/api/v1/pedidos` | `PedidoController` |
+| `/api/v1/resumo` | `ResumoController` |
+| `/api/v1/funcionarios` | `FuncionarioController` + `FolhaController` |
+| `/admin/api/v1` | `AdminController` (protegido por API key, não por JWT) |
+
+### Autenticação — allowlist positiva
+
+`JwtAuthenticationFilter.shouldNotFilter` usa **allowlist**: tudo sob `/api/` exige JWT, **exceto** `/api/v1/auth/exchange`. `/webhook/**` e `/actuator/**` são públicos.
+
+**Consequência prática:** um controller novo sob `/api/v1/**` já nasce protegido, sem tocar no filtro.
+
+## Migrations
+
+Flyway em `src/main/resources/db/migration/`, formato `V<n>__snake_case.sql`. **Próxima disponível: `V8`** (V1–V7 em uso).
+
+Convenções: MySQL 8 / InnoDB / utf8mb4, `BIGINT AUTO_INCREMENT`, colunas `criado_em`/`atualizado_em`, `CHECK` nomeadas espelhando as regras do service, prefixos `fk_` / `chk_` / `uq_` / `idx_`, cabeçalho em comentário explicando o porquê e o impacto de lock.
 
 ## Regras importantes
 
 - Nunca commitar `application-dev.properties` (gitignored)
-- Nunca usar `ddl-auto=create` ou `update` em prod — usar migrations SQL manuais
-- Manter a separação de camadas da arquitetura hexagonal — adapters não conhecem outros adapters
-- Novos endpoints REST vão em `adapters/in/web/` (criar se não existir)
+- Nunca usar `ddl-auto=create` ou `update` em prod — usar migrations Flyway
+- Manter a separação de camadas — adapters não conhecem outros adapters
+- Novos endpoints REST vão em `adapters/in/rest/<recurso>/`
+- **Default de property que aponta pra secret vai no `.properties`, não no `@Value`** — placeholder aninhado não herda o default do externo. Ver `docs/aprendizado/spring-placeholder-aninhado-default.md`

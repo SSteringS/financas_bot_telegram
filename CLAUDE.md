@@ -22,6 +22,11 @@ O isolamento vale pra **código**. `docs/` é área **compartilhada** — todas 
 - **Claude de planejamento:** commita direto em `develop` e é o **mantenedor** da estrutura de `docs/` (planos, architecture, decisions)
 - **`docs/` é escrita por todos:** qualquer instância adiciona seu status report em `docs/sprints/<NN>/status/` e pode registrar aprendizados em `docs/aprendizado/`. Mudanças estruturais em `docs/plans/`, `docs/architecture/` e `docs/decisions/` ficam com o planejamento.
 - Arquivos da raiz (`CLAUDE.md`, `.gitignore`, `TODO.md`) podem ser editados por qualquer instância quando necessário
+- **`.claude/` (agentes, skills, settings, hooks) — território do humano e do `ai-engineer`.** Definido em 2026-08-10. As demais instâncias **podem** mexer, mas **somente com autorização explícita do dev no controle**, pedida na hora e para a mudança específica. Não vale autorização genérica nem inferida de um pedido adjacente.
+
+  > **Por que a regra é mais estrita aqui:** `.claude/` é a configuração que define os próprios agentes. Um agente que altera a própria definição e erra fica quebrado e sem meio de se consertar. Além disso, mudança em `.claude/agents/` altera o comportamento de **todas as sessões futuras**, não só a corrente — o raio de alcance é maior que o de qualquer commit de código.
+  >
+  > **Efeito não é imediato:** configuração de agente é carregada no spawn. Alteração em `.claude/agents/` só vale a partir da **próxima sessão**.
 
 ## Estrutura da pasta docs/
 

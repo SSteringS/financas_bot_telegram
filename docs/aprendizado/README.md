@@ -45,6 +45,8 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 
 - [`git-reset-e-area-de-staging.md`](git-reset-e-area-de-staging.md) — index, modos de `git reset`, lock file
 - [`git-line-endings-crlf-lf.md`](git-line-endings-crlf-lf.md) — CRLF vs LF, `.gitattributes`, renormalização; drift de `user_data` no Terraform
+- [`analise-estatica-pmd-checkstyle.md`](analise-estatica-pmd-checkstyle.md) — Checkstyle = convenção, PMD = qualidade, SpotBugs = bug provável; complexidade ciclomática e sua limitação; por que PMD importa mais que Checkstyle pra avaliar código gerado por LLM
+- [`teste-mutante-e-pit.md`](teste-mutante-e-pit.md) — cobertura mede execução, mutation score mede força de asserção; mutantes killed/survived/equivalentes; PIT muta bytecode e roda só testes que cobrem a linha; excluir Testcontainers é uso correto; por que pega teste fraco gerado por LLM
 - [`spec-efemera-vs-arquitetura-duradoura.md`](spec-efemera-vs-arquitetura-duradoura.md) — régua "isso vai ser verdade em 6 meses?" distingue `docs/architecture/` (durável) de `docs/sprints/<NN>/specs/` (efêmera); ADR canoniza decisões transversais; caso prático 2026-06-01 do desenho de testes E2E
 
 ### Ferramental / ambiente
@@ -86,6 +88,7 @@ O Claude de planejamento cria/atualiza arquivos aqui automaticamente quando uma 
 ### Banco de dados / SQL
 
 - [`yearmonth-para-date-sql.md`](yearmonth-para-date-sql.md) — como representar YearMonth (Java) como DATE no banco; convenção "primeiro dia do mês"; uso nos boundaries de query e no UNIQUE INDEX de idempotência (EVO-09)
+- [`migration-com-backfill.md`](migration-com-backfill.md) — migration muda a forma, backfill preenche o histórico; espectro sem-backfill → default → derivado; armadilhas (ordem, idempotência, DDL sem transação no MySQL, lock, dev vazio não valida)
 
 ### Telegram / bot
 

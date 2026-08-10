@@ -23,5 +23,8 @@ docs/sprints/<NN-nome>/
 ## Sprints
 
 - [`01-mvp/`](01-mvp/) — MVP (Fase 3, camada de visualização). ✅ entregue (E2E em prod). Retro: `docs/retrospectivas/RETRO-01-mvp-fase3.md`.
-- [`02-canal-whatsapp/`](02-canal-whatsapp/) — Canal WhatsApp + notificação de pagamento + observability. 🔜 em discovery/planejamento.
+- [`02-canal-whatsapp/`](02-canal-whatsapp/) — Canal WhatsApp + notificação de pagamento + observability. ✅ fechada em 2026-05-30. Retro: `docs/retrospectivas/RETRO-02-canal-whatsapp.md`.
+- [`02b-kaizen-workflow/`](02b-kaizen-workflow/) — Workflow e processo (WF-01..WF-08). ✅ fechada em 2026-05-31. Retro: `docs/retrospectivas/RETRO-02b-kaizen-workflow.md`.
+- [`03-folha-pagamento/`](03-folha-pagamento/) — Folha de pagamento (EVO-09) + suíte E2E. 🟠 em execução.
+- [`04-instrumentacao-qualidade/`](04-instrumentacao-qualidade/) — Ferramental de qualidade (JaCoCo, PIT, PMD) + instrumentação de custo por papel + correção da config dos subagentes. 🟠 em construção.
 </content>
