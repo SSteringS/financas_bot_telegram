@@ -17,6 +17,7 @@ gates:
 commits:
   - a713acb
   - 1a40e2f
+  - 44a3936
 pr: null
 desvios: 1
 pendencias_humano: 0
