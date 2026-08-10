@@ -44,6 +44,42 @@ cd C:\Users\satya\src\financas_bot_telegram\financas_bot_telegram
 
 ---
 
+## Camada 1.5 — Teste mutante (PIT), sob demanda
+
+**O que valida:** não *se* o teste rodou, mas *se ele teria percebido* uma quebra. O PIT altera o bytecode de propósito (um mutante por vez) e verifica se algum teste falha. Teste que executa a linha sem verificar nada dá cobertura alta e mutation score baixo — é exatamente o buraco que a camada 1 não enxerga.
+
+Conceito, estados do relatório e armadilhas: [`docs/aprendizado/teste-mutante-e-pit.md`](../aprendizado/teste-mutante-e-pit.md).
+
+```bash
+cd C:\Users\satya\src\financas_bot_telegram
+./financas_bot_telegram/mvnw org.pitest:pitest-maven:mutationCoverage -f financas_bot_telegram/pom.xml
+```
+
+**Pré-requisito:** a suíte precisa estar **verde**. O PIT usa a execução original como referência; com teste vermelho o resultado não significa nada.
+
+**Saída:** `financas_bot_telegram/target/pit-reports/` — `index.html` (abrir no navegador; mostra o código-fonte com cada mutante sobrevivente marcado na linha) e `mutations.xml` (parseável). A pasta fica sob `target/`, **não é commitada**.
+
+**Escopo atual — proposital:** `targetClasses` no `pom.xml` está fixo em quatro classes de lógica pura (`LegendaParser`, `PaymentRequestStrategy`, `PaymentProofStrategy`, `MetaSignatureValidator`). Rodar no projeto inteiro dilui o sinal e custa caro. Para analisar outra classe, acrescente o FQCN em `targetClasses`.
+
+**`excludedTestClasses` com `*IntegrationTest` não é otimização — é requisito de viabilidade.** Os testes de integração sobem MySQL 8 real via Testcontainers e o PIT reexecuta a suíte que cobre cada mutante uma vez por mutante. Com container no caminho o run não termina. Se um teste de integração novo não terminar em `IntegrationTest`, ele escapa do filtro — **a convenção de nome é o que segura essa exclusão**.
+
+**Quando rodar:** ao mexer em lógica de decisão de uma das classes do escopo, e ao avaliar se um conjunto de testes é forte de verdade. **Não é gate de merge** e não roda no CI.
+
+**Como ler o resultado:**
+
+| Estado | Significado | O que fazer |
+|---|---|---|
+| `KILLED` | algum teste falhou com o mutante — o teste percebeu | nada |
+| `SURVIVED` | o código mudou e ninguém reclamou | investigar: falta asserção, ou o mutante é equivalente |
+| `NO_COVERAGE` | a linha não é executada por teste nenhum | é buraco de cobertura, não de asserção |
+| `TIMED_OUT` | a mutação gerou loop infinito — conta como morto | nada |
+
+`Mutation score` = mortos ÷ gerados. `Test strength` = mortos ÷ **cobertos** — separa "asserção fraca" de "código não testado". **100% não é meta**: mutantes equivalentes (mudança sem efeito observável, ex.: capacidade inicial de um `StringBuilder`) são impossíveis de matar por construção.
+
+Baseline das quatro classes e a leitura interpretada de cada sobrevivente estão em [`docs/sprints/04-instrumentacao-qualidade/status/QA-012-piloto-pit-mutation-testing.md`](../sprints/04-instrumentacao-qualidade/status/QA-012-piloto-pit-mutation-testing.md).
+
+---
+
 ## Camada 2 — Verificação estática (humano + ferramentas, 5-10 min)
 
 **O que valida:** que o código compila limpo, que a API expõe o que deveria, que o git histórico está aceitável.
