@@ -16,6 +16,7 @@ gates:
   territorio: ok
 commits:
   - a713acb
+  - 1a40e2f
 pr: null
 desvios: 1
 pendencias_humano: 0
@@ -50,8 +51,11 @@ Verificado com um segundo run em `-Dverbose=true` (2914 linhas de log):
 
 - O log enumera **70 classes de teste distintas** do pacote do projeto. `target/test-classes` tem **82** classes compiladas, das quais **12** terminam em `IntegrationTest`. 82 − 12 = **70**. Bate exatamente.
 - A string `IntegrationTest` aparece **uma única vez** em todo o log, e é o eco da própria configuração: `excludedTestClasses=[^.*IntegrationTest$]`.
-- **Zero** ocorrências de `testcontainers`, `mysql` ou `docker` (busca case-insensitive) no log.
+- `testcontainers`, `mysql` e `docker` **aparecem** no log — 5 linhas, **todas dentro do dump de `classPathElements`** do `ReportOptions` (`testcontainers-1.20.6.jar`, `org/testcontainers/mysql/1.20.4`, `docker-java-api-3.4.1.jar`, `mysql-connector-j`). Ter o JAR no classpath **não é executá-lo**: não há nenhuma linha de ciclo de vida de container (`Creating container`, `Container ... started`, pull de imagem) em lugar nenhum do log.
 - Fase de cobertura: 22 segundos; run inteiro: 46–48 segundos. Só o boot de um MySQL 8 via Testcontainers custa mais que isso.
+- Docker estava **disponível** na máquina durante o run (`docker info` → server 26.1.4). Isso importa: se algum teste de integração tivesse escapado do filtro, ele teria **rodado** em vez de falhar por falta de daemon — o teste da exclusão foi feito na condição adversa, não na condição fácil.
+
+**O que roda, e não é integração:** a fase de cobertura executa as 70 classes de teste uma vez, e entre elas há testes que sobem contexto Spring — banner do Spring Boot 3.4.5, slices `@WebMvcTest` (`TestDispatcherServlet`) e um `SessionFactory` do Hibernate sobre **H2** (`jdbc:h2:...`, dependência `test` do projeto), com ruído de `SchemaDropperImpl` no shutdown. Nada disso é MySQL nem Testcontainers, e nenhuma das quatro classes-alvo depende de Spring. Mas tem consequência de custo, registrada nos débitos técnicos: **o piso de tempo do PIT é a suíte unitária inteira, independente de quão pequeno seja `targetClasses`.**
 
 > Ressalva honesta: o PIT loga `Sending 245 test classes to minion` e `245 tests examined`. Esse contador é maior que as 70 classes que ele de fato enumera, e **não confirmei o que ele conta** (candidatos varridos no classpath de teste, provavelmente incluindo classes de produção dos mesmos pacotes). Não uso esse número como evidência; a evidência é a enumeração das 70 + a ausência total das 12 classes de integração.
 
@@ -94,7 +98,9 @@ Nenhuma das nove legendas de `LegendaParserTest` tem palavra-chave no índice 0 
 Mesmo `if`, outra comparação. Original e mutante só divergem quando `pos == posicaoMaisCedo`. Dois casos:
 
 - **Primeira iteração:** `posicaoMaisCedo` vale `Integer.MAX_VALUE`. `indexOf` devolve no máximo `length - 1`, que nunca é `MAX_VALUE`. Não diverge.
-- **Iterações seguintes:** exigiria duas palavras-chave **distintas** começando no **mesmo índice** da legenda. As quatro chaves são `boleto`, `pix`, `ted`, `agendamento` — primeiras letras `b`, `p`, `t`, `a`, todas diferentes. Duas delas não podem começar na mesma posição. Não diverge.
+- **Iterações seguintes:** exigiria duas palavras-chave **distintas** começando no **mesmo índice** da legenda. Duas strings distintas só começam no mesmo índice se uma for **prefixo** da outra — e nenhuma de `boleto`, `pix`, `ted`, `agendamento` é prefixo de outra. Não diverge.
+
+  **A equivalência é condicional ao conteúdo de `PALAVRAS_CHAVE`, não à estrutura do código.** Se alguém acrescentar ao mapa uma chave que seja prefixo de outra (`pix` e `pix-copia-e-cola`, por exemplo), as duas passam a ser encontradas no mesmo índice, `pos == posicaoMaisCedo` deixa de ser impossível, e o mutante deixa de ser equivalente — original e mutante escolheriam entradas diferentes. Ou seja: este mutante pode **voltar a ser um achado legítimo** numa mudança futura do mapa. Não é equivalência permanente.
 
 Logo não existe entrada que mate esse mutante: é equivalente por construção. Estou classificando como equivalente **com a demonstração acima**, não como saída fácil — o sobrevivente nº 1 é da mesma linha e está classificado como lacuna real.
 
@@ -120,6 +126,8 @@ StringBuilder sb = new StringBuilder(bytes.length * 2);
 
 É a **capacidade inicial** do `StringBuilder`. Capacidade é dica de alocação: com capacidade menor o `StringBuilder` realoca internamente e produz **exatamente a mesma String**. Nenhum teste possível sobre o contrato público (`isValid` devolve boolean; `bytesToHex` é privado) consegue distinguir original de mutante — só um benchmark de alocação, que não é teste de comportamento.
 
+Nem por exceção diverge: `bytes.length` nunca é negativo, então `bytes.length / 2` também não é, e o construtor do `StringBuilder` (que rejeita capacidade negativa) não tem como lançar no mutante.
+
 Equivalente de manual. É, aliás, o exemplo mais didático do run: mostra por que **100% de mutation score não é meta alcançável**.
 
 ### 5. `MetaSignatureValidator:59` — `NO_COVERAGE`, não sobrevivente
@@ -137,7 +145,14 @@ O bloco `catch` nunca é executado por teste nenhum: `HmacSHA256` existe em qual
 
 ### Onde não houve o que interpretar
 
-`PaymentRequestStrategy` (11/11) e `PaymentProofStrategy` (9/9) **não produziram um único sobrevivente**. Isso é achado, não vazio: os testes dessas duas classes usam `ArgumentCaptor` e verificam o conteúdo do objeto construído (valor, descrição, status, `requisitanteId`, `dataPedido`, URL do S3), em vez de só verificar que o mock foi chamado. Toda decisão mutável — os `if` de `supports()`, os early-return, os `TipoUploadS3` passados ao S3, o texto condicional da dica de tipo — tem asserção que a distingue. É o padrão de teste que o item #2 do backlog deveria replicar nas outras classes.
+`PaymentRequestStrategy` (11/11) e `PaymentProofStrategy` (9/9) **não produziram um único sobrevivente**. Isso é achado, não vazio: os testes das duas classes verificam o **conteúdo dos argumentos** que chegam ao colaborador, não apenas que o colaborador foi chamado. Toda decisão mutável — os `if` de `supports()`, os early-return, o `TipoUploadS3` passado ao S3, o texto condicional da dica de tipo — tem asserção que a distingue.
+
+O **mecanismo** difere entre as duas, e vale registrar direito porque o item #2 vai querer replicar:
+
+- `PaymentRequestStrategyTest` usa `ArgumentCaptor` (3 ocorrências) e checa campo a campo o `PedidoPagamento` construído: valor, descrição, status, `telegramUserId`, `fileIdTelegram`, `imagemUrl`, `requisitanteId`, `dataPedido`.
+- `PaymentProofStrategyTest` **não usa `ArgumentCaptor`** (zero ocorrências). Ele fixa cada argumento com `eq(...)` dentro do próprio `verify`/`when` — `execute(eq(123L), eq("PIX"), eq("file_xyz"), any(), eq(TipoArquivo.IMAGEM), eq(12345L))`. O efeito sobre o mutante é o mesmo: um argumento errado não casa e o teste falha.
+
+O que os dois têm em comum, e é isso que mata mutante, é **asserção sobre valor**, não sobre ocorrência de chamada. `ArgumentCaptor` e `eq(...)` são dois jeitos de chegar lá.
 
 Conforme o plano, **não ampliei o escopo por conta própria**: as quatro classes renderam material suficiente (4 sobreviventes + 1 `NO_COVERAGE`), então não há motivo para escolher classes novas nesta rodada.
 
@@ -147,7 +162,9 @@ Conforme o plano, **não ampliei o escopo por conta própria**: as quatro classe
 
 O run deu três casos diferentes, todos com exemplo concreto destas quatro classes.
 
-### Caso 1 — cobertura alta escondendo asserção fraca (`LegendaParser`)
+> Nota de leitura: as três line coverages estão todas na mesma faixa (90–96%) — **o contraste dos casos abaixo não é "cobertura alta × cobertura baixa"**, é o que o mutation score diz *apesar* de a cobertura ser parecida. Números próximos, diagnósticos opostos: é justamente esse o ponto.
+
+### Caso 1 — cobertura quase perfeita escondendo asserção fraca (`LegendaParser`: 94% de linha, 75% de mutantes)
 
 Line coverage **94%** (17/18). A **única** linha não coberta é `private LegendaParser() {}` — o construtor privado de classe utilitária, inalcançável por design. Lido só pela cobertura, o veredito seria "praticamente perfeito, 100% do que importa".
 
@@ -155,7 +172,7 @@ Mutation score: **75%**. Os dois sobreviventes estão na **linha 28, que é exec
 
 **É a divergência que motiva a ferramenta**, e apareceu no primeiro run, na classe mais simples do escopo.
 
-### Caso 2 — cobertura baixa sem lacuna de asserção (`PaymentRequestStrategy`)
+### Caso 2 — cobertura incompleta sem lacuna de asserção (`PaymentRequestStrategy`: 96% de linha, 100% de mutantes)
 
 O inverso. Line coverage **96%** (47/49): as linhas 88 e 97, o `throw new InvalidMessageFormatException(...)` dentro de `parsePedido`, nunca executam — `process()` só é chamado com caption que `supports()` aceitaria, e `parsePedido` refaz o match por segurança. Cobertura aponta um "buraco".
 
@@ -198,6 +215,28 @@ Nenhum outro. As quatro classes previstas se sustentaram (nenhuma puxou contexto
 
 ---
 
+## Revisão independente
+
+Reviewer executado (ADR 0005). Avaliação em [`docs/sprints/04-instrumentacao-qualidade/avaliacoes/QA-012-piloto-pit-mutation-testing.md`](../avaliacoes/QA-012-piloto-pit-mutation-testing.md).
+
+**Veredito: aprovado com ressalvas** — 11/11 critérios de aceitação atendidos, nenhum achado bloqueante, nenhuma correção de código necessária. O Reviewer reproduziu por conta própria o `mvn test`, o `package`, o run do PIT com `-Dverbose=true` e a checagem crítica do §Coordenação #1 (nenhum teste de integração sob o PIT), com números idênticos por classe e no total.
+
+Cinco achados, todos em **prosa deste relatório**, todos corrigidos nesta rodada:
+
+| # | Achado | Correção |
+|---|---|---|
+| 1 | "Zero ocorrências de `testcontainers`/`mysql`/`docker` no log" era **falso** — a busca original foi feita no log *não-verbose*; no verbose há 5 linhas, todas no dump de `classPathElements`, inclusive na mesma linha que o report citava como evidência | §Critério 4 reescrita: a evidência agora é a ausência de linhas de ciclo de vida de container, não a ausência das strings |
+| 2 | Um contexto Spring (H2, slices `@WebMvcTest`) sobe durante a fase de cobertura e isso não estava registrado | Documentado no §Critério 4 e virou o **débito técnico #7** — o piso de custo do PIT é a suíte unitária inteira, o que limita o ganho esperado do item #7 do backlog |
+| 3 | `PaymentProofStrategyTest` **não usa** `ArgumentCaptor` (o report atribuía o padrão às duas classes) | §"Onde não houve o que interpretar" reescrita: o mecanismo é `eq(...)` numa e `ArgumentCaptor` na outra; o que mata mutante é asserção sobre **valor** |
+| 4 | Rótulos do §Cobertura × mutation score se contradiziam ("cobertura alta" = 94%, "cobertura baixa" = 96%) | Rótulos trocados por faixas explícitas + nota de leitura: as três coberturas estão na mesma faixa, e é esse o ponto |
+| 5 | `commits:` não listava `1a40e2f` | Corrigido no frontmatter |
+
+Dois apertos de argumento sugeridos pelo Reviewer também foram incorporados: a equivalência de `LegendaParser:28` passa a se apoiar em **prefixo** (e o relatório agora registra que ela é condicional ao conteúdo do mapa, não permanente), e a de `MetaSignatureValidator:64` ganhou o argumento de que `bytes.length / 2` nunca é negativo.
+
+A sugestão de segunda leva de classes está registrada em *Próximos passos* — a decisão é do humano, conforme o plano.
+
+---
+
 ## Decisões pendentes (esperando humano)
 
 Nenhuma — tarefa fechada.
@@ -214,6 +253,7 @@ Para o planner consolidar em `docs/PENDENCIAS-TECNICAS.md` / backlog da sprint:
 4. **PIT roda sem histórico incremental.** `historyInputLocation`/`historyOutputLocation` não configurados: todo run é do zero. Irrelevante em 4 classes, vira problema quando o escopo crescer (item #7 do backlog, "classes tocadas").
 5. **Os números foram colhidos em JVM 23-ea, enquanto CI e produção usam Temurin 21.** O `pom.xml` compila com `--release 21`, mas o PIT executou sobre uma JVM diferente da do CI. Não invalida o baseline (é bytecode 21 em ambos os casos), mas se o PIT for para o CI, vale reconferir os números lá antes de tratá-los como comparáveis.
 6. **`cobertura_pct` continua `na`.** O `Line Coverage` desta task vem da passada do PIT e cobre só as 4 classes mutadas. Enquanto JaCoCo não entrar (item #6 do backlog), o campo do frontmatter não tem fonte legítima.
+7. **O piso de custo do PIT é a suíte unitária inteira, não o tamanho de `targetClasses`.** A fase de cobertura roda as 70 classes de teste uma vez — inclusive as que sobem contexto Spring (H2, slices `@WebMvcTest`) — antes de mutar qualquer coisa. Aqui foram 22s dos 48s totais. **Isso limita o ganho esperado do item #7 do backlog** ("classes tocadas"): restringir `targetClasses` reduz a fase de mutação, não a de cobertura. Quem for desenhar o item #7 precisa saber disso antes de estimar. Mitigação possível a avaliar lá: `targetTests` explícito além de `targetClasses`, e/ou análise incremental via `historyInputLocation`.
 
 ---
 
@@ -223,7 +263,8 @@ Para o planner consolidar em `docs/PENDENCIAS-TECNICAS.md` / backlog da sprint:
 - **Não tratar 100% como meta.** Dos 5 achados deste run, 2 são equivalentes demonstrados e 1 é inalcançável na prática. O teto realista destas quatro classes é 39/42 ≈ 93%.
 - **Ao ampliar `targetClasses`**, conferir antes se o teste da classe candidata sobe contexto Spring ou Testcontainers — é o que inviabiliza o run.
 - **Se o PIT for para o CI**, o runner usa Java 21 e não tem cache do `.m2`: o primeiro run baixa o plugin. E o `excludedTestClasses` continua sendo obrigatório, não opcional.
-- **Padrão a replicar:** os testes de `PaymentRequestStrategy`/`PaymentProofStrategy` mataram 20/20 porque capturam o objeto construído e verificam campo a campo, em vez de só verificar que o mock foi chamado. É o contraste com `LegendaParserTest`, que compara só o retorno final.
+- **Padrão a replicar:** os testes de `PaymentRequestStrategy`/`PaymentProofStrategy` mataram 20/20 porque asseguram o **valor** dos argumentos que chegam ao colaborador (via `ArgumentCaptor` num caso, via `eq(...)` no outro), em vez de só verificar que o mock foi chamado.
+- **Sugestão do Reviewer para uma segunda leva de classes** (a decisão é do humano, conforme o plano): classes com lógica de decisão mais densa, que tendem a render mais sobreviventes que estas quatro — `ResumoMesServiceImpl`, `FecharMesServiceImpl`, `CadastrarAdiantamentoServiceImpl`, `JwtService`, `Sha256HashService` e os mappers de Telegram/WhatsApp. Registrado aqui como insumo; não ampliei o escopo por conta própria.
 
 ---
 
