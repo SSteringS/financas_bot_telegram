@@ -129,6 +129,71 @@ O resto vem por referência ao workflow + skills que ele carrega. Reduz o prompt
 
 **Material a olhar antes da RETRO-02:** `docs/sprints/01-mvp/plans/MASTER-PROMPT-overnight-deploy.md`, `docs/sprints/02-canal-whatsapp/plans/MASTER-PROMPT-overnight-sprint02-1.md`, `MASTER-PROMPT-overnight-sprint02-2.md`, `DISPATCH-FIX-idempotencia-porta-application.md`. Diffar lado a lado pra ver o que é boilerplate idêntico (extrair) vs específico (manter inline).
 
+### 11. Mudanças em `.claude/` derivadas da QA-012 — **levar ao `ai-engineer`**
+
+**Origem:** revisão humana do status report e da avaliação da QA-012 (2026-08-10). Quatro mudanças, todas em `.claude/`, que é **território do humano e do `ai-engineer`** — nenhuma pode ser feita pelo planner sem autorização explícita e específica. Este item é o pacote de contexto para essa conversa.
+
+**Contexto que as quatro compartilham:** a QA-012 foi o piloto do mutation testing. O que ela produziu de mais valioso não foi o número, foi o mapeamento de **quais regras do projeto existiam só em prosa**. As decisões abaixo já foram tomadas pelo humano; falta escrever, no lugar certo, por quem tem território.
+
+#### 11.1 — `writing-java-unit-tests`: asserção sobre **valor**, não sobre ocorrência de chamada
+
+**Achado.** Das quatro classes do piloto, `PaymentRequestStrategy` e `PaymentProofStrategy` mataram **20/20 mutantes** — zero sobreviventes. O motivo é o mesmo nas duas, e é replicável: os testes verificam **o valor dos argumentos** que chegam ao colaborador, não apenas que o colaborador foi chamado.
+
+O **mecanismo** difere, e isso importa porque não existe um jeito canônico:
+
+- `PaymentRequestStrategyTest` usa `ArgumentCaptor` (3 ocorrências) e assere campo a campo o `PedidoPagamento` construído — valor, descrição, status, `telegramUserId`, `fileIdTelegram`, `imagemUrl`, `requisitanteId`, `dataPedido`.
+- `PaymentProofStrategyTest` **não usa `ArgumentCaptor`** (zero ocorrências). Fixa cada argumento com `eq(...)` dentro do próprio `verify` — `execute(eq(123L), eq("PIX"), eq("file_xyz"), any(), eq(TipoArquivo.IMAGEM), eq(12345L))`. A strategy chama um usecase com parâmetros soltos; não há objeto de domínio a capturar.
+
+`ArgumentCaptor` e `eq(...)` são dois caminhos para o mesmo lugar. O que mata mutante é **asserção sobre valor**; `verify(mock).metodo(any())` não mata nada.
+
+**Lacuna na skill hoje.** A `writing-java-unit-tests` §Mandatory rules tem a regra do eixo **oposto** — *"Keep `verify(...)` calls limited to interactions that matter for the behavior being tested, not incidental calls"*, que é sobre **não sobre-verificar**. Não existe regra dizendo para asserir o valor. Um agente que siga a skill ao pé da letra pode escrever `verify(mock).metodo(any())` e estar formalmente correto.
+
+**Proposta:** 1 regra em §Mandatory rules + exemplo comparativo em `references/java-junit-mockito.md` mostrando os dois mecanismos lado a lado, com o contraexemplo (`any()`) explícito.
+
+#### 11.2 — `artifact-report-contract`: rótulo qualitativo não pode contradizer o número ao lado
+
+**Achado.** O Reviewer pegou, na QA-012, uma seção que rotulava `LegendaParser` como "cobertura **alta**" com **94%** e `PaymentRequestStrategy` como "cobertura **baixa**" com **96%** — a classe rotulada "baixa" tinha cobertura **maior**. O conteúdo dos dois casos estava correto; o rótulo destruía o argumento. E a tabela-resumo no fim da seção era indexada por esses mesmos rótulos.
+
+**Proposta:** 1 linha em §Mandatory rules — *rótulo qualitativo deve ser consistente com o dado quantitativo apresentado junto dele*.
+
+**Contra-argumento a considerar na conversa, honestamente:** o Reviewer pegou isso **sem a regra existir**. O valor marginal de escrever é baixo. O custo também é (uma linha), e a classe de erro é real e recorrente em relatório com muitos números. Decisão do `ai-engineer` sobre se paga.
+
+#### 11.3 — `planner.md`: perguntar sobre o gate de mutação ao escrever o plano
+
+**Decisão do humano (2026-08-10):** o gate de mutation testing é **opcional e por task**, não global. O critério é `test strength ≥ 80%` medido **apenas sobre as classes alteradas** pela task — código antigo não entra no denominador. A justificativa completa (por que `test strength` e não mutation score cru; por que só o código alterado; por que 80% e não 100%) está em `financas_bot_telegram/CLAUDE.md` §"Critério de mutation testing — gate opcional".
+
+**O que falta, e é território do `ai-engineer`:** a regra de que **o planner deve perguntar ao humano, ao escrever o plano de uma task de backend, se aquela task adota o gate de mutação**. Sem isso o gate é opcional na teoria e inexistente na prática — ninguém lembra de oferecê-lo.
+
+**Onde mora:** `.claude/agents/planner.md`, no Required Workflow Pattern (junto dos passos que já definem `review_required` / `qa_required`) ou como ponto de aprovação humana explícito. Provavelmente vira um campo `mutation_gate` no frontmatter do plano, espelhando `qa_required` — **mas isso encosta no schema de `artifact-report-contract` e no `_TEMPLATE-plano.md`**, então a mudança não é só no agente. Ponto a fechar com o `ai-engineer`.
+
+#### 11.4 — Referências penduradas: as skills apontam para `.github/instructions/`, que não existe — **correção necessária**
+
+> **Decisão do humano (2026-08-10): isso precisa mudar.** Não é item para avaliar se vale — é defeito a corrigir. O que falta decidir é **qual das duas correções** abaixo, e isso é do `ai-engineer`.
+
+**Achado colateral do mapeamento** (2026-08-10, verificado por `ls`): duas skills remetem decisões a um caminho inexistente neste repo —
+
+- `artifact-report-contract/SKILL.md:29` → *"Deciding where a file is saved or how it is named — that is defined in `.github/instructions/artifact-placement-and-naming.instructions.md`"*
+- `workflow-gates-core/SKILL.md:29` → mesma referência
+
+`.github/` neste repo contém **apenas `workflows/`**. Não há `instructions/`. As regras reais de placement e naming vivem em `CLAUDE.md` (raiz), `docs/runbooks/PRE-MERGE-CHECKLIST.md` e ADR 0010.
+
+**Por que importa:** um agente que siga a skill vai procurar um arquivo que não existe. O comportamento nesse caso é indefinido — na melhor hipótese ele improvisa, na pior ele para. É resíduo de portabilidade (as skills foram escritas em formato agnóstico, mirando um layout VS Code/Copilot que este repo não adota).
+
+**As duas correções possíveis:**
+
+| | (a) Apontar as skills para os docs reais | (b) Criar `.github/instructions/…` de fato |
+|---|---|---|
+| Custo | 2 linhas | arquivo novo + manutenção |
+| Duplicação de regra | nenhuma — aponta para a fonte única | risco alto: passa a existir uma segunda cópia das regras de placement, que vai divergir |
+| Portabilidade das skills | perde — as skills passam a citar caminhos deste repo | preserva o formato agnóstico original |
+| Quem mantém sincronizado | ninguém precisa | alguém precisa, e é o modo de falha conhecido |
+
+**Recomendação do planner (a decisão é do `ai-engineer`):** opção **(a)**. A portabilidade que a (b) preserva é hipotética — não há outro repo consumindo estas skills — enquanto a duplicação que ela cria é certa. E o repo já tem precedente do estrago: `docs/experiments/…/05-instrumentacao-e-harness.md` desatualizou em dois meses justamente por descrever estado que vive em outro lugar (ver §"Itens ainda não detalhados" do backlog da sprint 04).
+
+**Escopo da correção:** `artifact-report-contract/SKILL.md:29` e `workflow-gates-core/SKILL.md:29`. Vale varrer as demais skills atrás de outras referências a `.github/` antes de fechar — `creating-agents/SKILL.md:34` cita `.github/agents/` num contexto histórico (formato VS Code arquivado) que provavelmente é legítimo, mas merece conferência.
+
+---
+
 ## Fora deste backlog (rastreado em outro lugar)
 
 - Deploy DEP-03 a DEP-06 → `FASE-3-VISUALIZACAO.md`.

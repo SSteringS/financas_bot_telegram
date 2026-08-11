@@ -60,6 +60,7 @@ infra/
 - **Validação:** Bean Validation no DTO para regras simples; validação **condicional / cross-field vai no service**, lançando `IllegalArgumentException` → 400 `PARAMETRO_INVALIDO`.
 - **Erros REST:** `RestExceptionHandler` com payload `ErroDTO = {codigo, mensagem}`. Cada canal tem seu próprio advice, restrito por `basePackages`.
 - **Testes de integração:** Testcontainers com **MySQL 8 real** (não H2), `AbstractIntegrationTest` com container singleton, Flyway rodando de verdade, auth JWT real via `autenticarComo(Long)`, limpeza no `@AfterEach` respeitando ordem de FK.
+- **Nome de teste de integração é obrigatório, não estilo.** Toda classe de teste que sobe Testcontainers (ou estende `AbstractIntegrationTest`) **deve** terminar em `IntegrationTest`. O `excludedTestClasses` do PIT no `pom.xml` filtra por esse sufixo; um teste de integração com outro nome escapa do filtro e **trava o run do mutation testing** (um container por mutante). A convenção é hoje a única coisa que segura essa exclusão — ver `docs/PENDENCIAS-TECNICAS.md`, "Convenção `*IntegrationTest` não é verificada por nada".
 
 > ⚠️ **Débito conhecido:** `domain/model/` e `domain/entity/` são dois pacotes paralelos para a mesma coisa — `entity/` surgiu na sprint 03 (folha) e `model/` é o original. Ao criar POJO de domínio novo, usar **`domain/model/`**. Registrado em `docs/PENDENCIAS-TECNICAS.md`.
 
@@ -128,3 +129,18 @@ Convenções: MySQL 8 / InnoDB / utf8mb4, `BIGINT AUTO_INCREMENT`, colunas `cria
 - Manter a separação de camadas — adapters não conhecem outros adapters
 - Novos endpoints REST vão em `adapters/in/rest/<recurso>/`
 - **Default de property que aponta pra secret vai no `.properties`, não no `@Value`** — placeholder aninhado não herda o default do externo. Ver `docs/aprendizado/spring-placeholder-aninhado-default.md`
+
+## Critério de mutation testing — gate opcional
+
+| Aspecto | Valor |
+|---|---|
+| **Métrica** | `test strength` (mortos ÷ **cobertos**), **não** mutation score cru |
+| **Piso** | **80%** |
+| **Escopo da medição** | **apenas as classes alteradas pela task** — código antigo não entra no denominador |
+| **Natureza** | **gate opcional, por task.** O planner pergunta ao humano, ao escrever o plano, se a task adota o gate. Só vale quando o plano declara que adota |
+| **Equivalentes** | sobrevivente classificado como equivalente **com demonstração escrita** não conta contra o piso |
+
+**100% não é alcançável** — mutante equivalente (mudança sem efeito observável) é impossível de matar por construção.
+
+- Razão da decisão, trade-offs e alternativas descartadas: **ADR 0021**
+- Como rodar, triagem de escopo e leitura do relatório: `docs/runbooks/ROTEIRO-TESTES-BACKEND.md` §Camada 1.5

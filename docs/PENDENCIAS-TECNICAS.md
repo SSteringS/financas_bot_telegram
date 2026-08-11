@@ -356,6 +356,64 @@ Hipóteses a testar, em ordem:
 
 ---
 
+### Convenção `*IntegrationTest` não é verificada por nada
+
+**Contexto (QA-012, débito #3 do implementador, endossado pelo Reviewer como prioritário — 2026-08-10):** o `excludedTestClasses` do `pitest-maven` no `pom.xml` filtra por `*IntegrationTest`. Essa exclusão **não é otimização, é requisito de viabilidade**: os testes de integração sobem MySQL 8 real via Testcontainers, e o PIT reexecuta a suíte que cobre cada mutante uma vez por mutante. Com container no caminho, o run não termina.
+
+O problema: **a convenção de nome é a única coisa que segura essa exclusão, e nada a força.** Um teste de integração novo chamado `PedidoFluxoTest` (em vez de `PedidoFluxoIntegrationTest`) escapa do filtro e trava o run. Não há lint, não há gate de CI, e a falha só aparece quando alguém roda o PIT — possivelmente meses depois de o teste ter sido escrito.
+
+**Fix sugerido:** teste que varre o classpath de teste e falha quando uma classe anotada com `@Testcontainers` (ou que estenda `AbstractIntegrationTest`) não termina em `IntegrationTest`. Roda dentro do `mvn test`, logo já cai no CI sem tooling novo. Duas implementações possíveis — ArchUnit (dependência nova, regra declarativa, extensível para outros invariantes de arquitetura) ou reflection puro (zero dependência, ~30 linhas, resolve só este caso).
+
+**Mitigação já aplicada:** regra declarada em `financas_bot_telegram/CLAUDE.md` §"Convenções que valem hoje" e no comentário do `pom.xml`. **Declaração não é verificação** — o débito continua aberto até existir o teste.
+
+**Esforço:** baixo. **Prioridade: alta** — é a dependência silenciosa de todo o ferramental de mutation testing da sprint 04.
+
+---
+
+### Repo não tem infraestrutura de captura de log em teste
+
+**Contexto (QA-012, débito #2 — 2026-08-10):** o run do PIT revelou um mutante sobrevivente em `MetaSignatureValidator:28` — negar a condicional inverte **quando** sai o `logger.warn("whatsapp.app-secret nao configurado — canal WhatsApp inerte")`. Não é mutante equivalente: a saída observável muda, e esse warn é sinal operacional deliberado (sem secret, o canal WhatsApp fica inerte).
+
+O que falta não é o teste, é a **capacidade** de escrevê-lo: nenhum teste do repo verifica logging, porque não há appender de captura montado (`ListAppender` do Logback, ou equivalente).
+
+**Fix sugerido:** helper de teste com `ListAppender<ILoggingEvent>` anexado ao logger sob teste, exposto como regra/extensão JUnit reutilizável. Depois, cobrir os avisos operacionais que valem asserção — os de configuração ausente em primeiro lugar.
+
+**Esforço:** baixo para a infra; o uso cresce depois. **Prioridade: baixa** — hoje impacta uma linha de aviso. Sobe se mais sinais operacionais passarem a depender de log.
+
+---
+
+### Piso de custo do PIT é a suíte inteira, e um contexto Spring sobe dentro do run
+
+**Contexto (QA-012, débitos #7 e #8, este último levantado pelo Reviewer — 2026-08-10):** antes de mutar qualquer coisa, o PIT roda uma fase de cobertura que executa **todas as classes de teste não-excluídas uma vez** — 70 classes hoje, ~22 s dos ~48 s do run. Entre elas há testes que sobem contexto Spring Boot sobre **H2** (banner, slices `@WebMvcTest`, `SessionFactory` do Hibernate), que emitem stack trace de DDL do Hibernate (`SchemaDropperImpl`) no shutdown.
+
+Duas consequências, ambas não-óbvias:
+
+1. **Encolher `targetClasses` acelera a fase de mutação, não a de cobertura.** Isso **limita o ganho esperado do item #7 do backlog da sprint 04** ("escopo por diff"): quem dimensionar o mecanismo precisa contar com esse piso antes de estimar. Mitigações a avaliar lá: `targetTests` explícito além de `targetClasses`, e/ou análise incremental.
+2. **O ruído de DDL no log é esperado, não falha.** Fácil de confundir com quebra por quem rodar o PIT pela primeira vez.
+
+**Mitigação já aplicada:** ambos documentados em `docs/runbooks/ROTEIRO-TESTES-BACKEND.md` §Camada 1.5, junto da triagem obrigatória antes de incluir classe em `targetClasses`.
+
+**Esforço:** o registro está feito; o trabalho real acontece no item #7 do backlog. **Prioridade: média** — é insumo de dimensionamento, não bug.
+
+---
+
+### PIT roda sem histórico incremental e foi medido em JVM diferente da do CI
+
+**Contexto (QA-012, débitos #4 e #5 — 2026-08-10):** dois itens de reprodutibilidade do mesmo ferramental.
+
+1. **Sem histórico incremental.** `historyInputLocation` / `historyOutputLocation` não estão configurados: todo run parte do zero. Irrelevante em 4 classes; vira problema quando o escopo crescer (item #7 do backlog).
+2. **Números colhidos em JVM 23-ea, enquanto CI e produção usam Temurin 21.** O `pom.xml` compila com `--release 21`, então é bytecode 21 nos dois casos e o baseline **não fica inválido**. Mas se o PIT for para o CI, os números precisam ser recolhidos lá antes de serem tratados como comparáveis com os da QA-012.
+
+**Fix sugerido:** configurar as duas properties de histórico junto do item #7; recolher o baseline no CI se e quando o PIT entrar lá.
+
+**Esforço:** baixo. **Prioridade: baixa** — nenhum dos dois afeta a leitura do baseline atual.
+
+---
+
+> **Nota de consolidação (QA-012, 2026-08-10).** O status report e a avaliação listaram 9 débitos. Quatro viraram itens acima. Os outros cinco não viraram, com motivo: **#1** (`LegendaParser` sem caso com palavra-chave no índice 0) é o alvo concreto do item #2 do backlog da sprint 04, não débito solto; **#6** (`cobertura_pct: na` sem JaCoCo) é o item #6 do mesmo backlog; **#9** (três imprecisões textuais no status report) já foi corrigido na rodada 2 do Reviewer. Registrar aqui duplicaria backlog vivo com dívida.
+
+---
+
 ## Itens resolvidos
 
 ### ~~Esconder `@RequisitanteId` do Swagger UI~~
