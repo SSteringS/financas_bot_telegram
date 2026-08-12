@@ -145,8 +145,14 @@ main (protegida — só via PR)
       │    └── feature/fe-014-botao-ver-arquivo-original ← front ┘ implementador abre e aceita
       ├── fix/001-whatsapp-defaults-deploy-safe        ← back → develop direto (padrão zero-padded)
       └── hotfix/NNN-<slug>                            ← emergências → develop direto
+
+ develop ──[PR de sincronização]──▶ integration/<NN>   ← planner, durante a sprint,
+                                                          pra levar plano/ADR novo
+                                                          até quem sai da integration
 ```
 > **PR integration→develop:** Claude (planner) abre ao fim da sprint; humano revisa e aceita. Este é o único gate humano no fluxo de features.
+>
+> **PR develop→integration (sincronização):** Claude (planner) abre **durante** a sprint, sempre que publicar em `develop` um artefato que os implementadores precisam enxergar — plano novo de task, ADR, mudança de template ou de skill. Sem ele a `integration/<NN>` fica parada no último merge de feature, e quem cria a branch a partir dela **não vê o próprio plano da task**. É PR de sync, não de entrega: `develop` sempre contém a integration, então não há divergência nem conflito possível. Pode ser auto-aceito pelo planner.
 
 - Back e front sempre criam branch a partir de `integration/<NN>-<slug>` da sprint (ver "Worktrees git" pro fluxo correto). FIX e HOTFIX saem direto de `develop`.
 - **Padrão de nome de branch:**
