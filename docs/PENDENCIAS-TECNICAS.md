@@ -548,6 +548,48 @@ Ou seja: a suíte protege contra regressão em **detalhe**, não no **happy path
 
 ---
 
+### Gate de convenção de branch do CI é sensível a locale — pode aceitar maiúscula
+
+**Contexto (descoberto na FIX-008, 2026-08-12, por teste executado):** a regex de `.github/workflows/ci.yml` valida o nome da branch com a faixa `[a-z0-9]`. Faixa de caracteres em `[[ =~ ]]` do bash **depende de `LC_COLLATE`**:
+
+| `LC_COLLATE` | `feature/QA-013` |
+|---|---|
+| `en_US.UTF-8` | **ACEITA** ⚠️ |
+| `C` / `C.UTF-8` | rejeita |
+
+Sob collation `en_US`, `[a-z]` casa maiúscula pela ordem de collation, não pelo conjunto de caracteres.
+
+**Consequência:** a convenção lowercase de nome de branch **pode não estar sendo aplicada de fato**, e o comportamento muda **em silêncio** se a imagem do runner do GitHub Actions trocar o default de locale. O gate parece mais rígido do que é.
+
+**Não medido:** qual `LC_COLLATE` os runners `ubuntu-latest` usam hoje. O teste foi feito na máquina local (Git Bash, `en_US.UTF-8`). Confirmar antes de assumir que a convenção está ou não sendo aplicada em produção.
+
+**Fix sugerido:** trocar a faixa por classe POSIX — `[[:lower:][:digit:]]`, que é imune a collation — ou fixar `LC_ALL=C` no step. A primeira é preferível: expressa a intenção sem depender de variável de ambiente.
+
+**Origem:** achado colateral da FIX-008; declarado no corpo do PR #126 e no status report da task.
+
+**Esforço:** baixo — uma linha.
+
+**Prioridade:** média. Não quebra nada hoje, mas é gate de qualidade que pode estar passando o que deveria barrar — e a classe de erro (faixa de caracteres sensível a collation) reaparece em qualquer script de shell do repo.
+
+---
+
+### Allowlist do gate de branch diverge do fluxo documentado, recorrentemente
+
+**Contexto:** duas ocorrências da mesma falha, na mesma linha do mesmo arquivo:
+
+- **FIX-002** (sprint 03) — `ci-aceitar-integration-no-gate-de-branch`: o gate rejeitava `integration/**`.
+- **FIX-008** (2026-08-12) — o gate rejeitava `develop`, quebrando o PR de sincronização `develop → integration`.
+
+**Causa comum:** a allowlist de `ci.yml` **codifica o fluxo de branches**, e ninguém a atualiza quando o fluxo ganha um caminho novo. A descoberta é sempre por falha de CI num PR legítimo, nunca por revisão.
+
+**O que a FIX-008 já fez:** documentou o caminho `develop → integration` no `CLAUDE.md`, que descrevia só três caminhos. Isso trata a ocorrência, não a classe.
+
+**Fix sugerido para a classe:** derivar a allowlist do gate da documentação de fluxo, ou — mais realista — adicionar ao ritual de abertura de sprint uma conferência de que todo caminho de branch previsto passa no gate. Uma terceira ocorrência indica que o item merece solução estrutural, não mais um FIX pontual.
+
+**Prioridade:** baixa individualmente, média como padrão. Cada ocorrência custa pouco; o custo real é o PR travado no meio de outra coisa.
+
+---
+
 ## Itens resolvidos
 
 ### ~~Esconder `@RequisitanteId` do Swagger UI~~
