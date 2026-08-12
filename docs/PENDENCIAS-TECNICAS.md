@@ -414,6 +414,47 @@ Duas consequências, ambas não-óbvias:
 
 ---
 
+### Dois schemas de plano paralelos e divergentes (`qa_required`/`qa_rationale` vs `fluxos_qa`)
+
+**Contexto (identificado ao materializar a ADR 0021, 2026-08-10):** o repo mantém **dois** schemas de plano de task, vivos ao mesmo tempo e sem ponte entre eles:
+
+- `.claude/skills/artifact-report-contract/templates/plan.md` §Quality Gates — usa `review_required` / `qa_required` / `qa_rationale`, em inglês, consumido pelos subagentes (`planner.md`, `backend.md`, `qa-test-specialist.md`, skill `workflow-gates-core`).
+- `docs/templates/_TEMPLATE-plano.md` (ADR 0007) — usa `fluxos_qa` no frontmatter, em português, consumido pelas sessões de planejamento e pelo fluxo de sprint em `docs/sprints/<NN>/plans/`.
+
+São representações diferentes da mesma decisão ("esta task passa por QA?"), com nomes, idioma e tipo de valor distintos (booleano + justificativa vs lista de flows).
+
+O campo `mutation_gate` (com `mutation_rationale`) foi escrito **nos dois** em 2026-08-10, por **decisão explícita do humano**, aceitando a duplicação temporária em vez de unificar os schemas na mesma passagem — unificar é task própria, com raio maior (toca `.claude/`, território do humano + `ai-engineer`).
+
+**Risco:** divergência futura. O próximo campo de gate pode entrar só num dos dois, ou entrar nos dois com semântica diferente, e nada verifica isso. Quem lê um plano não sabe qual schema é o canônico.
+
+**Fix sugerido:** eleger um schema canônico e derivar o outro (ou apontar um para o outro por referência, sem redefinir campos). Decisão precisa passar pelo `ai-engineer` porque metade do território é `.claude/`.
+
+**Origem:** item 11.3 do `docs/plans/BACKLOG-evolucao-workflow.md`. Ver também ADR 0021 §6 ("Onde cada parte mora").
+
+**Esforço:** médio — não é só editar dois arquivos; exige alinhar os agentes e a skill que leem os campos.
+
+**Prioridade:** média. Não quebra nada hoje (os dois campos estão sincronizados), mas a duplicação é a causa provável da próxima divergência.
+
+---
+
+### Migração da organização de `docs/` de sprint para feature
+
+**Contexto (decidido pelo humano em 2026-08-11, ao corrigir o item 11.4):** o humano decidiu que a unidade organizadora de `docs/` deve migrar de **sprint** para **feature**, mas **adiou a migração** até o fechamento do ciclo atual. Enquanto isso, o layout vigente e autoritativo continua sendo o da ADR 0010 (`docs/sprints/<NN>-<slug>/{plans,status,avaliacoes}/`).
+
+Na mesma passagem, todo o **contrato de placement e naming de artefatos** foi absorvido pela skill `.claude/skills/artifact-report-contract` (seção `## Artifact placement and naming` em `references/artifact-contract.md`), escrito **no layout SPRINT** — o único válido hoje. O campo de metadata dos templates passou de `feature: F<NN>-<slug>` para `sprint: <NN>-<slug>`.
+
+**Consequência:** quando a migração acontecer, o contrato dentro da skill precisa ser reescrito por inteiro — tabela de caminhos canônicos, campo `sprint` dos 8 templates, e as referências a "sprint" nas skills `workflow-gates-core` e `artifact-report-contract`.
+
+**Fix sugerido:** a migração exige **ADR nova ou emenda à ADR 0010** (a ADR 0010 é a decisão que estabelece o agrupamento por sprint; mudar a unidade organizadora sem tocá-la deixaria duas verdades no repo). O passo de reescrita da skill entra no plano da migração como item explícito, não como efeito colateral — `.claude/` é território do humano e do `ai-engineer`.
+
+**Origem:** item 11.4 do `docs/plans/BACKLOG-evolucao-workflow.md`.
+
+**Esforço:** alto — toca a estrutura de `docs/`, a ADR, a skill de contrato e os agentes que citam caminhos de artefato.
+
+**Prioridade:** baixa por ora (adiada por decisão do humano); vira alta no fechamento do ciclo atual.
+
+---
+
 ## Itens resolvidos
 
 ### ~~Esconder `@RequisitanteId` do Swagger UI~~
