@@ -455,6 +455,99 @@ Na mesma passagem, todo o **contrato de placement e naming de artefatos** foi ab
 
 ---
 
+### Rotacionar os segredos que estiveram versionados (FIX-007)
+
+**Contexto:** o FIX-007 removeu segredos do controle de versão, mas **não é remediação** — só interrompeu a exposição contínua. Os valores estiveram num repositório **público** e devem ser considerados coletados.
+
+**A rotacionar:**
+
+- `admin_api_key` de dev.
+- `keystore_password` — em `finbot-prod-secrets` **e** reassinando o `/opt/finbot/keystore.p12` da EC2. ⚠️ Trocar só o valor no Secrets Manager **quebra o boot da aplicação**: o keystore existente continua com a senha antiga e só é regerado quando o arquivo não existe.
+- Senha do MySQL local.
+
+O token do Telegram gen-1 já foi rotacionado em 2026-08-09 (registrado como resolvido acima).
+
+**Origem:** pendência humana 1 do status report do FIX-007, migrada para cá no fechamento da sprint 03 (2026-08-12, decisão do humano).
+
+**Esforço:** baixo por segredo; o do keystore exige acesso à EC2.
+
+**Prioridade:** **alta — é o item de segurança mais urgente em aberto.**
+
+---
+
+### `keystore_password` não confirmado em `finbot-prod-secrets` — recreate da EC2 pode ficar sem aplicação
+
+**Contexto:** `docs/sprints/01-mvp/status/DEP-07.md:98` afirma que a chave existe, mas é relato de 2026-05 e **não foi verificado** no FIX-007 (a sessão não tinha credencial AWS).
+
+**Por que virou risco agora:** o FIX-007 mudou o comportamento do `bootstrap.sh` — antes o provisionamento sempre seguia; agora, se a chave não vier, ele **aborta com `exit 1`**. O abort acontece **antes** do `systemctl start finbot`/`caddy`, então a instância recém-criada fica **sem aplicação e sem reverse proxy**. Reboot recupera só o Caddy (`systemctl enable`); o finbot não volta, porque `application-prod.properties:7` aponta para o keystore que não foi criado, e o `Restart=on-failure` o joga em crash-loop. `user_data` não reexecuta em reboot. Recuperar exige intervenção manual.
+
+**Falhar alto continua correto** — gerar keystore com senha errada quebraria o boot de forma mais obscura.
+
+**Fix sugerido:** confirmar a chave antes do próximo recreate. Avaliar separadamente se vale mover o bloco do keystore para depois do start dos serviços (decisão de planner, ainda não tomada).
+
+**Diagnóstico, se acontecer:** `journalctl -u cloud-init` ou `/var/log/bootstrap.log`, prefixo `[bootstrap] ERRO:`.
+
+**Origem:** pendência humana 2 do status report do FIX-007.
+
+**Prioridade:** média — latente, só dispara em recreate da EC2.
+
+---
+
+### Validação funcional do webhook WhatsApp pós-deploy nunca foi registrada (FIX-006)
+
+**Contexto:** o FIX-006 restaurou a produção derrubada em 2026-08-09 e o deploy está verde (run `31341256203`). Mas o critério de aceitação real da correção é **comportamental** e não automatizável, e não há registro de que tenha sido executado:
+
+- `GET /webhook/whatsapp?hub.mode=subscribe&hub.verify_token=xxx&hub.challenge=foo` deve retornar **403**.
+- Dois WARN de sentinela devem aparecer no boot (`journalctl`).
+
+**Estado:** deploy verde comprova que a aplicação **sobe**; não comprova que a guarda fail-closed **funciona**.
+
+**Origem:** pendência humana 2 do status report do FIX-006.
+
+**Prioridade:** média — checagem de minutos, mas é a única evidência que falta da correção.
+
+---
+
+### QA-010 — cobertura de testes frontend nunca executada
+
+**Contexto:** plano pronto em `docs/sprints/03-folha-pagamento/plans/QA-010-cobertura-testes-frontend.md`, `estado: pronto-pra-execucao`, **nunca despachado**. A sprint 03 foi fechada sem ele por decisão do humano (2026-08-12).
+
+**O gap:** inventário de produção × teste (qa-test-specialist, 2026-06-04) achou ~14 arquivos de front sem cobertura, em 4 sub-áreas:
+
+- **Hooks** — `usePedidos`, `useResumo`, `folha/useFolhaFuncionario`. Só `useAuth` tem teste. Sem cobertura, regressão em cache/invalidation do TanStack Query passa silenciosa.
+- **API clients** — `auth.ts`, `folha.ts`, `pedidos.ts`. É onde o shape de request/response do back vira tipo do front; sem teste, mudança de contrato passa sem ninguém ver.
+- **Componentes utilitários** — `CarregandoLista`, `FiltroStatus`, `ListaVazia`, `SeletorMes`, `StatusBadge`.
+- **Componentes e páginas da folha** — 6 arquivos criados na EVO-09 sem teste.
+
+**Risco funcional de executar:** zero — não toca código de produto. MSW já configurado.
+
+**Esforço:** alto (~12-14h estimadas, 14 arquivos de teste).
+
+**Prioridade:** média. O plano continua válido; se for retomado, revalidar o inventário antes (o front mudou desde 2026-06-04).
+
+---
+
+### QA-011 — expansão E2E de cenários positivos nunca executada
+
+**Contexto:** plano pronto em `docs/sprints/03-folha-pagamento/plans/QA-011-expansao-e2e-cenarios-positivos.md`, `estado: pronto-pra-execucao`, **nunca despachado**. Fechado junto com a sprint 03 por decisão do humano (2026-08-12).
+
+**O gap, que é o mais relevante desta dupla:** a suíte E2E cobre **3 testes** — 1 fluxo feliz de site e 2 cenários negativos de webhook. **Todo o caminho positivo do produto está descoberto:**
+
+- foto+caption no Telegram → pedido aparece no site;
+- canal WhatsApp inteiro;
+- registro de pagamento por upload de comprovante;
+- fluxo de folha (cadastrar funcionário → vale → adiantamento → fechar mês).
+
+Ou seja: a suíte protege contra regressão em **detalhe**, não no **happy path principal**.
+
+**Bloqueios já resolvidos:** BE-030 (URL `telegram.file.url` configurável) foi mergeada, e o FIX-005 front também — as 4 sub-áreas estavam desbloqueadas quando a sprint fechou. A abordagem de mock decidida é WireMock standalone na 8089 (ADR 0020).
+
+**Esforço:** alto (~10-14h estimadas).
+
+**Prioridade:** média-alta pelo valor de cobertura, mas sem bloqueio — nenhuma entrega atual depende dela.
+
+---
+
 ## Itens resolvidos
 
 ### ~~Esconder `@RequisitanteId` do Swagger UI~~

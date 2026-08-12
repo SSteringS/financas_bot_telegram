@@ -1,6 +1,6 @@
 # Sprint 03 — Folha de Pagamento
 
-**Status:** 🟡 em andamento — fase BE/FE + FIX concluídas; QA-009 ✅; FIX-005 front ✅; QA-010/011 pendentes (2026-07-14)
+**Status:** ✅ **fechada em 2026-08-12** — 23/25 tasks concluídas. QA-010 e QA-011 encerradas **sem execução**, com os gaps migrados para `docs/PENDENCIAS-TECNICAS.md`. Sem retrospectiva, por decisão do humano. Ver §Encerramento no fim deste arquivo.
 
 **Objetivo:** entregar a gestão de folha de pagamento doméstica — cadastro de funcionários, vales, adiantamentos parcelados e fechamento mensal.
 
@@ -62,27 +62,25 @@ ADR: `docs/decisions/0017-prefixo-qa-tasks-tooling-qualidade.md`.
 | ID | Slug | Estado |
 |----|------|--------|
 | QA-009 | cobertura-testes-backend | ✅ concluido (PR #115 → develop) — 61 testes novos (417 total) |
-| QA-010 | cobertura-testes-frontend | 🔵 pronto-pra-execucao |
-| QA-011 | expansao-e2e-cenarios-positivos | 🔵 pronto-pra-execucao (todas Sub-áreas A/B/C/D — FIX-005 front ✅) |
+| QA-010 | cobertura-testes-frontend | ⬛ **não executada** — migrada para `docs/PENDENCIAS-TECNICAS.md` |
+| QA-011 | expansao-e2e-cenarios-positivos | ⬛ **não executada** — migrada para `docs/PENDENCIAS-TECNICAS.md` |
 | BE-030 | telegram-file-url-configuravel | ✅ concluido (PR #113 → develop) |
 
 ---
 
-## Próximos passos (atual — QA de cobertura)
+## Encerramento
 
-Fila de execução paralela disponível:
+**Sprint fechada em 2026-08-12, por decisão do humano.** 23 das 25 tasks concluídas; a entrega que definia a sprint — gestão de folha de pagamento doméstica — está em produção.
 
-```
-QA-010     (front — independente)
-QA-011     (front — Sub-áreas A/B/C/D todas desbloqueadas)
-```
+**Duas tasks foram fechadas sem execução**, com o plano preservado e o gap registrado como débito técnico:
 
-QA-009 ✅ concluída (PR #115) — 61 testes novos, 417 total.
-BE-030 ✅ concluída.
-FIX-005 front ✅ concluída (PR #117) — `/api/v1/funcionarios` atualizado.
+- **QA-010** (cobertura de testes frontend) — ~14 arquivos de front sem teste.
+- **QA-011** (expansão E2E de cenários positivos) — o caminho positivo do produto segue descoberto pela suíte E2E.
 
----
+Os planos continuam em `plans/` e seguem válidos; quem retomar deve revalidar o inventário, defasado desde 2026-06-04. O detalhamento do gap está em `docs/PENDENCIAS-TECNICAS.md`.
 
-## Ritual de encerramento
+**FIX-006 e FIX-007** foram de `parcial` para `concluido` na mesma passagem: o código já estava em `main` (PRs #119 e #121, e daí #122) e o `parcial` refletia apenas pendências de mão humana, que foram migradas para o registro de débitos. **A rotação dos segredos do FIX-007 segue aberta e é o item de segurança mais urgente do repositório.**
 
-Seguir `docs/runbooks/RUNBOOK-fechamento-sprint.md` quando todas as tasks estiverem concluídas.
+**Sem retrospectiva** — decisão explícita do humano. As sprints 01, 02 e 02b têm retro; esta não terá, e a ausência é deliberada, não esquecimento.
+
+> O `RUNBOOK-fechamento-sprint.md` não foi seguido integralmente: o fechamento foi por decisão direta, com duas tasks não executadas e sem retro.

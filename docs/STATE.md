@@ -63,30 +63,9 @@
 
 ---
 
-## Sprint 03 — Folha de Pagamento (não fechada formalmente)
-
-**23 das 25 tasks com status report estão `concluido`.** Backend (BE-023..030), frontend (FE-015..017), FIXes 002..007 e QA-001..009 entregues.
-
-**O que falta pra fechar:**
-
-| Item | Estado | Observação |
-|---|---|---|
-| **QA-010** — cobertura de testes frontend | 🔵 plano pronto, **sem status report** | nunca despachada |
-| **QA-011** — expansão E2E cenários positivos | 🔵 plano pronto, **sem status report** | sub-áreas A/B/C/D desbloqueadas |
-| **Retrospectiva 03** | ausente | as sprints 01, 02, 02b têm |
-
-**FIX-006 e FIX-007 estão com `estado: parcial` no frontmatter, mas o código foi mergeado** (PRs #119 e #121, e daí pra `main` via #122). O `parcial` reflete **pendências de mão humana**, não código faltando:
-
-- **FIX-007 (4 pendências, nenhuma registrada como resolvida):**
-  1. **Rotacionar segredos** — `admin_api_key` de dev, `keystore_password` (no Secrets Manager **e** reassinando o `/opt/finbot/keystore.p12` da EC2), senha do MySQL local. Os valores estiveram num repo público; devem ser considerados coletados. O token do Telegram gen-1 já foi rotacionado em 2026-08-09.
-  2. **Confirmar que `keystore_password` existe em `finbot-prod-secrets`** antes do próximo recreate da EC2. Se não existir, o bootstrap **aborta antes** de subir finbot e Caddy — a instância nova fica sem aplicação e sem reverse proxy, e reboot recupera só o Caddy.
-  3. **Ratificar (planner)** a reformulação dos §Critérios de aceitação e §Referências do plano — feita sem autorização prévia, substância aprovada pelo Reviewer.
-- **FIX-006:** validação funcional pós-deploy (`GET /webhook/whatsapp?hub.mode=subscribe&...` → **403**, mais dois WARN de sentinela no boot) **não está registrada em nenhum artefato**. O deploy está verde; a checagem de comportamento, não.
-
----
-
 ## Sprints anteriores
 
+- **Sprint 03 — Folha de Pagamento:** ✅ **fechada 2026-08-12**, 23/25 tasks. A entrega que definia a sprint está em produção. **Sem retrospectiva** — decisão explícita do humano, não esquecimento. **QA-010** (cobertura de testes front) e **QA-011** (expansão E2E de cenários positivos) foram encerradas **sem execução**; os planos seguem em `plans/` e os gaps viraram débito técnico. FIX-006 e FIX-007 passaram de `parcial` para `concluido` na mesma passagem — o código já estava em `main` e o `parcial` refletia só pendência humana, migrada para o registro de débitos.
 - **Sprint 02b — Kaizen (workflow):** ✅ fechada 2026-05-31. `RETRO-02b-kaizen-workflow.md`.
 - **Sprint 02 — Canal WhatsApp:** ✅ fechada 2026-05-30. `RETRO-02-canal-whatsapp.md`.
 - **Sprint 01 — MVP Fase 3:** ✅ fechada. `RETRO-01-mvp-fase3.md`.
@@ -95,7 +74,10 @@
 
 ## Pendências abertas (fora das sprints)
 
-- **Rotação de segredos do FIX-007** — item de segurança, o mais urgente desta lista.
+- 🔴 **Rotacionar os segredos que estiveram versionados (FIX-007)** — `admin_api_key` de dev, `keystore_password`, senha do MySQL local. Estiveram num repo **público**; considerar coletados. O FIX interrompeu a exposição, **não remediou**. ⚠️ Trocar o `keystore_password` sem reassinar o `/opt/finbot/keystore.p12` da EC2 **quebra o boot da aplicação**. **É o item mais urgente do repositório.**
+- **`keystore_password` não confirmado em `finbot-prod-secrets`** — se faltar, o próximo recreate da EC2 aborta o bootstrap e a instância fica sem aplicação e sem reverse proxy.
+- **Validação funcional do webhook WhatsApp pós-deploy (FIX-006)** nunca registrada — o deploy verde prova que a app sobe, não que a guarda fail-closed funciona.
+- **QA-010 / QA-011** — gaps de teste de front e de E2E do caminho positivo, herdados da sprint 03.
 - **DEP-07:** PR #64 aguarda merge + `terraform apply` (in-place confirmado).
 - **DEP-08:** webhook via Caddy/Let's Encrypt — Fase 2, aguarda ADR de topologia TLS.
 - **BE-20 / PREP-WA fases 4, 8, 9:** bloqueado por chip WhatsApp Business + Business Verification (dependência externa). Popular os 4 secrets em `finbot-prod-secrets` é pré-condição, e há duas guardas de sentinela a remover quando isso acontecer.
