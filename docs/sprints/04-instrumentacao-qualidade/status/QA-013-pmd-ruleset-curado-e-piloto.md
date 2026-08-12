@@ -186,7 +186,9 @@ Dois motivos, ambos verificáveis no `target/pmd.xml`:
 1. **A mensagem sai com os placeholders não substituídos.** O texto literal no relatório é ``This if statement can be replaced by `return !{condition} || {elseBranch};` `` — `{condition}` e `{elseBranch}` são placeholders crus, não o código. O achado **não é acionável como sai**.
 2. **A sugestão, aplicada ao pé da letra, está errada.** Vira `return caption != null || COMPROVANTE_PATTERN.matcher(caption.trim()).matches();`. Com `caption == null`, o original devolve `false`; a sugestão avalia `null != null` → `false`, segue para o segundo operando e **lança `NullPointerException`** em `caption.trim()`. Não são equivalentes.
 
-Uma regra cuja remediação está errada para a forma que ela mesma sinaliza produz ruído, não qualidade. **Removida do ruleset.**
+O defeito é da **mensagem**, não da detecção — a forma sinalizada existe mesmo. Mas achado que chega com placeholder cru **e** com o operador trocado é ruído, não qualidade. **Removida do ruleset**, com gatilho de reavaliação registrado no XML: se a mensagem for corrigida upstream, a regra volta a ser candidata.
+
+> O Reviewer atacou este ponto — eu o havia sinalizado como o mais frágil da curadoria — e ele saiu **mais forte**: testando os 4 formatos da regra em arquivo controlado, confirmou que o PMD 7.7.0 troca o operador em 2 deles, e que a forma do `supports()` é justamente uma das duas.
 
 ### 8. `PaymentRequestStrategy:73` — `LawOfDemeter` — **(c)**, mesma classificação do item 3–5
 
@@ -335,7 +337,16 @@ Relatório: `docs/sprints/04-instrumentacao-qualidade/avaliacoes/review-QA-013-p
 
 **Achado colateral que virou débito:** ao derrubar F1, o Reviewer encontrou o `Enum.valueOf` de verdade — `PedidoController:64` — inócuo hoje só porque nenhum valor de `StatusPedido` (`PENDENTE`, `PAGO`, `CANCELADO`) tem a letra `i`. Verifiquei. Está no item **1b** dos débitos.
 
-Todos os `Required Fixes` foram aplicados. **Falta o `delta-review` para fechar** — ver "Decisões pendentes".
+### Delta-review: **`approved-with-notes`**
+
+Segunda rodada com os dois `Required Fixes` aplicados. O Reviewer re-rastreou o caminho do F1 **do zero** em vez de conferir minha correção pelo texto, e foi além do que a rodada 1 tinha feito: `grep` em todas as 7 migrations confirma que **nenhuma** posterior à `V1` adiciona `CHECK`, muda o tipo ou renomeia a coluna, e não existe consumidor que converta `tipo_pagamento` em enum. `technical_justifications_true` passou de **fail** para **pass**. Hash, baseline (22/1) e o débito 1b conferidos por execução própria.
+
+**1 achado novo, `low` (F6), já corrigido neste commit:** eu havia aplicado F2 e F4 no XML e no runbook, mas deixei para trás as duas frases equivalentes no corpo deste status — que passaram a contradizer a tabela acima. Corrigidas: a de `SimplifyBooleanReturns` (item 6–7 da leitura interpretada) e a de "não precisa de build" (Próximos passos).
+
+**Duas observações do Reviewer que não eram achados e valem registro:**
+- Ele leu `PedidoSpecs.comBusca` e `ResumoMesServiceImpl.obter` para não deixar passar uma afirmação minha não verificada: ambos montam `"%" + busca.toLowerCase() + "%"` para `LIKE`, o que confirma a caracterização "registro sumindo do resultado em silêncio" do débito 2.
+- Sobre o débito 1b: `PedidoController:65-67` **já captura** `IllegalArgumentException` e devolve 400 — o impacto real ali é **mensagem de erro enganosa**, não indisponibilidade. Ajustado na tabela de débitos.
+- Ressalva declarada por ele como **inferida, não medida**: `İ` só grava intacto em coluna `utf8mb4`; é o default do MySQL 8, mas a `V1` não declara o charset explicitamente. Não medimos o que acontece se o charset for outro.
 
 ---
 
@@ -384,7 +395,8 @@ Nenhum corrigido aqui — o plano é explícito em tratar o legado como baseline
 | # | Débito | Evidência | Por que importa |
 |---|---|---|---|
 | 1 | **Dois bugs reais de locale** em `LegendaParser:21` e `PaymentProofStrategy:81` | violações `(a)` acima, com o comportamento sob `tr-TR` medido | **Corrupção silenciosa, não exceção** (corrigido após F1 do Reviewer). O primeiro classifica `pix` como `OUTRO` em memória; o segundo **grava** `PİX` em `comprovantes.tipo_pagamento` (`VARCHAR(255)`, sem `CHECK`) — dado errado que fica no banco depois de o locale ser corrigido. Nenhum dos dois lança nada. São os únicos `(a)` do piloto |
-| 1b | **`PedidoController:64` — `StatusPedido.valueOf(status.toUpperCase())`** | achado do Reviewer ao derrubar F1 | Este **é** um `Enum.valueOf` alimentado por `toUpperCase()` sem `Locale`. Hoje inócuo apenas porque nenhum valor de `StatusPedido` contém a letra `i` — é acidente, não proteção. Um status novo com `i` no nome ativa o bug |
+| 1b | **`PedidoController:64` — `StatusPedido.valueOf(status.toUpperCase())`** | achado do Reviewer ao derrubar F1 | Este **é** um `Enum.valueOf` alimentado por `toUpperCase()` sem `Locale`. Hoje inócuo apenas porque nenhum valor de `StatusPedido` (`PENDENTE`, `PAGO`, `CANCELADO`) contém a letra `i` — é acidente, não proteção. **Impacto real: mensagem enganosa, não indisponibilidade** — as linhas 65-67 já capturam `IllegalArgumentException` e devolvem 400 |
+| 1c | **Duas regras do ruleset apontam para as mesmas 3 linhas** — `UseLocaleWithCaseConversions` em `PedidoController:64` e `AvoidThrowingNewInstanceOfSameException` em `PedidoController:66` | baseline, ambas verificadas | Convergência não planejada, e é o melhor argumento a favor da segunda regra: o `catch (IllegalArgumentException e) { throw new IllegalArgumentException(...) }` da linha 66 é exatamente o que **esconde** a causa do bug de locale da linha 64. Uma regra achou o defeito; a outra achou o que impediria de diagnosticá-lo |
 | 2 | **`UseLocaleWithCaseConversions`: mais 3 ocorrências fora do piloto** (5 no total) | baseline: `PedidoController:64`, `PedidoSpecs:42`, `ResumoMesServiceImpl:38` | A de `PedidoController:64` é o item 1b acima, lida ao corrigir F1. As de `PedidoSpecs:42` e `ResumoMesServiceImpl:38` **continuam não lidas uma a uma** — as duas são filtro/agregação, onde o efeito provável é registro sumindo do resultado em silêncio |
 | 3 | **`AvoidCatchingGenericException`: 10 em produção + 1 em teste** | baseline | Maior bloco do baseline. É o modo de falha que o experimento quer medir em código gerado por modelo |
 | 4 | **`AtualizarFuncionarioServiceImpl.atualizar`: ciclomática 12, NPath 2048** (threshold 200) | baseline | 2048 caminhos combinados — a cobertura de caminhos é inalcançável na prática |
@@ -398,7 +410,7 @@ Nenhum corrigido aqui — o plano é explícito em tratar o legado como baseline
 
 - **`-Dpmd.rulesets` não existe e `-Dpmd.includeTests` só funciona por causa da property que adicionei.** Quem for medir escopo por diff no item #7 vai bater nisso: trocar de ruleset exige editar o `pom.xml`. Documentado no runbook.
 - **O baseline para o Δ do item #7 é `Q7_producao = 22` e `Q7_teste = 1`**, com o ruleset de hash `5100b68f…`. Δ medido contra outro ruleset não é comparável.
-- **Ao contrário do PIT, o PMD não precisa de suíte verde nem de build** — analisa fonte. Ele roda **agora**, com os 48 testes de integração vermelhos, sem prejuízo nenhum ao resultado.
+- **Ao contrário do PIT, o PMD não precisa de suíte verde** — analisa fonte. Ele roda **agora**, com os 48 testes de integração vermelhos, sem prejuízo nenhum ao resultado. **Mas "não precisa de build" não vale para regra nenhuma:** regras com resolução de tipo consultam o `auxclasspath`, e o Reviewer mediu `LawOfDemeter` dando **2** sem `target/classes` e **26** com. O ruleset congelado é insensível (**22 nos dois casos**, verificado) — quem medir com ruleset diferente no item #7 precisa fixar e declarar se compila antes.
 - **Não silenciar violação com `@SuppressWarnings("PMD…")`.** A discussão é no ruleset, com justificativa escrita; supressão espalhada pelo código torna o Q7 incomparável entre runs sem deixar rastro no hash.
 - **Item #5 do `backlog-s04.md` sai** (absorvido por esta task) e o **#4** fecha, conforme a seção "Após merge" do plano. Falta ainda registrar baseline e hash no `STATE.md` — é do planner.
 - Para o item **#6** (JaCoCo): as 4 classes do piloto do PIT já têm mutation score e violações medidos. Fechar com cobertura completa o trio sobre o mesmo código.
