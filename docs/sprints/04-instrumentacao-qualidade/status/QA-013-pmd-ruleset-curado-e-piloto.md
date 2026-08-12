@@ -16,6 +16,8 @@ gates:
   territorio: ok
 commits:
   - 1a8057d
+  - b8de250
+  - 2b9cdc7
 pr: null
 desvios: 2
 pendencias_humano: 1
