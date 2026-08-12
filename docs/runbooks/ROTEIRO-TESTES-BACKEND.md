@@ -102,6 +102,47 @@ Baseline das quatro classes e a leitura interpretada de cada sobrevivente estão
 
 **O que valida:** que o código compila limpo, que a API expõe o que deveria, que o git histórico está aceitável.
 
+### 2.0. Análise estática (PMD), sob demanda
+
+**O que valida:** não se o código funciona, mas se está **bem construído**. O PMD lê a estrutura do fonte sem executá-lo, e por isso enxerga uma classe de problema que teste nenhum pega — a Camada 1 roda o código e confere o resultado; o PMD olha para construções que estão erradas mesmo quando o resultado sai certo no ambiente do teste.
+
+Conceito, comparação com Checkstyle e a limitação da complexidade ciclomática: [`docs/aprendizado/analise-estatica-pmd-checkstyle.md`](../aprendizado/analise-estatica-pmd-checkstyle.md).
+
+```bash
+cd C:\Users\satya\src\financas_bot_telegram
+./financas_bot_telegram/mvnw pmd:pmd -f financas_bot_telegram/pom.xml
+```
+
+**Não precisa de suíte verde nem de build prévio** — ao contrário do PIT, o PMD analisa fonte, não bytecode instrumentado.
+
+**Saída:** `financas_bot_telegram/target/pmd.xml` (parseável) e `financas_bot_telegram/target/reports/pmd.html` (leitura humana, abrir no navegador). O XML sai **sempre**, mesmo com `<format>html</format>`, porque os goals `pmd:check` dependem dele. A pasta fica sob `target/`, **não é commitada**.
+
+**Escopo: produção por default.** Para incluir os testes:
+
+```bash
+./financas_bot_telegram/mvnw pmd:pmd -f financas_bot_telegram/pom.xml -Dpmd.includeTests=true
+```
+
+⚠️ Esse run devolve **produção + teste somados**. O número só de teste é a **diferença** entre os dois runs. E a flag só funciona porque o `pom.xml` amarra `<includeTests>` a uma property de projeto: o mojo do `maven-pmd-plugin` **não tem user property própria** para `includeTests`, então `-Dpmd.includeTests=true` contra a configuração default seria **silenciosamente ignorado** — o run devolveria o número de produção com cara de número de teste. Mesma armadilha vale para `-Dpmd.rulesets`, que **não existe**: trocar de ruleset exige editar o `pom.xml`.
+
+**O ruleset é o entregável, não o plugin.** `financas_bot_telegram/pmd-ruleset.xml` tem **10 regras**, cada uma com justificativa escrita, e a lista das regras que foram **deliberadamente deixadas de fora** com o motivo de cada uma. O arquivo está **congelado com hash sha256** registrado no status da QA-013 — é isso que torna as medições de Q6 (complexidade ciclomática) e Q7 (violações) comparáveis entre runs do experimento. **Alterar o ruleset invalida a comparação**: exige nova curadoria, hash novo e registro de a partir de quando a medição nova vale.
+
+**Não é gate.** O plugin não está ligado a nenhuma fase do build e o goal `pmd:check` não está configurado. `mvn test`, `mvn package` e o CI não rodam PMD e não quebram por violação. O motivo não é conveniência: enquanto o experimento de alocação de modelo por papel estiver rodando, build que falha por violação faz o agente **otimizar para o linter**, contaminando exatamente a variável medida.
+
+**Como ler o resultado:**
+
+| Situação | Significado | O que fazer |
+|---|---|---|
+| Violação em código que **esta task alterou** | sinal novo, introduzido agora | ler e decidir: corrigir, ou justificar por escrito |
+| Violação em código **legado** | faz parte do baseline documentado | **não corrigir de carona** — vira pendência técnica, não conserto oportunista |
+| Regra que dispara repetidamente sem valor | candidata a sair do ruleset | **não silenciar com `@SuppressWarnings`** — a discussão é no ruleset, com justificativa |
+
+**Complexidade ciclomática só é reportada acima do threshold default** (método 10, classe 80). Para ver o número de **todo** método — e não só dos que estourarem —, é preciso uma passada de medição com `classReportLevel`/`methodReportLevel` em 1; o procedimento e os números das 5 classes do piloto estão em [`docs/sprints/04-instrumentacao-qualidade/status/QA-013-pmd-ruleset-curado-e-piloto.md`](../sprints/04-instrumentacao-qualidade/status/QA-013-pmd-ruleset-curado-e-piloto.md).
+
+**Quando rodar:** ao terminar uma task que mexeu em lógica, antes de abrir o PR. Não é obrigatório e não bloqueia — mas violação nova em código que você acabou de escrever é barata de corrigir agora e cara depois.
+
+Baseline do legado e a leitura interpretada violação a violação estão no status da QA-013 (link acima).
+
 ### 2.1. Build limpo
 
 ```bash

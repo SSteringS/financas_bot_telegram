@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="finbot-backend"
+    xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+  <description>
+    Ruleset curado do backend do finbot — QA-013 (2026-08-12), PMD 7.7.0.
+
+    CONGELADO. O hash sha256 deste arquivo esta registrado no status report da QA-013 e
+    e o que torna as medicoes de Q6 (complexidade ciclomatica) e Q7 (violacoes de ruleset)
+    comparaveis entre runs do experimento de alocacao de modelo por papel. Alterar este
+    arquivo invalida a comparabilidade — mudanca exige nova rodada de curadoria, novo hash
+    e registro de qual medicao passa a valer a partir de quando.
+
+    Lista EXPLICITA de regras, nao referencia de categoria inteira. Cada regra abaixo tem
+    justificativa escrita. Quem acrescentar regra sem justificativa esta quebrando o
+    criterio de aceitacao da QA-013, nao so a convencao do arquivo.
+
+    Metodo da curadoria (QA-013): partiu-se das categorias errorprone + design INTEIRAS
+    (94 violacoes em 191 classes de producao), leu-se violacao a violacao nas 5 classes do
+    piloto, classificou-se em (a) problema real / (b) falso positivo / (c) regra indesejada,
+    e a lista abaixo e o resultado. As exclusoes justificadas estao no fim do arquivo —
+    elas fazem parte do entregavel tanto quanto as inclusoes.
+  </description>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CATEGORIA errorprone — "isso provavelmente e bug"
+       ════════════════════════════════════════════════════════════════════════ -->
+
+  <!--
+    Achou 2 bugs reais no piloto (LegendaParser:21 e PaymentProofStrategy:81), e nenhum
+    deles e visivel para teste ou para o PIT: toLowerCase()/toUpperCase() sem Locale usa
+    o locale default da JVM. Verificado nesta maquina com JDK 23-ea:
+      "PIX".toLowerCase(tr-TR) -> "pix" com i sem ponto  => nao casa com a chave "pix"
+      "pix".toUpperCase(tr-TR) -> "PIX" com I com ponto  => Enum.valueOf lanca IllegalArgumentException
+    O bot roda em EC2 com locale herdado do ambiente. Regra de maior valor por violacao
+    de todo o ruleset.
+  -->
+  <rule ref="category/java/errorprone.xml/UseLocaleWithCaseConversions"/>
+
+  <!--
+    Zero violacoes hoje — entra como guarda prospectiva, custo zero no baseline.
+    "catch vazio" e citado nominalmente em analise-estatica-pmd-checkstyle.md como o
+    sinal que mais discrimina codigo gerado por modelo. Manter a regra fora so porque o
+    legado esta limpo desarmaria exatamente a medicao que o experimento quer fazer.
+  -->
+  <rule ref="category/java/errorprone.xml/EmptyCatchBlock"/>
+
+  <!--
+    Zero violacoes hoje — guarda prospectiva, custo zero no baseline.
+    Comparar objeto com == em vez de equals() e bug que nem cobertura nem mutation testing
+    pegam de graca: o teste passa enquanto as instancias forem as mesmas (cache de Integer,
+    literal de String internado) e quebra em producao. E o tipo de coisa que so analise
+    estatica ve.
+  -->
+  <rule ref="category/java/errorprone.xml/CompareObjectsWithEquals"/>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CATEGORIA design — "isso esta mal construido"
+
+       NOTA: as tres primeiras regras abaixo tratam de excecao e de estado, e a intuicao
+       diz "errorprone". No PMD 7.7.0 elas moram em design — conferido na listagem de
+       category/java/design.xml do pmd-java-7.7.0.jar. Referencia com a categoria errada
+       nao e ignorada: o PMD recusa o ruleset inteiro com erro de validacao XML.
+       ════════════════════════════════════════════════════════════════════════ -->
+
+  <!--
+    10 violacoes no baseline. "catch (Exception e)" e o modo de falha classico de codigo
+    gerado por modelo: engole a causa e transforma erro de programacao em log. E uma das
+    tres coisas que docs/aprendizado/analise-estatica-pmd-checkstyle.md aponta como
+    discriminante de codigo LLM (catch vazio, metodo inchado, duplicacao). As 10 sao
+    legado e ficam como baseline — esta task nao corrige nenhuma.
+  -->
+  <rule ref="category/java/design.xml/AvoidCatchingGenericException"/>
+
+  <!--
+    2 violacoes (ListarPedidosFiltro:17-18). Estado estatico mutavel e nao-privado num
+    servico web e compartilhado entre requisicoes concorrentes — a classe de bug mais cara
+    de diagnosticar depois. Volume baixo, sinal alto.
+  -->
+  <rule ref="category/java/design.xml/MutableStaticState"/>
+
+  <!--
+    1 violacao (PedidoController:66). Capturar uma excecao so para lancar outra do mesmo
+    tipo perde o stack trace original sem ganhar nada. Barato de manter, achado concreto.
+  -->
+  <rule ref="category/java/design.xml/AvoidThrowingNewInstanceOfSameException"/>
+
+  <!--
+    OBRIGATORIA: e a fonte da metrica Q6 do experimento (docs/.../04-metricas.md).
+    Threshold default do PMD 7.7.0 (metodo 10, classe 80) — nao customizado de proposito,
+    para que o numero seja comparavel com qualquer outro projeto que use o default.
+    LIMITACAO DECLARADA: complexidade ciclomatica nao distingue um switch de 10 casos
+    (numero alto, leitura trivial) de um aninhamento de 4 niveis (numero parecido,
+    ilegivel). Por isso ela nao entra sozinha — ver CognitiveComplexity abaixo.
+  -->
+  <rule ref="category/java/design.xml/CyclomaticComplexity"/>
+
+  <!--
+    Entra especificamente para cobrir a limitacao da ciclomatica: penaliza aninhamento e
+    quebra de fluxo, nao contagem de ramos. O piloto ja mostra a divergencia:
+    PaymentProofStrategy.process tem ciclomatica 8 e cognitiva 4 — oito ramos, mas em
+    guard clauses sequenciais, que sao faceis de ler. Reportar so a ciclomatica ali daria
+    um numero enganoso. As duas juntas dizem algo; separadas, cada uma mente um pouco.
+  -->
+  <rule ref="category/java/design.xml/CognitiveComplexity"/>
+
+  <!--
+    1 violacao (AtualizarFuncionarioServiceImpl.atualizar, NPath 2048 contra threshold 200).
+    Conta caminhos de execucao combinados, nao ramos. Pega o caso em que varios ifs
+    independentes e individualmente inocentes explodem o espaco de estados — que a
+    ciclomatica soma linearmente e subestima. Complementar, nao redundante.
+  -->
+  <rule ref="category/java/design.xml/NPathComplexity"/>
+
+  <!--
+    Zero violacoes hoje — guarda prospectiva, custo zero no baseline. "Metodo inchado" e a
+    segunda das tres marcas de codigo LLM listadas em analise-estatica-pmd-checkstyle.md.
+    E NcssCount, e nao ExcessiveMethodLength, porque ExcessiveMethodLength nao existe mais
+    no PMD 7 — nao esta em category/java/design.xml do pmd-java-7.7.0.jar. NcssCount conta
+    sentencas (nao linhas), logo nao infla com comentario nem com quebra de linha de
+    formatacao. Thresholds default (metodo 60, classe 1500) mantidos.
+  -->
+  <rule ref="category/java/design.xml/NcssCount"/>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       CATEGORIAS INTEIRAS FORA — cada uma com o motivo
+       ════════════════════════════════════════════════════════════════════════
+
+       codestyle      FORA. Formatacao e nomenclatura nao discriminam codigo gerado por
+                      modelo — modelo formata bem; e justamente onde ele nao erra. Alem
+                      disso e o territorio que o repositorio decidiu nao policiar
+                      (PRE-MERGE-CHECKLIST nunca teve gate de estilo no backend).
+
+       documentation  FORA. Mede presenca de Javadoc, nao qualidade dele. Um modelo enche
+                      de Javadoc vazio e a metrica sobe sem que nada melhore — mede o
+                      comportamento errado para este experimento.
+
+       bestpractices  FORA nesta rodada. Sobrepoe errorprone em varios pontos (dupla
+                      contagem no Q7) e concentra regras de framework/JUnit que exigiriam
+                      uma curadoria propria. Candidata a rodada futura, com hash novo.
+
+       performance    FORA. O gargalo deste sistema e I/O — S3, RDS, API do Telegram/Meta.
+                      Micro-otimizacao de bytecode nao e a pergunta, e virar sinal onde
+                      nao ha problema polui o Q7.
+
+       multithreading FORA. Nao ha codigo concorrente escrito a mao: a concorrencia e a do
+                      container Spring MVC. Regra sem alvo so gera falso positivo.
+
+       security       FORA. As regras de seguranca do PMD sao poucas (hard-coded crypto
+                      key, IV insecure) e nenhuma cobre o risco real deste sistema
+                      (validacao de assinatura da Meta, escopo de JWT). Falsa sensacao de
+                      cobertura pior que ausencia declarada.
+
+       ════════════════════════════════════════════════════════════════════════
+       REGRAS QUE DISPARARAM E FICARAM DE FORA — decisao, nao esquecimento
+       ════════════════════════════════════════════════════════════════════════
+
+       Classificadas (c) "regra que nao queremos" na leitura do piloto:
+
+       LawOfDemeter          26 violacoes — a regra mais barulhenta do run, 28% do total
+                             bruto. No piloto marcou funcionario.getSalarioBase().subtract(...)
+                             (FecharMesServiceImpl:99): aritmetica encadeada sobre BigDecimal,
+                             que e tipo-valor imutavel. Tratar chamada em valor imutavel como
+                             violacao de Demeter nao produz nenhuma acao possivel. Removida.
+
+       SimplifyBooleanReturns 2 violacoes, ambas no piloto (PaymentProofStrategy:40 e
+                             PaymentRequestStrategy:47), ambas sobre o mesmo guard clause
+                             "if (caption == null) return false;". Dois motivos:
+                             (1) a mensagem sai com os placeholders NAO substituidos —
+                                 literalmente "return !{condition} || {elseBranch};" no
+                                 target/pmd.xml — ou seja, o achado nao e acionavel como sai;
+                             (2) aplicada ao pe da letra, a sugestao vira
+                                 "return caption != null || P.matcher(caption.trim()).matches();"
+                                 que NAO e equivalente ao original: com caption null o codigo
+                                 original devolve false e a sugestao dispara NullPointerException.
+                             Regra cuja remediacao esta errada para a forma que ela mesma
+                             sinaliza produz ruido, nao qualidade. Removida.
+
+       Regras que dispararam FORA do piloto e nao entraram (decisao com evidencia lida,
+       mas sem a leitura violacao-a-violacao que o piloto recebeu):
+
+       MissingSerialVersionUID  25 violacoes (27% do total bruto), TODAS em classes de
+                                excecao. Nada neste stack serializa excecao: sem RMI, sem
+                                HttpSession serializada, sem cache distribuido. Seriam 25
+                                violacoes permanentes que ninguem jamais vai corrigir,
+                                inflando o baseline de Q7 com constante morta.
+
+       ImmutableField           4 violacoes: 3 em MensagemProcessadaEntity (@Entity JPA) e 1
+                                em FecharMesRequest (DTO Lombok). Campo de @Entity NAO PODE
+                                ser final — Hibernate exige construtor sem argumentos e
+                                popula por campo/setter. Falso positivo estrutural: dispara
+                                de novo em toda entidade nova. Fora.
+
+       TooManyMethods           3 violacoes, todas em @RestControllerAdvice
+                                (RestExceptionHandler, GlobalTelegramExceptionHandler,
+                                GlobalWhatsAppExceptionHandler). Um metodo por tipo de
+                                excecao E o design correto de um advice. Falso positivo
+                                estrutural do stack. Fora.
+
+       TooManyFields            2 violacoes, em PedidoPagamento e PedidoPagamentoEntity —
+                                o agregado central do dominio. Agregado com muitos campos e
+                                normal; a regra mede tamanho, nao acoplamento. Fora.
+
+       DataClass                2 violacoes (WhatsAppApiException, MetricsConstants). O repo
+                                usa DTO Lombok por convencao declarada em CLAUDE.md e tem
+                                classe de constantes de proposito. A regra briga com uma
+                                decisao ja tomada. Fora.
+
+       UseUtilityClass          1 violacao, em FinancasBotTelegramApplication — a classe
+                                main do Spring Boot, que PRECISA de construtor publico para
+                                o @SpringBootApplication. Falso positivo garantido e
+                                permanente. Fora.
+
+       AvoidLiteralsInIfCondition 1 violacao, em JwtAuthenticationFilter:43, sobre
+                                "OPTIONS".equalsIgnoreCase(request.getMethod()). Extrair
+                                "OPTIONS" para constante nao melhora nada. Regra
+                                reconhecidamente barulhenta. Fora.
+
+       SimplifiedTernary        5 violacoes, todas a mesma forma:
+                                "x != null ? x : true/false" (default de Boolean nulo em
+                                mapper/controller). A regra nao distingue essa idioma do
+                                redundante "cond ? true : false"; colapsar para "x == null || x"
+                                troca uma intencao legivel (default de nulo) por algebra
+                                booleana. Preferencia de legibilidade, nao sinal de
+                                qualidade. Fora.
+
+       AvoidDuplicateLiterals   1 violacao ("jpg" 4x em TelegramMessageMapper). Achado
+                                legitimo, mas a regra e conhecidamente explosiva quando o
+                                escopo inclui teste (-Dpmd.includeTests=true), e o Q7 do
+                                experimento mede producao e teste. Deixar de fora mantem o
+                                baseline de teste interpretavel. Reavaliar em rodada futura.
+       ════════════════════════════════════════════════════════════════════════ -->
+
+</ruleset>
