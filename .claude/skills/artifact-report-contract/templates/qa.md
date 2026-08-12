@@ -1,12 +1,12 @@
 # QA - <TASK-ID> <Title>
 
 ## Metadata
-- feature: `F<NN>-<slug>`
+- sprint: `<NN>-<slug>`
 - task_id: `<TASK-ID>`
 - agent: qa
 - date: `<YYYY-MM-DD>`
-- plan: `ia-docs/features/F<NN>-<slug>/plans/<TASK-ID>-<slug>.md`
-- review: `ia-docs/features/F<NN>-<slug>/avaliacoes/<TASK-ID>-<slug>.md`
+- plan: `docs/sprints/<NN>-<slug>/plans/<TASK-ID>-<task-slug>.md`
+- review: `docs/sprints/<NN>-<slug>/avaliacoes/review-<TASK-ID>-<task-slug>.md`
 
 ## Reviewer Dependency
 - reviewer verdict: approved | approved-with-notes | rejected | unknown
@@ -34,7 +34,7 @@
 - none
 
 ## QA Artifact Path
-- `ia-docs/features/F<NN>-<slug>/qa/<TASK-ID>-<slug>.md`
+- `docs/sprints/<NN>-<slug>/avaliacoes/qa-<TASK-ID>-<task-slug>.md`
 
 ## Plan Deviations
 - none

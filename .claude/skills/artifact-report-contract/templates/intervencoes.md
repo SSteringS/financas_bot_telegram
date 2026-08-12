@@ -1,9 +1,9 @@
-# Human Interventions - F<NN> <Feature Title>
+# Human Interventions - Sprint <NN> <Sprint Title>
 
-Created only when the first intervention happens. Records corrections the human had to make over agent work, so the flow can be improved instead of repeating the same failure.
+Created only when the first intervention of the sprint happens. Records corrections the human had to make over agent work, so the flow can be improved instead of repeating the same failure.
 
 ## Metadata
-- feature: `F<NN>-<slug>`
+- sprint: `<NN>-<slug>`
 - last_updated: `<YYYY-MM-DD>`
 
 ## Interventions
@@ -22,7 +22,7 @@ Rules:
 Corrections that did not change an artifact location or a decision, but are worth tracking.
 
 ## Promoted to Decisions
-Lessons that must survive this feature, moved to `ia-docs/decisions/`.
+Lessons that must survive this sprint, promoted to an ADR in `docs/decisions/`.
 
 | Intervention | Decision document |
 |---|---|

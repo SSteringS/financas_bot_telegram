@@ -61,7 +61,8 @@ Do not use this skill for:
 - Do not mock the class under test.
 - Do not use `Thread.sleep` or timing-based waits; use deterministic setups.
 - Test method and class names must state the behavior, not the implementation detail.
-- Keep `verify(...)` calls limited to interactions that matter for the behavior being tested, not incidental calls.
+- Choose which interactions to `verify(...)`: only those that matter for the behavior being tested, never incidental calls.
+- Assert the argument values of every interaction that carries the behavior under test, not merely that the call happened: use `ArgumentCaptor` when the class under test builds a domain object whose fields must be checked, and `eq(...)` matchers when the collaborator takes loose parameters. `verify(mock).method(any())` is not a behavioral assertion.
 - Fixtures and expected values that represent an external contract must come from the real contract source (provider specification or captured payload), never from the production code that consumes them. A test built on the same assumption as the code under test proves nothing.
 - Do not copy field names out of the mapping class to build the payload under test; take them from the contract.
 - Test names and display names must not cite process documents, plan sections, or artifact requirement numbers.

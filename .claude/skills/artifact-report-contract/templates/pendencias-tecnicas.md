@@ -1,9 +1,9 @@
-# Technical Debt Register - F<NN> <Feature Title>
+# Technical Debt Register - Sprint <NN> <Sprint Title>
 
-Owned by the planner. Populated from `Technical Debt Identified` reported by backend (status artifacts) and reviewer (review artifacts).
+Owned by the planner. Populated from `Technical Debt Identified` reported by backend (status artifacts) and reviewer (review artifacts). Scope is this sprint; debt that outlives the sprint is promoted to the global register `docs/PENDENCIAS-TECNICAS.md`.
 
 ## Metadata
-- feature: `F<NN>-<slug>`
+- sprint: `<NN>-<slug>`
 - last_updated: `<YYYY-MM-DD>`
 
 ## Open Items

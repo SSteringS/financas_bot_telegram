@@ -1,12 +1,12 @@
 # Review - <TASK-ID> <Title>
 
 ## Metadata
-- feature: `F<NN>-<slug>`
+- sprint: `<NN>-<slug>`
 - task_id: `<TASK-ID>`
 - agent: reviewer
 - date: `<YYYY-MM-DD>`
-- plan: `ia-docs/features/F<NN>-<slug>/plans/<TASK-ID>-<slug>.md`
-- status: `ia-docs/features/F<NN>-<slug>/status/<TASK-ID>-<slug>.md`
+- plan: `docs/sprints/<NN>-<slug>/plans/<TASK-ID>-<task-slug>.md`
+- status: `docs/sprints/<NN>-<slug>/status/<TASK-ID>-<task-slug>.md`
 
 ## Review Scope
 
@@ -44,7 +44,7 @@ A `not-checked` item must also appear under `Blocked Validations / Uncertainty`.
 - none
 
 ## Review Artifact Path
-- `ia-docs/features/F<NN>-<slug>/avaliacoes/<TASK-ID>-<slug>.md`
+- `docs/sprints/<NN>-<slug>/avaliacoes/review-<TASK-ID>-<task-slug>.md`
 
 ## Plan Deviations
 - none

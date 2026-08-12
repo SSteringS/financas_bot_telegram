@@ -1,11 +1,11 @@
 # Status - <TASK-ID> <Title>
 
 ## Metadata
-- feature: `F<NN>-<slug>`
+- sprint: `<NN>-<slug>`
 - task_id: `<TASK-ID>`
 - agent: backend
 - date: `<YYYY-MM-DD>`
-- plan: `ia-docs/features/F<NN>-<slug>/plans/<TASK-ID>-<slug>.md`
+- plan: `docs/sprints/<NN>-<slug>/plans/<TASK-ID>-<task-slug>.md`
 
 ## Summary
 
@@ -33,7 +33,7 @@ Every field consumed from or sent to an external system must appear here.
 - none
 
 ## Status Artifact Path
-- `ia-docs/features/F<NN>-<slug>/status/<TASK-ID>-<slug>.md`
+- `docs/sprints/<NN>-<slug>/status/<TASK-ID>-<task-slug>.md`
 
 ## Open Issues
 - none

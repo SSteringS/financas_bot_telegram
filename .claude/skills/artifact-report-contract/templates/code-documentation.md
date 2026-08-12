@@ -1,7 +1,7 @@
 # Code Documentation - <TASK-ID> <Title>
 
 ## Metadata
-- feature: `F<NN>-<slug>`
+- sprint: `<NN>-<slug>`
 - task_id: `<TASK-ID>`
 - agent: code documentation analyst
 - date: `<YYYY-MM-DD>`
@@ -45,7 +45,7 @@
 ## Open Questions
 
 ## Documentation Artifact Path
-- `ia-docs/features/F<NN>-<slug>/docs/<TASK-ID>-<slug>.md`
+- `docs/architecture/<topic>.md`
 
 ## Plan Deviations
 - none
