@@ -29,13 +29,20 @@
        ════════════════════════════════════════════════════════════════════════ -->
 
   <!--
-    Achou 2 bugs reais no piloto (LegendaParser:21 e PaymentProofStrategy:81), e nenhum
-    deles e visivel para teste ou para o PIT: toLowerCase()/toUpperCase() sem Locale usa
-    o locale default da JVM. Verificado nesta maquina com JDK 23-ea:
-      "PIX".toLowerCase(tr-TR) -> "pix" com i sem ponto  => nao casa com a chave "pix"
-      "pix".toUpperCase(tr-TR) -> "PIX" com I com ponto  => Enum.valueOf lanca IllegalArgumentException
-    O bot roda em EC2 com locale herdado do ambiente. Regra de maior valor por violacao
-    de todo o ruleset.
+    Achou 2 bugs reais no piloto (LegendaParser:21 e PaymentProofStrategy:81).
+    toLowerCase()/toUpperCase() sem Locale usa o locale default da JVM. Verificado nesta
+    maquina com JDK 23-ea:
+      "PIX".toLowerCase(tr-TR) -> "pix" com i sem ponto  => nao casa com a chave "pix",
+                                                            parseTipo devolve OUTRO
+      "pix".toUpperCase(tr-TR) -> "PIX" com I com ponto  => gravado como esta em
+                                                            comprovantes.tipo_pagamento
+                                                            (VARCHAR(255), sem CHECK)
+    Os dois degradam em SILENCIO: nenhum lanca excecao, os dois produzem dado errado.
+    O segundo e corrupcao persistida — nao ha Enum.valueOf nesse caminho, o valor trafega
+    como String ate o banco (conferido em RegistrarComprovanteServiceImpl e em
+    V1__initial_schema.sql:18).
+    Nenhum dos dois e visivel para o PIT, e um teste comum so pegaria se fosse rodado sob
+    outro locale. O bot roda em EC2 com locale herdado do ambiente.
   -->
   <rule ref="category/java/errorprone.xml/UseLocaleWithCaseConversions"/>
 
@@ -171,12 +178,19 @@
                              (1) a mensagem sai com os placeholders NAO substituidos —
                                  literalmente "return !{condition} || {elseBranch};" no
                                  target/pmd.xml — ou seja, o achado nao e acionavel como sai;
-                             (2) aplicada ao pe da letra, a sugestao vira
+                             (2) o operador sugerido esta ERRADO para esta forma. Aplicada
+                                 ao pe da letra, a sugestao vira
                                  "return caption != null || P.matcher(caption.trim()).matches();"
                                  que NAO e equivalente ao original: com caption null o codigo
                                  original devolve false e a sugestao dispara NullPointerException.
-                             Regra cuja remediacao esta errada para a forma que ela mesma
-                             sinaliza produz ruido, nao qualidade. Removida.
+                                 O correto seria "&&". Confirmado pelo Reviewer em arquivo
+                                 controlado: para "if (c) return false; return e;" o PMD 7.7.0
+                                 sugere "||" onde cabe "&&".
+                             Defeito da MENSAGEM da regra, nao da deteccao — a forma detectada
+                             existe mesmo. Mas achado que chega com placeholder cru e com o
+                             operador trocado e ruido, nao qualidade. Removida.
+                             REAVALIAR em upgrade de PMD: se a mensagem for corrigida upstream,
+                             a regra volta a ser candidata.
 
        Regras que dispararam FORA do piloto e nao entraram (decisao com evidencia lida,
        mas sem a leitura violacao-a-violacao que o piloto recebeu):
@@ -224,7 +238,9 @@
                                 redundante "cond ? true : false"; colapsar para "x == null || x"
                                 troca uma intencao legivel (default de nulo) por algebra
                                 booleana. Preferencia de legibilidade, nao sinal de
-                                qualidade. Fora.
+                                qualidade. Fora. Candidata a REAVALIACAO: das 5, a de
+                                PedidoPagamentoMapper:54 usa ": false", cuja versao colapsada
+                                ("x != null && x") e defensavel. Rodada futura, hash novo.
 
        AvoidDuplicateLiterals   1 violacao ("jpg" 4x em TelegramMessageMapper). Achado
                                 legitimo, mas a regra e conhecidamente explosiva quando o

@@ -142,20 +142,23 @@ String alvo = legenda.toLowerCase();
 
 Efeito concreto: numa JVM com locale turco, uma legenda contendo `PIX` deixa de ser classificada como `TipoPagamento.PIX` e cai em `OUTRO` — **silenciosamente**, sem exceção nenhuma. Das quatro palavras-chave, só `pix` tem a letra `i`, então o bug é estreito; mas é real, e o bot roda em EC2 com locale herdado do ambiente.
 
-### 2. `PaymentProofStrategy:81` — `UseLocaleWithCaseConversions` — **(a) problema real, e pior que o anterior**
+### 2. `PaymentProofStrategy:81` — `UseLocaleWithCaseConversions` — **(a) problema real**
 
 ```java
 String tipoPagamento = matcher.group(2).toUpperCase();
 ```
 
-Mesma família, direção oposta e consequência mais dura, porque essa string vira `enum`:
+Mesma família, direção oposta:
 
 ```
 "pix".toUpperCase(tr-TR)  ->  "PİX"  (I com ponto)
-Enum.valueOf(..., "PİX")  ->  lança IllegalArgumentException   [verificado]
 ```
 
-Aqui não degrada em silêncio: **explode**. Um comprovante `#123 pix` derrubaria o processamento da mensagem.
+> **Correção após revisão (achado F1 do Reviewer).** A primeira versão deste status afirmava que essa string alimenta `Enum.valueOf` e que o efeito seria `IllegalArgumentException` derrubando o processamento da mensagem — e classificava o item como "pior que o anterior". **Estava errado, e eu confirmei o erro por conta própria.** O valor trafega como `String` de ponta a ponta: `RegistrarComprovanteServiceImpl.execute(Long, String, ...)` o repassa direto para `Comprovante.builder().tipoPagamento(...)`, e o schema o persiste em `comprovantes.tipo_pagamento VARCHAR(255)` **sem `CHECK`** (`V1__initial_schema.sql:18`). Não há `Enum.valueOf` nesse caminho. O único `Enum.valueOf` alimentado por `toUpperCase()` em todo `src/main/java` é `PedidoController:64`, que é outro fluxo.
+
+Efeito real sob locale turco: o comprovante é gravado e exibido como `PİX`. **Não explode — corrompe.** É persistido, e persiste depois que o locale for corrigido.
+
+Os dois bugs de locale do piloto, então, têm a **mesma natureza**: degradam em silêncio, nenhum lança exceção. O nº 1 perde a classificação em memória; o nº 2 grava dado errado no banco. Nenhum dos dois é "pior" no sentido de ser mais barulhento — o nº 2 é o mais difícil de reverter, porque o dado fica.
 
 ### 3–5. `FecharMesServiceImpl:99` — `LawOfDemeter` ×3 — **(c) regra que não queremos**
 
@@ -288,7 +291,7 @@ Nas mesmas 36 linhas do `LegendaParser`, o PIT achou uma lacuna de teste que o P
 | | |
 |---|---|
 | Arquivo | `financas_bot_telegram/pmd-ruleset.xml` |
-| **sha256** | **`1b06f4a8ec4358a85561baea89a3435ec6a835b9680f858833c765d35c710a72`** |
+| **sha256** | **`5100b68f387a0f0d4a8a6d8ba6540c715854709869790373df1118acb71755a9`** |
 | Regras ativas | **10** (3 `errorprone` + 7 `design`) |
 | PMD | 7.7.0 · `maven-pmd-plugin` 3.26.0 |
 | Baseline no congelamento | produção **22** · teste **1** |
@@ -296,6 +299,41 @@ Nas mesmas 36 linhas do `LegendaParser`, o PIT achou uma lacuna de teste que o P
 Comando: `sha256sum financas_bot_telegram/pmd-ruleset.xml`.
 
 Alterar o arquivo invalida a comparabilidade das medições — exige nova curadoria, hash novo e registro de a partir de quando a medição nova vale.
+
+### O hash mudou uma vez, durante a revisão — e por quê
+
+| Hash | Situação |
+|---|---|
+| `1b06f4a8ec4358a85561baea89a3435ec6a835b9680f858833c765d35c710a72` | primeira versão · **descartado, não usar** |
+| `5100b68f387a0f0d4a8a6d8ba6540c715854709869790373df1118acb71755a9` | **vale este** |
+
+O achado F1 do Reviewer mostrou que o comentário da regra `UseLocaleWithCaseConversions` dentro do XML repetia a mesma afirmação falsa do status (`Enum.valueOf` lançando exceção). **Optei por corrigir o comentário e refazer o hash**, em vez de deixar o texto errado congelado.
+
+O trade-off era real: refazer o hash agora custa esta tabela; deixar para depois significaria propagar uma justificativa falsa para o `STATE.md` e para o pré-registro do experimento, e aí o custo de corrigir passaria a incluir invalidar medição já publicada. **Nenhuma medição foi publicada ainda** — este status é o primeiro artefato a carregar o hash, e o `STATE.md` ainda não foi atualizado (é do planner). A janela para trocar sem custo é exatamente esta.
+
+**O baseline não mudou:** rodei o PMD depois da edição e o resultado continua **22 em produção**, mesma distribuição por regra. Só comentários foram alterados; nenhuma regra entrou, saiu ou teve propriedade mexida. Isso é o que torna a troca barata — e é verificável reproduzindo o run.
+
+---
+
+## Revisão independente (ADR 0005)
+
+Relatório: `docs/sprints/04-instrumentacao-qualidade/avaliacoes/review-QA-013-pmd-ruleset-curado-e-piloto.md`
+
+**Primeiro veredito: `rejected`**, por **1 achado high** (F1) e 4 low. O Reviewer reproduziu o run por conta própria e conferiu os números um a um.
+
+| Achado | Sev. | O que era | Como ficou |
+|---|---|---|---|
+| **F1** | **high** | Eu afirmava que `PaymentProofStrategy:81` alimenta `Enum.valueOf` e derruba o processamento da mensagem, e ranqueava o bug como "pior que o anterior" | **Procede.** Confirmei por conta própria: o valor trafega como `String` até `comprovantes.tipo_pagamento VARCHAR(255)` sem `CHECK`. É **corrupção silenciosa**, não exceção. Corrigido na leitura interpretada nº 2, no débito 1, e **no comentário do próprio `pmd-ruleset.xml`** — o que obrigou a refazer o hash |
+| F2 | low | Eu escrevia "regra cuja remediação está errada" | Ajustado: o defeito é da **mensagem**, não da detecção. Com gatilho de reavaliação em upgrade de PMD |
+| F3 | low | O comentário do XML afirmava de forma mais absoluta que o status que o bug é "invisível para teste" | Alinhado ao texto do status: um teste pegaria, se rodado sob outro locale |
+| F4 | low | O runbook generalizava "não precisa de build prévio" | Corrigido com o número que o Reviewer mediu: `LawOfDemeter` dá 2 sem `target/classes` e 26 com; o ruleset congelado é insensível (22 nos dois casos) |
+| F5 | low | `minimumPriority=5` já é o default do plugin | Mantido, mas o comentário agora diz que é explícito de propósito, não que está configurando algo |
+
+**O que o Reviewer tentou derrubar e não conseguiu:** o argumento (b) da remoção de `SimplifyBooleanReturns` — que eu havia sinalizado no dispatch como o ponto mais frágil da curadoria — **saiu fortalecido**: testando os 4 formatos da regra em arquivo controlado, ele confirmou que o PMD 7.7.0 sugere `||` onde caberia `&&`. Também resistiram: os 22/23 do baseline, a distribuição por categoria, as 8 violações da rodada 1 no piloto, os 191/273 arquivos parseados, as 18 células da tabela de complexidade e as 5 somas por classe, e a afirmação de que só `pix` é afetada entre as 4 palavras-chave.
+
+**Achado colateral que virou débito:** ao derrubar F1, o Reviewer encontrou o `Enum.valueOf` de verdade — `PedidoController:64` — inócuo hoje só porque nenhum valor de `StatusPedido` (`PENDENTE`, `PAGO`, `CANCELADO`) tem a letra `i`. Verifiquei. Está no item **1b** dos débitos.
+
+Todos os `Required Fixes` foram aplicados. **Falta o `delta-review` para fechar** — ver "Decisões pendentes".
 
 ---
 
@@ -343,8 +381,9 @@ Nenhum corrigido aqui — o plano é explícito em tratar o legado como baseline
 
 | # | Débito | Evidência | Por que importa |
 |---|---|---|---|
-| 1 | **Dois bugs reais de locale** em `LegendaParser:21` e `PaymentProofStrategy:81` | violações `(a)` acima, com o comportamento sob `tr-TR` medido | O segundo lança `IllegalArgumentException` e derruba o processamento da mensagem. São os únicos `(a)` do piloto |
-| 2 | **`UseLocaleWithCaseConversions`: mais 3 ocorrências fora do piloto** (5 no total) | baseline | Mesma família dos dois acima; as outras 3 não foram lidas uma a uma |
+| 1 | **Dois bugs reais de locale** em `LegendaParser:21` e `PaymentProofStrategy:81` | violações `(a)` acima, com o comportamento sob `tr-TR` medido | **Corrupção silenciosa, não exceção** (corrigido após F1 do Reviewer). O primeiro classifica `pix` como `OUTRO` em memória; o segundo **grava** `PİX` em `comprovantes.tipo_pagamento` (`VARCHAR(255)`, sem `CHECK`) — dado errado que fica no banco depois de o locale ser corrigido. Nenhum dos dois lança nada. São os únicos `(a)` do piloto |
+| 1b | **`PedidoController:64` — `StatusPedido.valueOf(status.toUpperCase())`** | achado do Reviewer ao derrubar F1 | Este **é** um `Enum.valueOf` alimentado por `toUpperCase()` sem `Locale`. Hoje inócuo apenas porque nenhum valor de `StatusPedido` contém a letra `i` — é acidente, não proteção. Um status novo com `i` no nome ativa o bug |
+| 2 | **`UseLocaleWithCaseConversions`: mais 3 ocorrências fora do piloto** (5 no total) | baseline: `PedidoController:64`, `PedidoSpecs:42`, `ResumoMesServiceImpl:38` | A de `PedidoController:64` é o item 1b acima, lida ao corrigir F1. As de `PedidoSpecs:42` e `ResumoMesServiceImpl:38` **continuam não lidas uma a uma** — as duas são filtro/agregação, onde o efeito provável é registro sumindo do resultado em silêncio |
 | 3 | **`AvoidCatchingGenericException`: 10 em produção + 1 em teste** | baseline | Maior bloco do baseline. É o modo de falha que o experimento quer medir em código gerado por modelo |
 | 4 | **`AtualizarFuncionarioServiceImpl.atualizar`: ciclomática 12, NPath 2048** (threshold 200) | baseline | 2048 caminhos combinados — a cobertura de caminhos é inalcançável na prática |
 | 5 | **`CadastrarFuncionarioServiceImpl.validarDadosPagamento`: ciclomática 18, cognitiva 17** | baseline | As duas métricas concordam: é complexo de verdade, não é artefato de contagem |
@@ -356,7 +395,7 @@ Nenhum corrigido aqui — o plano é explícito em tratar o legado como baseline
 ## Próximos passos / observações pro próximo
 
 - **`-Dpmd.rulesets` não existe e `-Dpmd.includeTests` só funciona por causa da property que adicionei.** Quem for medir escopo por diff no item #7 vai bater nisso: trocar de ruleset exige editar o `pom.xml`. Documentado no runbook.
-- **O baseline para o Δ do item #7 é `Q7_producao = 22` e `Q7_teste = 1`**, com o ruleset de hash `1b06f4a8…`. Δ medido contra outro ruleset não é comparável.
+- **O baseline para o Δ do item #7 é `Q7_producao = 22` e `Q7_teste = 1`**, com o ruleset de hash `5100b68f…`. Δ medido contra outro ruleset não é comparável.
 - **Ao contrário do PIT, o PMD não precisa de suíte verde nem de build** — analisa fonte. Ele roda **agora**, com os 48 testes de integração vermelhos, sem prejuízo nenhum ao resultado.
 - **Não silenciar violação com `@SuppressWarnings("PMD…")`.** A discussão é no ruleset, com justificativa escrita; supressão espalhada pelo código torna o Q7 incomparável entre runs sem deixar rastro no hash.
 - **Item #5 do `backlog-s04.md` sai** (absorvido por esta task) e o **#4** fecha, conforme a seção "Após merge" do plano. Falta ainda registrar baseline e hash no `STATE.md` — é do planner.

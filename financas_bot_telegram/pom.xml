@@ -285,7 +285,12 @@
 						entre os dois runs, nao a saida direta de um deles.
 					-->
 					<includeTests>${pmd.includeTests}</includeTests>
-					<!-- Violacao de qualquer prioridade entra no relatorio; a curadoria e no ruleset. -->
+					<!--
+						Explicito de proposito, apesar de 5 ja ser o default do plugin: deixa
+						registrado que NAO ha filtro por prioridade. A curadoria e no ruleset,
+						regra a regra e com justificativa — filtrar por numero aqui esconderia
+						regra sem discutir regra, e em silencio.
+					-->
 					<minimumPriority>5</minimumPriority>
 				</configuration>
 			</plugin>

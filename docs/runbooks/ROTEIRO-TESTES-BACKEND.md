@@ -113,7 +113,9 @@ cd C:\Users\satya\src\financas_bot_telegram
 ./financas_bot_telegram/mvnw pmd:pmd -f financas_bot_telegram/pom.xml
 ```
 
-**Não precisa de suíte verde nem de build prévio** — ao contrário do PIT, o PMD analisa fonte, não bytecode instrumentado.
+**Não precisa de suíte verde** — ao contrário do PIT, o PMD analisa fonte, não bytecode instrumentado. Roda com a suíte vermelha sem prejuízo ao resultado.
+
+⚠️ **Mas "não precisa de build" não vale para regra nenhuma.** Regras que fazem resolução de tipo consultam o `auxclasspath`, e sem `target/classes` compilado elas veem menos: medido pelo Reviewer da QA-013, `LawOfDemeter` dá **2** violações sem build prévio e **26** com. O **ruleset congelado é insensível** — 22 nos dois casos, verificado —, então o número de baseline é estável. Quem for medir com ruleset diferente (item #7) precisa fixar se compila antes ou não, e declarar isso junto do número.
 
 **Saída:** `financas_bot_telegram/target/pmd.xml` (parseável) e `financas_bot_telegram/target/reports/pmd.html` (leitura humana, abrir no navegador). O XML sai **sempre**, mesmo com `<format>html</format>`, porque os goals `pmd:check` dependem dele. A pasta fica sob `target/`, **não é commitada**.
 
