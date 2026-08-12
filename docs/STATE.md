@@ -1,101 +1,124 @@
 # STATE — onde o projeto está agora
 
-> **Doc vivo de orientação.** Existe pra uma sessão que começa fria (planner, back, front ou reviewer) se situar em 1 minuto, sem re-derivar contexto. **Curto de propósito.** Detalhe mora nos planos (`docs/plans/`), status reports (`docs/sprints/<NN>/status/`) e ADRs (`docs/decisions/`).
+> **Doc vivo de orientação.** Existe pra uma sessão que começa fria (planner, back, front ou reviewer) se situar em 1 minuto, sem re-derivar contexto. **Curto de propósito.** Detalhe mora nos planos (`docs/sprints/<NN>-<slug>/plans/`), status reports (`docs/sprints/<NN>-<slug>/status/`) e ADRs (`docs/decisions/`).
 >
-> **Última atualização:** 2026-06-01 (sprint 03 em execução — BE-023 mergeada; suíte E2E Fase 1 planejada; integration branch criada; 16 dispatches prontos).
-> **Fonte:** este resumo é derivado dos status reports em `docs/sprints/<NN>/status/`. O **estado real de merge em `develop` é do humano** (ele é o integrador — ADR 0004).
+> **Última atualização:** 2026-08-12 (sprint 04 em execução — QA-012 concluída; sprint 03 com duas tasks de front não executadas; produção restaurada em 2026-08-09).
+> **Fonte:** derivado do frontmatter `estado:` dos status reports, do log do git e do histórico de runs do workflow `Deploy to Production`. Onde uma afirmação foi verificada por comando, o comando está citado. **O frontmatter dos status reports manda** — quando este resumo divergir dele, ele está errado.
 
 ---
 
 ## Sprint atual
 
-**Sprint 03 — Folha de pagamento** (`docs/sprints/03-folha-pagamento/README.md`).
+**Sprint 04 — Instrumentação e qualidade** (`docs/sprints/04-instrumentacao-qualidade/README.md`).
 
-**Modo:** 🟠 **em execução** — BE-023 ✅ mergeada em develop (PR #81, 2026-06-01). Próximo: despachar BE-024 + QA-001.
+**Modo:** 🟠 **em execução** — primeira task entregue.
 
-**Branch de integração:** `integration/03-folha-pagamento` ✅ criada e pushada. Destino dos PRs das tasks QA-001..004 (e outras features da sprint antes de develop).
+**Objetivo:** instalar o ferramental de qualidade e a instrumentação de medição que o repositório não tem (JaCoCo, PIT, PMD, coleta de custo por papel), e corrigir a configuração dos subagentes que impede medir modelo por papel.
 
-**Dispatches disponíveis:** 16 tasks em `docs/sprints/03-folha-pagamento/plans/DISPATCH-*.md`.
+**Entrega que define "pronto":** um run completo do fluxo planner → backend → reviewer → QA de ponta a ponta, com custo por papel coletado, modelo comprovadamente pinado e métricas de qualidade gerando número real em vez de `na`.
+
+**Backlog vivo:** `docs/sprints/04-instrumentacao-qualidade/backlog-s04.md`. Itens refinados viram planos em `plans/`.
+
+**Branch de integração:** `integration/04-instrumentacao-qualidade` — criada e já usada (PR #124 mergeado em `develop`).
 
 ---
 
-## Sprint 03 — estado das tasks
+## Sprint 04 — estado das tasks
 
-### ✅ Mergeado em develop
+### ✅ Concluído
 
-- **BE-023** — V6 DDL folha de pagamento (PR #81). ⚠️ Pendência: rodar `SHOW CREATE TABLE` no banco dev pra confirmar DDL (item do humano).
+- **QA-012 — Piloto do PIT (mutation testing) em escopo reduzido.** PIT 1.25.9 + `pitest-junit5-plugin` 1.2.3 no `pom.xml`, escopo de 4 classes, 42 mutantes, leitura interpretada dos 5 sobreviventes. Reviewer: **aprovado com ressalvas** (11/11 critérios, 5 achados de prosa corrigidos). PRs #123 e #124.
+  - Baseline registrado por classe no status report. Teto realista das 4 classes: **39/42 ≈ 93%** — 2 sobreviventes são equivalentes demonstrados e 1 é inalcançável na prática. **Não tratar 100% como meta.**
 
-### 🔵 Habilitadas — despachar agora
+### 🟢 Derivado da QA-012, já materializado
 
-- **BE-024** — Entidades JPA + repositórios (depende de BE-023 ✅). `DISPATCH-BE-024-*.md`.
-- **QA-001** — Setup Playwright base (Lote A, independente). `DISPATCH-QA-001-*.md`. **PR destino: `integration/03-folha-pagamento`** (não develop).
+- **ADR 0021 — gate de mutation testing opcional por task.** Critério: `test strength` (mortos ÷ **cobertos**) ≥ **80%**, medido **apenas sobre as classes alteradas pela task**; código pré-existente fica fora do denominador. Sobrevivente classificado como equivalente **com demonstração escrita** não conta contra o piso.
+- **Item 11 do `BACKLOG-evolucao-workflow`** (mudanças em `.claude/`) — commit `105d955`, 2026-08-12. Regra de asserção sobre valor na `writing-java-unit-tests`; consistência rótulo × número na `artifact-report-contract`; campo `mutation_gate` no planner/backend/reviewer e nos dois templates de plano; remoção das referências penduradas a `.github/instructions/`.
+  - ⚠️ **Config de agente é carregada no spawn** — isso só vale a partir da próxima sessão.
 
-### ⏳ Aguarda dispatch sequencial
+### 🔵 Próximo a refinar
 
-| Task | Depende de | Dispatch |
+- **Item #2 do backlog s04 — corrigir os testes fracos revelados pelo piloto.** Alvo concreto já identificado: falta caso com palavra-chave no **índice 0** em `LegendaParser`. Após escrever o teste, rodar o PIT e conferir que a classe sai de 6/8 para 7/8. Os outros dois sobreviventes são equivalentes e **não devem** ser perseguidos.
+- Demais frentes ainda não refinadas: PMD (item #4), JaCoCo (#6), mecanismo de "classes tocadas" (#7), hooks de coleta de custo, pinagem de modelo dos agentes.
+
+### Decisão pendente da sprint
+
+- **Ordem em relação à tag do marco zero.** Definir se a sprint inteira precede a tag do baseline do experimento, ou só as tasks que tocam código de produção. (A dependência antiga do FIX-006 **caiu** — ver "Deploy" abaixo.)
+
+---
+
+## Deploy e produção
+
+**Produção está no ar.** Verificado por `gh run list --workflow="Deploy to Production"`:
+
+| Run | Quando | Resultado |
 |---|---|---|
-| BE-025 | BE-024 ✅ em develop | pronto |
-| BE-026 | BE-024 ✅ em develop | pronto ⚠️ cria FolhaController |
-| BE-027 | BE-024 + **BE-026 mergeada** | pronto (serializada) |
-| BE-028 | BE-024 + BE-026 + BE-027 | pronto ⚠️ PASSO ZERO: nullable |
-| BE-029 | BE-028 | pronto |
-| FE-015 | BE-025 | pronto |
-| FE-016 | BE-028 + FE-015 | pronto |
-| FE-017 | FE-016 | pronto |
-| QA-002 | QA-001 em integration | pronto |
-| QA-003 | BE-023 ✅ + QA-001 em integration | pronto (Lote B) |
-| QA-004 | QA-002 + QA-003 em integration | pronto (Lote B) |
+| `31285612236` | 2026-08-09T00:10Z | ❌ failure — crash-loop, causa do incidente |
+| `31324695450` | 2026-08-09T16:47Z | ✅ success |
+| `31341256203` | 2026-08-09T23:10Z | ✅ success — **estado atual** |
 
-### ✅ Executado pelo planner (sem dispatch)
+**Incidente encerrado:** produção ficou fora do ar de 2026-08-09T00:12Z até o deploy verde do mesmo dia. Causa e correção em `docs/sprints/03-folha-pagamento/status/FIX-006-whatsapp-defaults-no-properties.md`. FIX-006 e FIX-007 estão em `main` (PR #122) — verificado com `git merge-base --is-ancestor`.
 
-- **QA-005** — `docs/runbooks/ROTEIRO-E2E.md` criado.
-- **QA-006** — `PRE-MERGE-CHECKLIST.md` atualizado com gate `exige_e2e_full`.
+> ⚠️ Versões anteriores deste arquivo diziam "PR develop → main não aberto ainda". **Estava stale e um plano se apoiou nisso.** Se for citar estado de deploy, confira o run antes.
 
-### Decisão pendente
+---
 
-- **§7 — vales na lista do Pedro:** Opção A (filtrar GET) ou B (tag visual). Não bloqueia tasks atuais — resolve como FIX pós-sprint.
-- **ADR 0016:** `Proposed` — homologar antes de despachar BE-025+ (código Java novo).
-- **ADR mock mídia Telegram:** necessário para QA-004 cenário foto+caption (Fase 1.1 da suíte E2E).
+## Sprint 03 — Folha de Pagamento (não fechada formalmente)
+
+**23 das 25 tasks com status report estão `concluido`.** Backend (BE-023..030), frontend (FE-015..017), FIXes 002..007 e QA-001..009 entregues.
+
+**O que falta pra fechar:**
+
+| Item | Estado | Observação |
+|---|---|---|
+| **QA-010** — cobertura de testes frontend | 🔵 plano pronto, **sem status report** | nunca despachada |
+| **QA-011** — expansão E2E cenários positivos | 🔵 plano pronto, **sem status report** | sub-áreas A/B/C/D desbloqueadas |
+| **Retrospectiva 03** | ausente | as sprints 01, 02, 02b têm |
+
+**FIX-006 e FIX-007 estão com `estado: parcial` no frontmatter, mas o código foi mergeado** (PRs #119 e #121, e daí pra `main` via #122). O `parcial` reflete **pendências de mão humana**, não código faltando:
+
+- **FIX-007 (4 pendências, nenhuma registrada como resolvida):**
+  1. **Rotacionar segredos** — `admin_api_key` de dev, `keystore_password` (no Secrets Manager **e** reassinando o `/opt/finbot/keystore.p12` da EC2), senha do MySQL local. Os valores estiveram num repo público; devem ser considerados coletados. O token do Telegram gen-1 já foi rotacionado em 2026-08-09.
+  2. **Confirmar que `keystore_password` existe em `finbot-prod-secrets`** antes do próximo recreate da EC2. Se não existir, o bootstrap **aborta antes** de subir finbot e Caddy — a instância nova fica sem aplicação e sem reverse proxy, e reboot recupera só o Caddy.
+  3. **Ratificar (planner)** a reformulação dos §Critérios de aceitação e §Referências do plano — feita sem autorização prévia, substância aprovada pelo Reviewer.
+- **FIX-006:** validação funcional pós-deploy (`GET /webhook/whatsapp?hub.mode=subscribe&...` → **403**, mais dois WARN de sentinela no boot) **não está registrada em nenhum artefato**. O deploy está verde; a checagem de comportamento, não.
 
 ---
 
 ## Sprints anteriores
 
-**Sprint 02b — Kaizen (workflow/processo):** ✅ **fechada** em 2026-05-31. WF-01..WF-08 concluídos. Retro em `docs/retrospectivas/RETRO-02b-kaizen-workflow.md`.
-
-**Sprint 02 — Canal WhatsApp:** ✅ **fechada** em 2026-05-30 com FE-14 mergeado (PR #80). Falta abrir PR `develop → main` pro deploy (não bloqueante).
-
-**Sprint 01 — MVP Fase 3:** ✅ concluída (histórico em `docs/sprints/01-mvp/`).
+- **Sprint 02b — Kaizen (workflow):** ✅ fechada 2026-05-31. `RETRO-02b-kaizen-workflow.md`.
+- **Sprint 02 — Canal WhatsApp:** ✅ fechada 2026-05-30. `RETRO-02-canal-whatsapp.md`.
+- **Sprint 01 — MVP Fase 3:** ✅ fechada. `RETRO-01-mvp-fase3.md`.
 
 ---
 
-## Fluxo de branches desta sprint
+## Pendências abertas (fora das sprints)
 
-```
-develop ──── integration/03-folha-pagamento ──── feature/qa-001-setup-playwright-base
-             (destino PRs QA-001..004)           feature/qa-002-scripts-orquestracao-stack
-                                                  feature/qa-003-fixtures-...
-                                                  feature/qa-004-specs-mvp-...
-
-develop ──── feature/be-024-...  (PR direto pra develop)
-             feature/be-025-...
-             feature/fe-015-...
-             etc.
-```
-
-- **feature/qa-NNN → integration:** implementador abre e pode auto-aceitar o PR.
-- **feature/be-NNN / fe-NNN → develop:** PR + Reviewer obrigatório.
-- **integration → develop:** planner abre no fim da sprint; humano homologa.
-
----
-
-## Pendências abertas (não bloqueantes)
-
+- **Rotação de segredos do FIX-007** — item de segurança, o mais urgente desta lista.
 - **DEP-07:** PR #64 aguarda merge + `terraform apply` (in-place confirmado).
-- **DEP-08:** webhook via Caddy/LE — Fase 2, aguarda ADR de topologia TLS.
-- **PR `develop → main`** (deploy sprint 02): não aberto ainda.
-- **BE-20 / PREP-WA fases 4,8,9:** bloqueado por chip WhatsApp Business + Business Verification (externo).
-- Demais débitos: `docs/PENDENCIAS-TECNICAS.md`.
+- **DEP-08:** webhook via Caddy/Let's Encrypt — Fase 2, aguarda ADR de topologia TLS.
+- **BE-20 / PREP-WA fases 4, 8, 9:** bloqueado por chip WhatsApp Business + Business Verification (dependência externa). Popular os 4 secrets em `finbot-prod-secrets` é pré-condição, e há duas guardas de sentinela a remover quando isso acontecer.
+- **§7 — vales na lista do Pedro:** Opção A (filtrar GET) ou B (tag visual). Resolver como FIX.
+- Demais débitos: `docs/PENDENCIAS-TECNICAS.md` (inclui os 7 achados da QA-012 e os 2 registrados em 2026-08-12).
+
+---
+
+## Fluxo de branches
+
+```
+main (protegida — só via PR; merge dispara deploy)
+ └── develop  ← planner commita direto (worktree financas_bot_telegram-planner)
+      ├── integration/04-instrumentacao-qualidade  ← sprint atual
+      │    └── feature/qa-NNN-<slug>
+      ├── fix/NNN-<slug>      → develop direto
+      └── hotfix/NNN-<slug>   → develop direto
+```
+
+- **feature → integration:** implementador abre e pode auto-aceitar.
+- **integration → develop:** planner abre no fim da sprint; **humano homologa** — único gate humano do fluxo de features.
+- **fix/hotfix → develop:** PR direto.
+- Última task usada por prefixo: **QA-012**, **BE-030**, **FE-017**, **FIX-007**.
 
 ---
 
@@ -103,13 +126,15 @@ develop ──── feature/be-024-...  (PR direto pra develop)
 
 | Preciso de… | Vou em… |
 |---|---|
-| O que construir (spec de task) | `docs/sprints/03-folha-pagamento/plans/` |
-| Dispatch pronto pra colar no agente | `docs/sprints/03-folha-pagamento/plans/DISPATCH-*.md` |
-| O que foi feito (execução) | `docs/sprints/<NN>/status/` |
+| O que construir (spec de task) | `docs/sprints/<NN>-<slug>/plans/` |
+| O que foi feito (execução) | `docs/sprints/<NN>-<slug>/status/` |
+| Avaliação do Reviewer | `docs/sprints/<NN>-<slug>/avaliacoes/` |
 | Decisão arquitetural canônica | `docs/decisions/` (ADRs) |
-| Regra que o agente obedece | `CLAUDE.md` |
+| Regra que o agente obedece | `CLAUDE.md` (raiz e `financas_bot_telegram/`) |
+| Contrato de artefato dos subagentes | `.claude/skills/artifact-report-contract/` |
 | Conceito pra revisitar | `docs/aprendizado/` |
 | Definição de pronto / gates | `docs/runbooks/PRE-MERGE-CHECKLIST.md` |
 | Como rodar a suíte E2E | `docs/runbooks/ROTEIRO-E2E.md` |
-| Instruções por papel | `docs/roles/` |
+| Como rodar testes de backend / PIT | `docs/runbooks/ROTEIRO-TESTES-BACKEND.md` |
 | Débito técnico conhecido | `docs/PENDENCIAS-TECNICAS.md` |
+| Melhorias de processo | `docs/plans/BACKLOG-evolucao-workflow.md` |
