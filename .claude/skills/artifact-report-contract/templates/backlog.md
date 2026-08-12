@@ -1,7 +1,7 @@
-# Backlog - F<NN> <Feature Title>
+# Backlog - Sprint <NN> <Sprint Title>
 
 ## Metadata
-- feature: `F<NN>-<slug>`
+- sprint: `<NN>-<slug>`
 - last_updated: `<YYYY-MM-DD>`
 
 ## Scope Owner
@@ -10,7 +10,7 @@
 
 | TASK-ID | Title | Lane | State | Plan | Status |
 |---|---|---|---|---|---|
-| `F<NN>-T1` | | backend / frontend / mixed | not-started / planned / in-progress / done | path or `none` | path or `none` |
+| `<TASK-ID>` | | backend / frontend / mixed | not-started / planned / in-progress / done | path or `none` | path or `none` |
 
 State rules:
 
@@ -19,4 +19,4 @@ State rules:
 - `in-progress`: status artifact exists with unresolved `Open Issues`.
 - `done`: status artifact exists, `Open Issues` is `none`, and reviewer verdict is not `rejected`.
 
-## Out of Scope for This Feature
+## Out of Scope for This Sprint

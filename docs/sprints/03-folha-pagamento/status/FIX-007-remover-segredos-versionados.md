@@ -4,7 +4,7 @@ titulo: "Remover segredos versionados do estado atual do repositório (repo púb
 data: 2026-08-09
 branch: fix/007-remover-segredos-versionados
 responsavel: claude-back
-estado: parcial
+estado: concluido
 gates:
   build: ok
   lint: na
@@ -18,9 +18,9 @@ commits:
   - d1c5e08
   - 49856b5
   - ab12ba4
-pr: null
+pr: https://github.com/SSteringS/financas_bot_telegram/pull/121
 desvios: 2
-pendencias_humano: 4
+pendencias_humano: 0
 ---
 
 # FIX-007 — Remover segredos versionados do estado atual do repositório
@@ -190,11 +190,22 @@ Na rodada 2, por indicação do Reviewer, um **terceiro** critério de aceitaç�
 
 ## Decisões pendentes (esperando humano)
 
+> **Encerradas em 2026-08-12 pelo planner, por decisão do humano no fechamento da sprint 03.** A task passou de `parcial` para `concluido`. Duas pendências foram migradas para `docs/PENDENCIAS-TECNICAS.md`, uma foi ratificada pelo planner e uma já estava feita — **nenhuma foi descartada**. Estado de cada uma marcado abaixo; o texto original fica como registro.
+>
+> | # | Destino |
+> |---|---|
+> | 1 | 🔴 **migrada** → §"Rotacionar os segredos que estiveram versionados (FIX-007)" — **prioridade alta, segue em aberto** |
+> | 2 | 🟡 **migrada** → §"`keystore_password` não confirmado em `finbot-prod-secrets`" |
+> | 3 | ✅ **ratificada** pelo planner em 2026-08-12 (ver nota ao fim do item) |
+> | 4 | ✅ **feita** — PR #121 mergeado em `develop`, e daí para `main` via #122 |
+
 **4 pendências.**
 
 1. **Rotacionar os segredos.** Este FIX **não é remediação** — só interrompe a exposição contínua. Os valores já commitados num repo público devem ser considerados coletados. Rotacionar: `admin_api_key` de dev, `keystore_password` (em `finbot-prod-secrets` **e** reassinando o `/opt/finbot/keystore.p12` da EC2, senão o app não abre o keystore), senha do MySQL local. O token do Telegram gen-1 já foi rotacionado em 2026-08-09.
 2. **Confirmar que a chave `keystore_password` existe em `finbot-prod-secrets` antes do próximo recreate da EC2.** `docs/sprints/01-mvp/status/DEP-07.md:98` afirma que sim ("confirmado"), mas isso é relato de 2026-05 e **não foi verificado nesta task** — não há credencial AWS nesta sessão. Mudança real de blast radius: antes o bootstrap sempre passava; agora, se a chave não vier, ele **aborta o provisionamento** com `exit 1`. E o `exit 1` ocorre **antes** do `systemctl start finbot`/`caddy`, então a instância recém-criada fica **sem reverse proxy e sem aplicação**, não apenas sem keystore. Um reboot recupera **só o Caddy** (`systemctl enable` na linha 113): o finbot **não** volta, porque `application-prod.properties:7` aponta `server.ssl.key-store=/opt/finbot/keystore.p12` — exatamente o arquivo que não foi criado — e o `Restart=on-failure` do unit o joga em crash-loop; `user_data` não reexecuta em reboot, então o keystore não é gerado sozinho. Recuperar exige intervenção manual (popular o secret e rodar o bloco do bootstrap à mão, ou recriar a instância). Falhar alto continua sendo o comportamento correto — gerar keystore com senha errada quebraria o boot do app de forma mais obscura. Cabe ao planner decidir se vale mover o bloco do keystore para depois do start dos serviços.
 3. **Ratificar (planner) a reformulação do §Critérios de aceitação e da §Referências do plano** — ver Desvio 1. `docs/plans/` é território do planner; a mudança está feita e declarada, mas não autorizada previamente. O Reviewer considerou a substância correta e o critério não afrouxado, e pediu ratificação formal.
+
+   > ✅ **Ratificado pelo planner em 2026-08-12.** Li o §Desvios antes de ratificar. A reformulação era **obrigatória, não discricionária**: o próprio arquivo do plano continha a senha literal 5 vezes e está em `develop` num repositório público — o critério "zero ocorrências na árvore de trabalho" era insatisfatível sem tocá-lo, e deixá-lo intacto anularia o objetivo do FIX. Nos 3 critérios reescritos o literal era **argumento de busca**, não valor citado; mascarar sem reformular produziria um comando que não verifica nada (foi exatamente o caso do `git grep -n "UJ"`, fragmento de 2 caracteres que o Reviewer pegou na rodada 2). A severidade foi preservada em todos ("retorna **zero** ocorrências") e o literal passou a ser recuperado do histórico. **Nenhum critério foi afrouxado.**
 4. **Push da branch, abertura do PR para `develop` e merge.** Não executados — nada foi enviado ao remoto.
 
 ---

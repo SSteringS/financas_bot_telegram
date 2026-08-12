@@ -71,7 +71,7 @@ Rule: when fixtures encode the same assumption as the production code, the test 
 
 ## Check 5 - Process references inside code
 
-Code and test names must not cite process documents, plan sections, or numbered requirements from artifacts under `ia-docs/`.
+Code and test names must not cite process documents, plan sections, or numbered requirements from artifacts under `docs/`.
 
 Real failure: a constant named after a document example and a test display name citing a plan section number. Those references break as soon as the document changes and are meaningless to anyone reading only the repository.
 

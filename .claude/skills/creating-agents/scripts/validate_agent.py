@@ -63,16 +63,36 @@ PERMISSION_MODES = {
     "manual",
 }
 
-KNOWN_TOOL_NAMES = {
-    # Claude Code uppercase (docs/claude/harness/04-referencia-de-ferramentas.md)
-    "Read", "Write", "Edit", "Glob", "Grep", "Bash", "PowerShell",
-    "WebFetch", "WebSearch", "NotebookEdit", "TodoWrite", "Task",
-    "SendMessage", "ExitPlanMode", "SlashCommand", "Skill",
-    "Agent", "Monitor", "AskUserQuestion", "ScheduleWakeup", "ToolSearch",
-    "LSP",
-    # VS Code lowercase aliases (FRONTMATTER-vscode-archived.md)
+# Source: docs/claude/harness/04-referencia-de-ferramentas.md, the tool table.
+# This set mirrors that table one-for-one. When the doc is refreshed from
+# upstream, re-sync this set instead of appending ad-hoc names: an allowlist
+# that drifts behind the harness produces false-positive warnings, which trains
+# readers to ignore the validator entirely.
+CLAUDE_CODE_BUILTIN_TOOLS = {
+    "Agent", "Artifact", "AskUserQuestion", "Bash",
+    "CronCreate", "CronDelete", "CronList",
+    "Edit", "EnterPlanMode", "EnterWorktree", "ExitPlanMode", "ExitWorktree",
+    "Glob", "Grep", "ListMcpResourcesTool", "LSP", "Monitor", "NotebookEdit",
+    "PowerShell", "PushNotification", "Read", "ReadMcpResourceTool",
+    "RemoteTrigger", "ReportFindings", "ScheduleWakeup", "SendMessage",
+    "SendUserFile", "ShareOnboardingGuide", "Skill",
+    "TaskCreate", "TaskGet", "TaskList", "TaskOutput", "TaskStop", "TaskUpdate",
+    "TodoWrite", "ToolSearch", "WaitForMcpServers", "WebFetch", "WebSearch",
+    "Workflow", "Write",
+}
+
+# Retired names kept accepted so agent files written before a rename do not
+# start failing. Not in the current tool reference; do not use them in new
+# agents. `Task` was the pre-rename name of `Agent`; `SlashCommand` was
+# superseded by `Skill` plus the slash-command frontmatter.
+LEGACY_TOOL_NAMES = {"Task", "SlashCommand"}
+
+# VS Code Custom Agent lowercase aliases (FRONTMATTER-vscode-archived.md).
+VSCODE_TOOL_ALIASES = {
     "read", "write", "edit", "search", "execute", "agent", "web", "todo",
 }
+
+KNOWN_TOOL_NAMES = CLAUDE_CODE_BUILTIN_TOOLS | LEGACY_TOOL_NAMES | VSCODE_TOOL_ALIASES
 
 MCP_TOOL_PATTERN = re.compile(r"^(mcp__.+|.+/\*|[A-Za-z0-9_-]+:.+)$")
 

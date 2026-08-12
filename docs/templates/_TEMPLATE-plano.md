@@ -20,6 +20,14 @@ fluxos_qa: []                              # fluxos de teste automatizado que o 
                                            # ex: [integracao-autenticacao, componente-lista-pedidos, e2e-fluxo-compra]
                                            # [] se nenhuma (task documental, infra pura, ou flows já cobertos)
                                            # preenchido pelo planner; QA pode sugerir ajustes na seção 7 da avaliação
+mutation_gate: false                       # gate de mutation testing desta task — opcional e por task (ADR 0021)
+                                           # true  → test strength (mortos ÷ cobertos) ≥ 80%, medido APENAS sobre as
+                                           #         classes alteradas por esta task; código antigo fica fora do denominador
+                                           # false → não se aplica nesta task
+                                           # planner pergunta ao humano ao escrever o plano; só vale se declarado true aqui
+                                           # sobrevivente equivalente com demonstração escrita não conta contra o piso
+mutation_rationale: ""                     # obrigatório quando mutation_gate: true — quais classes alteradas entram no
+                                           # escopo da medição e por que esta task adota o gate; "" quando false
 ---
 
 # [TASK-ID] — Título curto da tarefa
@@ -114,7 +122,7 @@ O que **não** entra nesta task mesmo que pareça relacionado. Cita o que entra 
 
 ## Definição de pronto
 
-Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report válido conforme `_TEMPLATE-status.md`, **revisão do Reviewer** (sessão separada — ADR 0005), e — quando `fluxos_qa ≠ []` — **gate QA** com seção 7 da avaliação preenchida e `veredito_qa: aprovado` ou `aprovado_com_ajustes`. Implementador abre o PR da feature para `integration_branch` após todos os gates OK; **não** abre PR direto pra `develop`.
+Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report válido conforme `_TEMPLATE-status.md`, **revisão do Reviewer** (sessão separada — ADR 0005), e — quando `fluxos_qa ≠ []` — **gate QA** com seção 7 da avaliação preenchida e `veredito_qa: aprovado` ou `aprovado_com_ajustes`, e — quando `mutation_gate: true` — **gate de mutação** (ADR 0021) com `test strength` ≥ 80% medido apenas sobre as classes alteradas por esta task, sobreviventes classificados como equivalentes acompanhados de demonstração escrita no status report. Implementador abre o PR da feature para `integration_branch` após todos os gates OK; **não** abre PR direto pra `develop`.
 
 ---
 

@@ -33,14 +33,18 @@ class PlaceOrderServiceTest {
     }
 
     @Test
-    void should_callRepositorySaveExactlyOnce_when_orderIsPlaced() {
+    void should_saveOrderWithCustomerIdAndTotal_when_orderIsPlaced() {
         CustomerId customerId = new CustomerId(1L);
         BigDecimal total = new BigDecimal("100.00");
         given(repository.save(any(Order.class))).willAnswer(invocation -> invocation.getArgument(0));
+        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
 
         service.placeOrder(customerId, total);
 
-        verify(repository, times(1)).save(any(Order.class));
+        verify(repository, times(1)).save(orderCaptor.capture());
+        Order savedOrder = orderCaptor.getValue();
+        assertThat(savedOrder.customerId()).isEqualTo(customerId);
+        assertThat(savedOrder.total()).isEqualByComparingTo(total);
     }
 
     @Test
@@ -66,6 +70,6 @@ class PlaceOrderServiceTest {
 ## Coverage notes
 
 - Happy path: order is saved and returned with correct fields.
-- Interaction: `repository.save` is called exactly once, confirming no duplicate persistence.
+- Interaction: `repository.save` is called exactly once, and the `Order` handed to it is captured so its `customerId` and `total` are asserted — the values are checked, not just the occurrence of the call.
 - Edge cases: zero and negative totals both raise `IllegalArgumentException`.
 - Not covered here: persistence correctness (belongs to a `@DataJpaTest` for `OrderJpaRepository`) and HTTP contract (belongs to a `@WebMvcTest` for `OrderController`).

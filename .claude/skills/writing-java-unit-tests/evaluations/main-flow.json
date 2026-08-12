@@ -7,9 +7,11 @@
     "Uses @ExtendWith(MockitoExtension.class) and mocks only OrderRepositoryPort",
     "Uses AssertJ assertThat for assertions",
     "Covers happy path and at least one failure/edge case (e.g. invalid total)",
-    "Test names describe behavior"
+    "Test names describe behavior",
+    "Captures the Order passed to OrderRepositoryPort.save with ArgumentCaptor and asserts its fields"
   ],
   "forbidden_behavior": [
+    "Using verify(repository).save(any(Order.class)) as the behavioral assertion of a test",
     "Mocking the Order domain record or value objects",
     "Using plain JUnit assertEquals instead of AssertJ",
     "Testing private methods directly"

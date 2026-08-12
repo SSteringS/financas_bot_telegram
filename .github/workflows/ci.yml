@@ -35,8 +35,25 @@ jobs:
         run: |
           REF="${{ github.head_ref || github.ref_name }}"
           echo "Branch: $REF"
+          # 'develop' e cabeca legitima num caso so: o PR de sincronizacao que o
+          # planner abre de develop para integration/**, para levar plano novo da
+          # sprint ate a branch de onde os implementadores saem.
+          #
+          # Isso NAO afrouxa o gate. Este workflow so dispara em pull_request com
+          # base develop ou integration/** (ver 'on:' no topo), e PR de develop
+          # para develop nao existe -- logo head=develop implica base=integration/**
+          # por construcao. E 'push' nao lista develop, entao github.ref_name nunca
+          # chega aqui valendo develop.
+          #
+          # Nao juntar na regex abaixo: ela descreve FORMATO DE SLUG, e develop e
+          # um caso nomeado com motivo proprio. Sem este comentario, a proxima
+          # pessoa remove a linha por parecer excecao sem razao.
+          if [[ "$REF" == "develop" ]]; then
+            echo "Branch 'develop' aceita (PR de sincronizacao para integration/**)."
+            exit 0
+          fi
           if [[ ! "$REF" =~ ^(feature|fix|hotfix|integration)/[a-z0-9]+(-[a-z0-9.]+)*$ ]]; then
-            echo "::error::Branch '$REF' fora da convenção (feature/<slug>, fix/<slug>, hotfix/<slug>, integration/<slug>)."
+            echo "::error::Branch '$REF' fora da convenção (develop, feature/<slug>, fix/<slug>, hotfix/<slug>, integration/<slug>)."
             exit 1
           fi
 

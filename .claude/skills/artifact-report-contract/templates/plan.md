@@ -1,7 +1,7 @@
 # Plan - <TASK-ID> <Title>
 
 ## Metadata
-- feature: `F<NN>-<slug>`
+- sprint: `<NN>-<slug>`
 - task_id: `<TASK-ID>`
 - agent: planner
 - date: `<YYYY-MM-DD>`
@@ -38,6 +38,8 @@
 - review_required: true
 - qa_required: true | false
 - qa_rationale: <required when qa_required=true>
+- mutation_gate: true | false
+- mutation_rationale: <required when mutation_gate=true; name the classes changed by this task that are in scope and state the floor: test strength (killed / covered) >= 80% measured only over them>
 
 ## Handoff Packet
 - objective:

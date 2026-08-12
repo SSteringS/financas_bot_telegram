@@ -166,6 +166,36 @@ Portanto: **Q3, Q6 e Q7 só são interpretados junto com Q4** (critérios de ace
 
 ---
 
+## 8. Gate que força a convenção `*IntegrationTest`
+
+**Origem:** QA-012, débito #3 do implementador — endossado pelo Reviewer como o de maior prioridade da task. Decidido com o humano em 2026-08-10 que vira task de código.
+
+**Problema:** o `excludedTestClasses` do PIT filtra por `*IntegrationTest`, e essa exclusão é **requisito de viabilidade** (Testcontainers × 1 container por mutante = run que não termina). Hoje **nada força a convenção** — nem lint, nem gate de CI. Um teste de integração novo com outro sufixo escapa do filtro, e a falha só aparece quando alguém rodar o PIT, possivelmente meses depois.
+
+Isso torna todo o ferramental de mutation testing da sprint dependente de uma convenção não verificada.
+
+**Entrega:** teste que varre o classpath de teste e **falha** quando uma classe anotada com `@Testcontainers` — ou que estenda `AbstractIntegrationTest` — não termina em `IntegrationTest`. Rodando dentro do `mvn test`, já cai no CI sem tooling novo.
+
+**Decisão de implementação a fechar no planejamento — ArchUnit vs. reflection puro:**
+
+| | ArchUnit | Reflection puro |
+|---|---|---|
+| Dependência | nova (`archunit-junit5`, escopo `test`) | nenhuma |
+| Tamanho | ~10 linhas declarativas | ~30 linhas imperativas |
+| Mensagem de erro | boa por padrão (lista as classes violadoras) | por conta de quem escreve |
+| Extensibilidade | alta — o repo tem outros invariantes candidatos (JPA fora do domínio, adapter não conhece adapter, `usecases/` legado sem código novo) | nenhuma; resolve só este caso |
+| Risco | uma dependência a mais no build durante o experimento | reimplementar varredura de classpath, que é onde mora o bug chato |
+
+**Ponto de decisão real:** se o objetivo for só este invariante, reflection puro basta. Se o repo pretende verificar as convenções que hoje só vivem em prosa no `financas_bot_telegram/CLAUDE.md` (JPA vive no adapter, adapters não se conhecem, nada novo em `usecases/`), ArchUnit paga a dependência com folga — **e é a única das duas que escala para isso**. Levar as duas opções ao humano no planejamento, com essa pergunta explícita.
+
+**Não faz:** verificar as demais convenções nesta task. Se ArchUnit for escolhido, elas viram itens separados — o gate da convenção de nome é o que destrava o PIT e não deve esperar pela discussão dos outros invariantes.
+
+**Critério de aceitação:** um teste renomeado de propósito para violar a regra faz o `mvn test` falhar, com mensagem que nomeia a classe violadora.
+
+**Regra já declarada (mas não verificada):** `financas_bot_telegram/CLAUDE.md` §"Convenções que valem hoje" · `docs/PENDENCIAS-TECNICAS.md` §"Convenção `*IntegrationTest` não é verificada por nada".
+
+---
+
 ## Itens ainda não detalhados
 
 Levantados na revisão, aguardando o humano chegar neles:

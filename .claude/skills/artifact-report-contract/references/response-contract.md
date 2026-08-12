@@ -24,12 +24,12 @@ Every delivery agent starts its response with an `Execution Receipt`:
 agent: <agent name>
 prompt_path: <path or none>
 mode: <execution mode>
-feature: <F01-slug or missing>
+sprint: <NN-slug or missing>
 task_id: <TASK-ID or missing>
 code_scope: <scope or not-applicable>
 ```
 
-`Execution Receipt` exists only in chat. It never appears in a file under `ia-docs/`.
+`Execution Receipt` exists only in chat. It never appears in a persisted artifact under `docs/`.
 
 ## Planner
 

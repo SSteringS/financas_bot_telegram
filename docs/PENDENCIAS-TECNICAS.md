@@ -356,6 +356,240 @@ Hipóteses a testar, em ordem:
 
 ---
 
+### Convenção `*IntegrationTest` não é verificada por nada
+
+**Contexto (QA-012, débito #3 do implementador, endossado pelo Reviewer como prioritário — 2026-08-10):** o `excludedTestClasses` do `pitest-maven` no `pom.xml` filtra por `*IntegrationTest`. Essa exclusão **não é otimização, é requisito de viabilidade**: os testes de integração sobem MySQL 8 real via Testcontainers, e o PIT reexecuta a suíte que cobre cada mutante uma vez por mutante. Com container no caminho, o run não termina.
+
+O problema: **a convenção de nome é a única coisa que segura essa exclusão, e nada a força.** Um teste de integração novo chamado `PedidoFluxoTest` (em vez de `PedidoFluxoIntegrationTest`) escapa do filtro e trava o run. Não há lint, não há gate de CI, e a falha só aparece quando alguém roda o PIT — possivelmente meses depois de o teste ter sido escrito.
+
+**Fix sugerido:** teste que varre o classpath de teste e falha quando uma classe anotada com `@Testcontainers` (ou que estenda `AbstractIntegrationTest`) não termina em `IntegrationTest`. Roda dentro do `mvn test`, logo já cai no CI sem tooling novo. Duas implementações possíveis — ArchUnit (dependência nova, regra declarativa, extensível para outros invariantes de arquitetura) ou reflection puro (zero dependência, ~30 linhas, resolve só este caso).
+
+**Mitigação já aplicada:** regra declarada em `financas_bot_telegram/CLAUDE.md` §"Convenções que valem hoje" e no comentário do `pom.xml`. **Declaração não é verificação** — o débito continua aberto até existir o teste.
+
+**Esforço:** baixo. **Prioridade: alta** — é a dependência silenciosa de todo o ferramental de mutation testing da sprint 04.
+
+---
+
+### Repo não tem infraestrutura de captura de log em teste
+
+**Contexto (QA-012, débito #2 — 2026-08-10):** o run do PIT revelou um mutante sobrevivente em `MetaSignatureValidator:28` — negar a condicional inverte **quando** sai o `logger.warn("whatsapp.app-secret nao configurado — canal WhatsApp inerte")`. Não é mutante equivalente: a saída observável muda, e esse warn é sinal operacional deliberado (sem secret, o canal WhatsApp fica inerte).
+
+O que falta não é o teste, é a **capacidade** de escrevê-lo: nenhum teste do repo verifica logging, porque não há appender de captura montado (`ListAppender` do Logback, ou equivalente).
+
+**Fix sugerido:** helper de teste com `ListAppender<ILoggingEvent>` anexado ao logger sob teste, exposto como regra/extensão JUnit reutilizável. Depois, cobrir os avisos operacionais que valem asserção — os de configuração ausente em primeiro lugar.
+
+**Esforço:** baixo para a infra; o uso cresce depois. **Prioridade: baixa** — hoje impacta uma linha de aviso. Sobe se mais sinais operacionais passarem a depender de log.
+
+---
+
+### Piso de custo do PIT é a suíte inteira, e um contexto Spring sobe dentro do run
+
+**Contexto (QA-012, débitos #7 e #8, este último levantado pelo Reviewer — 2026-08-10):** antes de mutar qualquer coisa, o PIT roda uma fase de cobertura que executa **todas as classes de teste não-excluídas uma vez** — 70 classes hoje, ~22 s dos ~48 s do run. Entre elas há testes que sobem contexto Spring Boot sobre **H2** (banner, slices `@WebMvcTest`, `SessionFactory` do Hibernate), que emitem stack trace de DDL do Hibernate (`SchemaDropperImpl`) no shutdown.
+
+Duas consequências, ambas não-óbvias:
+
+1. **Encolher `targetClasses` acelera a fase de mutação, não a de cobertura.** Isso **limita o ganho esperado do item #7 do backlog da sprint 04** ("escopo por diff"): quem dimensionar o mecanismo precisa contar com esse piso antes de estimar. Mitigações a avaliar lá: `targetTests` explícito além de `targetClasses`, e/ou análise incremental.
+2. **O ruído de DDL no log é esperado, não falha.** Fácil de confundir com quebra por quem rodar o PIT pela primeira vez.
+
+**Mitigação já aplicada:** ambos documentados em `docs/runbooks/ROTEIRO-TESTES-BACKEND.md` §Camada 1.5, junto da triagem obrigatória antes de incluir classe em `targetClasses`.
+
+**Esforço:** o registro está feito; o trabalho real acontece no item #7 do backlog. **Prioridade: média** — é insumo de dimensionamento, não bug.
+
+---
+
+### PIT roda sem histórico incremental e foi medido em JVM diferente da do CI
+
+**Contexto (QA-012, débitos #4 e #5 — 2026-08-10):** dois itens de reprodutibilidade do mesmo ferramental.
+
+1. **Sem histórico incremental.** `historyInputLocation` / `historyOutputLocation` não estão configurados: todo run parte do zero. Irrelevante em 4 classes; vira problema quando o escopo crescer (item #7 do backlog).
+2. **Números colhidos em JVM 23-ea, enquanto CI e produção usam Temurin 21.** O `pom.xml` compila com `--release 21`, então é bytecode 21 nos dois casos e o baseline **não fica inválido**. Mas se o PIT for para o CI, os números precisam ser recolhidos lá antes de serem tratados como comparáveis com os da QA-012.
+
+**Fix sugerido:** configurar as duas properties de histórico junto do item #7; recolher o baseline no CI se e quando o PIT entrar lá.
+
+**Esforço:** baixo. **Prioridade: baixa** — nenhum dos dois afeta a leitura do baseline atual.
+
+---
+
+> **Nota de consolidação (QA-012, 2026-08-10).** O status report e a avaliação listaram 9 débitos. Quatro viraram itens acima. Os outros cinco não viraram, com motivo: **#1** (`LegendaParser` sem caso com palavra-chave no índice 0) é o alvo concreto do item #2 do backlog da sprint 04, não débito solto; **#6** (`cobertura_pct: na` sem JaCoCo) é o item #6 do mesmo backlog; **#9** (três imprecisões textuais no status report) já foi corrigido na rodada 2 do Reviewer. Registrar aqui duplicaria backlog vivo com dívida.
+
+---
+
+### Dois schemas de plano paralelos e divergentes (`qa_required`/`qa_rationale` vs `fluxos_qa`)
+
+**Contexto (identificado ao materializar a ADR 0021, 2026-08-10):** o repo mantém **dois** schemas de plano de task, vivos ao mesmo tempo e sem ponte entre eles:
+
+- `.claude/skills/artifact-report-contract/templates/plan.md` §Quality Gates — usa `review_required` / `qa_required` / `qa_rationale`, em inglês, consumido pelos subagentes (`planner.md`, `backend.md`, `qa-test-specialist.md`, skill `workflow-gates-core`).
+- `docs/templates/_TEMPLATE-plano.md` (ADR 0007) — usa `fluxos_qa` no frontmatter, em português, consumido pelas sessões de planejamento e pelo fluxo de sprint em `docs/sprints/<NN>/plans/`.
+
+São representações diferentes da mesma decisão ("esta task passa por QA?"), com nomes, idioma e tipo de valor distintos (booleano + justificativa vs lista de flows).
+
+O campo `mutation_gate` (com `mutation_rationale`) foi escrito **nos dois** em 2026-08-10, por **decisão explícita do humano**, aceitando a duplicação temporária em vez de unificar os schemas na mesma passagem — unificar é task própria, com raio maior (toca `.claude/`, território do humano + `ai-engineer`).
+
+**Risco:** divergência futura. O próximo campo de gate pode entrar só num dos dois, ou entrar nos dois com semântica diferente, e nada verifica isso. Quem lê um plano não sabe qual schema é o canônico.
+
+**Fix sugerido:** eleger um schema canônico e derivar o outro (ou apontar um para o outro por referência, sem redefinir campos). Decisão precisa passar pelo `ai-engineer` porque metade do território é `.claude/`.
+
+**Origem:** item 11.3 do `docs/plans/BACKLOG-evolucao-workflow.md`. Ver também ADR 0021 §6 ("Onde cada parte mora").
+
+**Esforço:** médio — não é só editar dois arquivos; exige alinhar os agentes e a skill que leem os campos.
+
+**Prioridade:** média. Não quebra nada hoje (os dois campos estão sincronizados), mas a duplicação é a causa provável da próxima divergência.
+
+---
+
+### Migração da organização de `docs/` de sprint para feature
+
+**Contexto (decidido pelo humano em 2026-08-11, ao corrigir o item 11.4):** o humano decidiu que a unidade organizadora de `docs/` deve migrar de **sprint** para **feature**, mas **adiou a migração** até o fechamento do ciclo atual. Enquanto isso, o layout vigente e autoritativo continua sendo o da ADR 0010 (`docs/sprints/<NN>-<slug>/{plans,status,avaliacoes}/`).
+
+Na mesma passagem, todo o **contrato de placement e naming de artefatos** foi absorvido pela skill `.claude/skills/artifact-report-contract` (seção `## Artifact placement and naming` em `references/artifact-contract.md`), escrito **no layout SPRINT** — o único válido hoje. O campo de metadata dos templates passou de `feature: F<NN>-<slug>` para `sprint: <NN>-<slug>`.
+
+**Consequência:** quando a migração acontecer, o contrato dentro da skill precisa ser reescrito por inteiro — tabela de caminhos canônicos, campo `sprint` dos 8 templates, e as referências a "sprint" nas skills `workflow-gates-core` e `artifact-report-contract`.
+
+**Fix sugerido:** a migração exige **ADR nova ou emenda à ADR 0010** (a ADR 0010 é a decisão que estabelece o agrupamento por sprint; mudar a unidade organizadora sem tocá-la deixaria duas verdades no repo). O passo de reescrita da skill entra no plano da migração como item explícito, não como efeito colateral — `.claude/` é território do humano e do `ai-engineer`.
+
+**Origem:** item 11.4 do `docs/plans/BACKLOG-evolucao-workflow.md`.
+
+**Esforço:** alto — toca a estrutura de `docs/`, a ADR, a skill de contrato e os agentes que citam caminhos de artefato.
+
+**Prioridade:** baixa por ora (adiada por decisão do humano); vira alta no fechamento do ciclo atual.
+
+---
+
+### Rotacionar os segredos que estiveram versionados (FIX-007)
+
+**Contexto:** o FIX-007 removeu segredos do controle de versão, mas **não é remediação** — só interrompeu a exposição contínua. Os valores estiveram num repositório **público** e devem ser considerados coletados.
+
+**A rotacionar:**
+
+- `admin_api_key` de dev.
+- `keystore_password` — em `finbot-prod-secrets` **e** reassinando o `/opt/finbot/keystore.p12` da EC2. ⚠️ Trocar só o valor no Secrets Manager **quebra o boot da aplicação**: o keystore existente continua com a senha antiga e só é regerado quando o arquivo não existe.
+- Senha do MySQL local.
+
+O token do Telegram gen-1 já foi rotacionado em 2026-08-09 (registrado como resolvido acima).
+
+**Origem:** pendência humana 1 do status report do FIX-007, migrada para cá no fechamento da sprint 03 (2026-08-12, decisão do humano).
+
+**Esforço:** baixo por segredo; o do keystore exige acesso à EC2.
+
+**Prioridade:** **alta — é o item de segurança mais urgente em aberto.**
+
+---
+
+### `keystore_password` não confirmado em `finbot-prod-secrets` — recreate da EC2 pode ficar sem aplicação
+
+**Contexto:** `docs/sprints/01-mvp/status/DEP-07.md:98` afirma que a chave existe, mas é relato de 2026-05 e **não foi verificado** no FIX-007 (a sessão não tinha credencial AWS).
+
+**Por que virou risco agora:** o FIX-007 mudou o comportamento do `bootstrap.sh` — antes o provisionamento sempre seguia; agora, se a chave não vier, ele **aborta com `exit 1`**. O abort acontece **antes** do `systemctl start finbot`/`caddy`, então a instância recém-criada fica **sem aplicação e sem reverse proxy**. Reboot recupera só o Caddy (`systemctl enable`); o finbot não volta, porque `application-prod.properties:7` aponta para o keystore que não foi criado, e o `Restart=on-failure` o joga em crash-loop. `user_data` não reexecuta em reboot. Recuperar exige intervenção manual.
+
+**Falhar alto continua correto** — gerar keystore com senha errada quebraria o boot de forma mais obscura.
+
+**Fix sugerido:** confirmar a chave antes do próximo recreate. Avaliar separadamente se vale mover o bloco do keystore para depois do start dos serviços (decisão de planner, ainda não tomada).
+
+**Diagnóstico, se acontecer:** `journalctl -u cloud-init` ou `/var/log/bootstrap.log`, prefixo `[bootstrap] ERRO:`.
+
+**Origem:** pendência humana 2 do status report do FIX-007.
+
+**Prioridade:** média — latente, só dispara em recreate da EC2.
+
+---
+
+### Validação funcional do webhook WhatsApp pós-deploy nunca foi registrada (FIX-006)
+
+**Contexto:** o FIX-006 restaurou a produção derrubada em 2026-08-09 e o deploy está verde (run `31341256203`). Mas o critério de aceitação real da correção é **comportamental** e não automatizável, e não há registro de que tenha sido executado:
+
+- `GET /webhook/whatsapp?hub.mode=subscribe&hub.verify_token=xxx&hub.challenge=foo` deve retornar **403**.
+- Dois WARN de sentinela devem aparecer no boot (`journalctl`).
+
+**Estado:** deploy verde comprova que a aplicação **sobe**; não comprova que a guarda fail-closed **funciona**.
+
+**Origem:** pendência humana 2 do status report do FIX-006.
+
+**Prioridade:** média — checagem de minutos, mas é a única evidência que falta da correção.
+
+---
+
+### QA-010 — cobertura de testes frontend nunca executada
+
+**Contexto:** plano pronto em `docs/sprints/03-folha-pagamento/plans/QA-010-cobertura-testes-frontend.md`, `estado: pronto-pra-execucao`, **nunca despachado**. A sprint 03 foi fechada sem ele por decisão do humano (2026-08-12).
+
+**O gap:** inventário de produção × teste (qa-test-specialist, 2026-06-04) achou ~14 arquivos de front sem cobertura, em 4 sub-áreas:
+
+- **Hooks** — `usePedidos`, `useResumo`, `folha/useFolhaFuncionario`. Só `useAuth` tem teste. Sem cobertura, regressão em cache/invalidation do TanStack Query passa silenciosa.
+- **API clients** — `auth.ts`, `folha.ts`, `pedidos.ts`. É onde o shape de request/response do back vira tipo do front; sem teste, mudança de contrato passa sem ninguém ver.
+- **Componentes utilitários** — `CarregandoLista`, `FiltroStatus`, `ListaVazia`, `SeletorMes`, `StatusBadge`.
+- **Componentes e páginas da folha** — 6 arquivos criados na EVO-09 sem teste.
+
+**Risco funcional de executar:** zero — não toca código de produto. MSW já configurado.
+
+**Esforço:** alto (~12-14h estimadas, 14 arquivos de teste).
+
+**Prioridade:** média. O plano continua válido; se for retomado, revalidar o inventário antes (o front mudou desde 2026-06-04).
+
+---
+
+### QA-011 — expansão E2E de cenários positivos nunca executada
+
+**Contexto:** plano pronto em `docs/sprints/03-folha-pagamento/plans/QA-011-expansao-e2e-cenarios-positivos.md`, `estado: pronto-pra-execucao`, **nunca despachado**. Fechado junto com a sprint 03 por decisão do humano (2026-08-12).
+
+**O gap, que é o mais relevante desta dupla:** a suíte E2E cobre **3 testes** — 1 fluxo feliz de site e 2 cenários negativos de webhook. **Todo o caminho positivo do produto está descoberto:**
+
+- foto+caption no Telegram → pedido aparece no site;
+- canal WhatsApp inteiro;
+- registro de pagamento por upload de comprovante;
+- fluxo de folha (cadastrar funcionário → vale → adiantamento → fechar mês).
+
+Ou seja: a suíte protege contra regressão em **detalhe**, não no **happy path principal**.
+
+**Bloqueios já resolvidos:** BE-030 (URL `telegram.file.url` configurável) foi mergeada, e o FIX-005 front também — as 4 sub-áreas estavam desbloqueadas quando a sprint fechou. A abordagem de mock decidida é WireMock standalone na 8089 (ADR 0020).
+
+**Esforço:** alto (~10-14h estimadas).
+
+**Prioridade:** média-alta pelo valor de cobertura, mas sem bloqueio — nenhuma entrega atual depende dela.
+
+---
+
+### Gate de convenção de branch do CI é sensível a locale — pode aceitar maiúscula
+
+**Contexto (descoberto na FIX-008, 2026-08-12, por teste executado):** a regex de `.github/workflows/ci.yml` valida o nome da branch com a faixa `[a-z0-9]`. Faixa de caracteres em `[[ =~ ]]` do bash **depende de `LC_COLLATE`**:
+
+| `LC_COLLATE` | `feature/QA-013` |
+|---|---|
+| `en_US.UTF-8` | **ACEITA** ⚠️ |
+| `C` / `C.UTF-8` | rejeita |
+
+Sob collation `en_US`, `[a-z]` casa maiúscula pela ordem de collation, não pelo conjunto de caracteres.
+
+**Consequência:** a convenção lowercase de nome de branch **pode não estar sendo aplicada de fato**, e o comportamento muda **em silêncio** se a imagem do runner do GitHub Actions trocar o default de locale. O gate parece mais rígido do que é.
+
+**Não medido:** qual `LC_COLLATE` os runners `ubuntu-latest` usam hoje. O teste foi feito na máquina local (Git Bash, `en_US.UTF-8`). Confirmar antes de assumir que a convenção está ou não sendo aplicada em produção.
+
+**Fix sugerido:** trocar a faixa por classe POSIX — `[[:lower:][:digit:]]`, que é imune a collation — ou fixar `LC_ALL=C` no step. A primeira é preferível: expressa a intenção sem depender de variável de ambiente.
+
+**Origem:** achado colateral da FIX-008; declarado no corpo do PR #126 e no status report da task.
+
+**Esforço:** baixo — uma linha.
+
+**Prioridade:** média. Não quebra nada hoje, mas é gate de qualidade que pode estar passando o que deveria barrar — e a classe de erro (faixa de caracteres sensível a collation) reaparece em qualquer script de shell do repo.
+
+---
+
+### Allowlist do gate de branch diverge do fluxo documentado, recorrentemente
+
+**Contexto:** duas ocorrências da mesma falha, na mesma linha do mesmo arquivo:
+
+- **FIX-002** (sprint 03) — `ci-aceitar-integration-no-gate-de-branch`: o gate rejeitava `integration/**`.
+- **FIX-008** (2026-08-12) — o gate rejeitava `develop`, quebrando o PR de sincronização `develop → integration`.
+
+**Causa comum:** a allowlist de `ci.yml` **codifica o fluxo de branches**, e ninguém a atualiza quando o fluxo ganha um caminho novo. A descoberta é sempre por falha de CI num PR legítimo, nunca por revisão.
+
+**O que a FIX-008 já fez:** documentou o caminho `develop → integration` no `CLAUDE.md`, que descrevia só três caminhos. Isso trata a ocorrência, não a classe.
+
+**Fix sugerido para a classe:** derivar a allowlist do gate da documentação de fluxo, ou — mais realista — adicionar ao ritual de abertura de sprint uma conferência de que todo caminho de branch previsto passa no gate. Uma terceira ocorrência indica que o item merece solução estrutural, não mais um FIX pontual.
+
+**Prioridade:** baixa individualmente, média como padrão. Cada ocorrência custa pouco; o custo real é o PR travado no meio de outra coisa.
+
+---
+
 ## Itens resolvidos
 
 ### ~~Esconder `@RequisitanteId` do Swagger UI~~

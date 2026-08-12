@@ -59,11 +59,29 @@ cd C:\Users\satya\src\financas_bot_telegram
 
 **Saída:** `financas_bot_telegram/target/pit-reports/` — `index.html` (abrir no navegador; mostra o código-fonte com cada mutante sobrevivente marcado na linha) e `mutations.xml` (parseável). A pasta fica sob `target/`, **não é commitada**.
 
-**Escopo atual — proposital:** `targetClasses` no `pom.xml` está fixo em quatro classes de lógica pura (`LegendaParser`, `PaymentRequestStrategy`, `PaymentProofStrategy`, `MetaSignatureValidator`). Rodar no projeto inteiro dilui o sinal e custa caro. Para analisar outra classe, acrescente o FQCN em `targetClasses`.
+**Escopo atual — proposital:** `targetClasses` no `pom.xml` está fixo em quatro classes de lógica pura (`LegendaParser`, `PaymentRequestStrategy`, `PaymentProofStrategy`, `MetaSignatureValidator`). Rodar no projeto inteiro dilui o sinal e custa caro. Para analisar outra classe, acrescente o FQCN em `targetClasses` — **depois de passar pela triagem abaixo**.
 
-**`excludedTestClasses` com `*IntegrationTest` não é otimização — é requisito de viabilidade.** Os testes de integração sobem MySQL 8 real via Testcontainers e o PIT reexecuta a suíte que cobre cada mutante uma vez por mutante. Com container no caminho o run não termina. Se um teste de integração novo não terminar em `IntegrationTest`, ele escapa do filtro — **a convenção de nome é o que segura essa exclusão**.
+### Triagem obrigatória antes de incluir uma classe em `targetClasses`
 
-**Quando rodar:** ao mexer em lógica de decisão de uma das classes do escopo, e ao avaliar se um conjunto de testes é forte de verdade. **Não é gate de merge** e não roda no CI.
+O que inviabiliza o run não é a classe: é **o teste dela**. Antes de acrescentar o FQCN, conferir na classe de teste correspondente:
+
+| Checar | Se sim |
+|---|---|
+| Estende `AbstractIntegrationTest` ou tem `@Testcontainers` | **não incluir** — sobe MySQL real, um container por mutante |
+| Tem `@SpringBootTest` | **não incluir** sem medir antes: sobe contexto inteiro a cada mutante |
+| Tem `@WebMvcTest` / `@DataJpaTest` | incluir com cautela — sobe slice de contexto; medir o tempo antes e depois |
+| Só `@ExtendWith(MockitoExtension.class)` ou JUnit puro | pode incluir |
+
+Depois de incluir, **rodar uma vez e comparar o tempo total** com o run anterior. Salto desproporcional significa que a classe puxou contexto por um caminho indireto — reverter e investigar antes de commitar.
+
+**`excludedTestClasses` com `*IntegrationTest` não é otimização — é requisito de viabilidade.** Os testes de integração sobem MySQL 8 real via Testcontainers e o PIT reexecuta a suíte que cobre cada mutante uma vez por mutante. Com container no caminho o run não termina. Se um teste de integração novo não terminar em `IntegrationTest`, ele escapa do filtro — **a convenção de nome é o que segura essa exclusão** (regra declarada em `financas_bot_telegram/CLAUDE.md`; ainda **não verificada por gate algum** — ver `docs/PENDENCIAS-TECNICAS.md`).
+
+**Piso de custo: a suíte unitária inteira, independente do tamanho de `targetClasses`.** Antes de mutar qualquer coisa, o PIT roda uma fase de cobertura que executa **todas as classes de teste não-excluídas uma vez** — 70 classes hoje, ~22 s dos ~48 s totais do run da QA-012. Entre elas há testes que sobem contexto Spring sobre **H2** (banner do Spring Boot, slices `@WebMvcTest`, `SessionFactory` do Hibernate). Duas consequências práticas:
+
+- **Encolher `targetClasses` acelera a fase de mutação, não a de cobertura.** Quem dimensionar escopo por diff (item #7 do backlog da sprint 04) precisa contar com esse piso.
+- **Stack trace de DDL do Hibernate no log é ruído esperado, não falha.** Vem do shutdown do contexto H2 (`SchemaDropperImpl`), não do seu código.
+
+**Quando rodar:** ao mexer em lógica de decisão de uma das classes do escopo, e ao avaliar se um conjunto de testes é forte de verdade. **Não é gate de merge por padrão** e não roda no CI — quando uma task adota o gate de mutação, o critério é `test strength ≥ 80%` sobre as classes alteradas (ver `financas_bot_telegram/CLAUDE.md`).
 
 **Como ler o resultado:**
 

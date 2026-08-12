@@ -47,6 +47,7 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 - [`git-line-endings-crlf-lf.md`](git-line-endings-crlf-lf.md) — CRLF vs LF, `.gitattributes`, renormalização; drift de `user_data` no Terraform
 - [`analise-estatica-pmd-checkstyle.md`](analise-estatica-pmd-checkstyle.md) — Checkstyle = convenção, PMD = qualidade, SpotBugs = bug provável; complexidade ciclomática e sua limitação; por que PMD importa mais que Checkstyle pra avaliar código gerado por LLM
 - [`teste-mutante-e-pit.md`](teste-mutante-e-pit.md) — cobertura mede execução, mutation score mede força de asserção; mutantes killed/survived/equivalentes; PIT muta bytecode e roda só testes que cobrem a linha; excluir Testcontainers é uso correto; por que pega teste fraco gerado por LLM
+- [`testes-de-arquitetura-archunit.md`](testes-de-arquitetura-archunit.md) — fitness function = teste que verifica a *forma* do código; regra em doc é promessa, regra em teste é fato; ArchUnit vs. reflection puro e a régua de decisão (1 invariante × vários); risco de allowlist decorativa
 - [`spec-efemera-vs-arquitetura-duradoura.md`](spec-efemera-vs-arquitetura-duradoura.md) — régua "isso vai ser verdade em 6 meses?" distingue `docs/architecture/` (durável) de `docs/sprints/<NN>/specs/` (efêmera); ADR canoniza decisões transversais; caso prático 2026-06-01 do desenho de testes E2E
 
 ### Ferramental / ambiente

@@ -4,7 +4,7 @@ titulo: "Defaults dos placeholders WhatsApp no application-prod.properties (boot
 data: 2026-08-09
 branch: fix/006-whatsapp-defaults-no-properties
 responsavel: claude-back
-estado: parcial
+estado: concluido
 gates:
   build: ok
   lint: na
@@ -16,9 +16,9 @@ gates:
   territorio: ok
 commits:
   - 8746ec5
-pr: null
+pr: https://github.com/SSteringS/financas_bot_telegram/pull/119
 desvios: 1
-pendencias_humano: 2
+pendencias_humano: 0
 ---
 
 # FIX-006 — Defaults dos placeholders WhatsApp no `application-prod.properties`
@@ -61,8 +61,10 @@ Corrigido nos dois pontos com uma guarda explícita (`secretConfigurado` / `veri
 
 ## Decisões pendentes (esperando humano)
 
-1. **Push e PR `fix/006` → `develop`, e em seguida `develop` → `main`.** O commit local está feito; não executei push nem abri PR sem ordem explícita. **Produção está fora do ar desde 2026-08-09T00:12Z** — é a correção que a restaura.
-2. **Validação em prod pós-deploy** (critério real de aceitação, não automatizável): app sobe; `GET /webhook/whatsapp?hub.mode=subscribe&hub.verify_token=xxx&hub.challenge=foo` → **403**. Confirmar também os dois WARN de sentinela no boot via `journalctl`.
+> **Encerradas em 2026-08-12 pelo planner, por decisão do humano no fechamento da sprint 03.** A task passou de `parcial` para `concluido`. O que estava aqui foi resolvido (item 1) ou migrado para o registro de débitos (item 2) — nada foi descartado. Histórico preservado abaixo.
+
+1. ~~**Push e PR `fix/006` → `develop`, e em seguida `develop` → `main`.**~~ ✅ **Feito.** PR #119 mergeado em `develop`, e daí para `main` via PR #122 — verificado com `git merge-base --is-ancestor 8746ec5 origin/main`. **Produção foi restaurada em 2026-08-09**: run `31341256203` do workflow `Deploy to Production`, conclusão `success` às 23:10Z. O incidente que começou em 2026-08-09T00:12Z está encerrado.
+2. ~~**Validação em prod pós-deploy**~~ → **migrada** para `docs/PENDENCIAS-TECNICAS.md` §"Validação funcional do webhook WhatsApp pós-deploy nunca foi registrada (FIX-006)". Continua **não executada**: o deploy verde comprova que a aplicação sobe, não que a guarda fail-closed funciona. O critério permanece o mesmo — `GET /webhook/whatsapp?hub.mode=subscribe&hub.verify_token=xxx&hub.challenge=foo` → **403**, mais os dois WARN de sentinela no boot via `journalctl`.
 
 ---
 

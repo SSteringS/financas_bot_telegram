@@ -26,7 +26,7 @@ Use this skill when:
 Do not use this skill for:
 
 - Formatting outputs or artifacts — use `artifact-report-contract`.
-- Deciding file placement or naming — that is in `.github/instructions/artifact-placement-and-naming.instructions.md`.
+- Deciding file placement or naming — use `artifact-report-contract`.
 - Judging code quality — that belongs to the reviewer role and `reviewing-code-premises`.
 
 ## Minimum required data
@@ -82,7 +82,7 @@ Execution stops when any of these is true:
 - A required input is absent from the plan and cannot be verified in the repository.
 - An external contract field name, type, or format is not documented in an authoritative source.
 - A technical justification cannot be verified by execution, official documentation, or source code.
-- The feature or `TASK-ID` is not confirmed.
+- The sprint or `TASK-ID` is not confirmed.
 
 When stopped, report: what is missing, where it was searched, and what is needed to unblock. Do not propose a fallback that masks the gap.
 
@@ -90,7 +90,7 @@ When stopped, report: what is missing, where it was searched, and what is needed
 
 - Backend reports debt found while implementing, in the status artifact.
 - Reviewer reports debt found while reviewing, in the review artifact.
-- Planner consolidates both into the feature technical debt register and decides whether each item becomes a task.
+- Planner consolidates both into the sprint technical debt register and decides whether each item becomes a task.
 - Debt that is not reported by backend or reviewer never reaches the planner; reporting it is mandatory, not optional.
 
 ## Additional resources
