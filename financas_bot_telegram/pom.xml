@@ -30,6 +30,14 @@
 		<java.version>21</java.version>
 		<pitest.version>1.25.9</pitest.version>
 		<pitest-junit5-plugin.version>1.2.3</pitest-junit5-plugin.version>
+		<maven-pmd-plugin.version>3.26.0</maven-pmd-plugin.version>
+		<!--
+			Escopo do PMD. O mojo `includeTests` NAO tem user property propria: passar
+			-Dpmd.includeTests=true direto e silenciosamente ignorado, e o run devolve o
+			numero de producao com cara de numero de teste. Amarrar a esta property de
+			projeto e o que faz o override de linha de comando funcionar de verdade.
+		-->
+		<pmd.includeTests>false</pmd.includeTests>
 	</properties>
 
 	<dependencyManagement>
@@ -237,6 +245,53 @@
 						<param>HTML</param>
 					</outputFormats>
 					<timestampedReports>false</timestampedReports>
+				</configuration>
+			</plugin>
+
+			<!--
+				Analise estatica (PMD). Ruleset curado em pmd-ruleset.xml — cada regra ativa
+				tem justificativa escrita la; o arquivo, nao este bloco, e o entregavel.
+
+				NAO esta ligado a nenhuma fase do build (mesmo padrao do pitest acima).
+				Roda so sob demanda:
+				  ./mvnw pmd:pmd -f financas_bot_telegram/pom.xml
+
+				O motivo de nao amarrar a `verify` nao e conveniencia: enquanto o experimento
+				de alocacao de modelo por papel estiver rodando, build que quebra por violacao
+				faz o agente otimizar para o linter, o que contamina justamente a variavel
+				medida (Q7 = violacoes de ruleset). Relatorio sim, gate nao.
+
+				O goal `pmd:check` — o que falha o build — NAO esta configurado de proposito.
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>${maven-pmd-plugin.version}</version>
+				<configuration>
+					<rulesets>
+						<ruleset>${project.basedir}/pmd-ruleset.xml</ruleset>
+					</rulesets>
+					<!-- HTML para leitura humana; o XML (target/pmd.xml) sai sempre, e o parseavel. -->
+					<format>html</format>
+					<!-- Sem jxr no projeto: link para fonte cruzado quebraria o relatorio. -->
+					<linkXRef>false</linkXRef>
+					<!-- Java 21: mesma release do compiler. Parser precisa aceitar a sintaxe do projeto. -->
+					<targetJdk>${java.version}</targetJdk>
+					<!--
+						Producao por default. O numero que inclui teste sai de um segundo run com
+						-Dpmd.includeTests=true — o item #7 do backlog exige Q7_producao e
+						Q7_teste separados, e um total unico dilui um no outro.
+						Atencao: o run com a flag devolve producao + teste; Q7_teste e a diferenca
+						entre os dois runs, nao a saida direta de um deles.
+					-->
+					<includeTests>${pmd.includeTests}</includeTests>
+					<!--
+						Explicito de proposito, apesar de 5 ja ser o default do plugin: deixa
+						registrado que NAO ha filtro por prioridade. A curadoria e no ruleset,
+						regra a regra e com justificativa — filtrar por numero aqui esconderia
+						regra sem discutir regra, e em silencio.
+					-->
+					<minimumPriority>5</minimumPriority>
 				</configuration>
 			</plugin>
 		</plugins>

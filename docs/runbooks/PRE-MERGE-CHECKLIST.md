@@ -13,7 +13,7 @@ Conceito: o status report é um *output schema* (forma garantida, parseável). E
 | Gate (campo no frontmatter) | Como verificar | Passa quando |
 |---|---|---|
 | `build` | Back: `./mvnw -q -DskipTests package` · Front: `npm run build` | Sai com código 0, sem erro de compilação/TS |
-| `lint` | Front: `npm run lint` · Back: `na` (não há linter configurado) | Sem erros. `na` quando a stack não tem linter |
+| `lint` | Front: `npm run lint` · Back: `./financas_bot_telegram/mvnw pmd:pmd -f financas_bot_telegram/pom.xml` (PMD, ruleset curado em `financas_bot_telegram/pmd-ruleset.xml`) | Front: sem erros. **Back: `ok` quando o comando roda e o relatório foi lido — não quando o número é zero.** O gate é **informativo, não bloqueante**: PMD não está ligado a fase de build nem ao CI, e o legado tem violações conhecidas de baseline (ver status da QA-013). Violação **nova, em código que a task alterou**, precisa ser corrigida ou justificada por escrito no status. `na` só quando a task não toca código Java |
 | `testes` + `testes_total` + `testes_novos` | Back: `./mvnw test` · Front: `npm test` | Todos verdes. Anotar o total e quantos foram adicionados nesta tarefa |
 | `branch_convencao` | `git rev-parse --abbrev-ref HEAD` e `git merge-base --is-ancestor origin/develop HEAD` | Nome bate `^(feature/(be|fe|dep|evo|ci|qa)-\d{3}[a-z]?-|fix/\d{3}-|hotfix/\d{3}-)` **e** develop é ancestral (direto para fix/hotfix/integration; via integration para feature/). Pattern: `^(feature/(be|fe|dep|evo|ci|qa)-\d{3}[a-z]?-|fix/\d{3}-|hotfix/\d{3}-|integration/\d{2}-)`. Ver CLAUDE.md |
 | `territorio` | `git diff --name-only origin/develop...HEAD` | Todos os caminhos alterados estão dentro do território da instância (ver tabela abaixo) |
