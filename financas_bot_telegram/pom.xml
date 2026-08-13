@@ -31,6 +31,7 @@
 		<pitest.version>1.25.9</pitest.version>
 		<pitest-junit5-plugin.version>1.2.3</pitest-junit5-plugin.version>
 		<maven-pmd-plugin.version>3.26.0</maven-pmd-plugin.version>
+		<jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
 		<!--
 			Escopo do PMD. O mojo `includeTests` NAO tem user property propria: passar
 			-Dpmd.includeTests=true direto e silenciosamente ignorado, e o run devolve o
@@ -293,6 +294,44 @@
 					-->
 					<minimumPriority>5</minimumPriority>
 				</configuration>
+			</plugin>
+
+			<!--
+				Cobertura de codigo (JaCoCo). Mesmo padrao de pitest e pmd acima:
+				declarado com versao fixa e NAO amarrado a nenhuma fase do build.
+
+				`prepare-agent` NAO precisa de <executions> porque, invocado na mesma linha
+				de comando que `test`, ele define a property `argLine` que o surefire consome
+				em seguida — o efeito e o mesmo de um execution, sem encarecer o build de
+				todo mundo:
+				  ./mvnw clean jacoco:prepare-agent test jacoco:report -Dtest='!*IntegrationTest' -f financas_bot_telegram/pom.xml
+
+				O `clean` faz parte do comando, nao e higiene: o agente do JaCoCo roda com
+				`append=true` e SOMA ao target/jacoco.exec que ja existia. Sem ele, um run
+				anterior — inclusive um que tenha incluido os *IntegrationTest — continua
+				contando, e o numero deixa de ser unit-only sem nada no log avisando.
+				Alternativa equivalente: -Djacoco.append=false.
+
+				O recorte `!*IntegrationTest` espelha o excludedTestClasses do PIT. Nao e
+				conveniencia: cobertura e mutation score precisam descrever a MESMA populacao
+				de testes, senao a comparacao entre as duas ferramentas vira ruido. O custo e
+				que o numero SUBESTIMA a cobertura real do projeto — a suite de integracao
+				cobre codigo que nao aparece aqui.
+
+				ATENCAO (modo de falha silencioso): hoje NAO existe plugin surefire configurado
+				neste pom, logo nao existe <argLine> proprio. Se algum dia alguem adicionar um,
+				ele PRECISA incluir @{argLine}, senao sobrescreve o agente do JaCoCo e a
+				cobertura sai 0% sem erro nenhum — com cara de "projeto sem teste".
+
+				`jacoco:check` (o goal que falha o build por threshold) NAO esta configurado
+				de proposito, mesmo motivo do pmd:check: build que quebra por cobertura faz
+				escrever teste para a metrica em vez de para o comportamento, e a metrica e
+				justamente a variavel medida pelo experimento. Relatorio sim, gate nao.
+			-->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco-maven-plugin.version}</version>
 			</plugin>
 		</plugins>
 	</build>
