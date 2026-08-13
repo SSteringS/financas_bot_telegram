@@ -590,6 +590,104 @@ Sob collation `en_US`, `[a-z]` casa maiúscula pela ordem de collation, não pel
 
 ---
 
+### `toUpperCase()`/`toLowerCase()` sem `Locale` — 5 ocorrências, 2 com corrupção silenciosa de dado
+
+**Contexto (QA-013, 2026-08-12 — achados do PMD, regra `UseLocaleWithCaseConversions`, com o comportamento sob `tr-TR` medido):** conversão de caixa sem `Locale` usa o locale **default da JVM**. Sob locale turco, `"pix".toUpperCase()` produz `"PİX"` — com `İ` (I com ponto), não `I`. **Nenhum dos casos lança exceção**; todos degradam em silêncio.
+
+| Onde | O que acontece sob `tr-TR` | Gravidade |
+|---|---|---|
+| `LegendaParser:21` | `pix` deixa de casar e é classificado como `OUTRO` **em memória** | real, transitório |
+| `PaymentProofStrategy:81` | **grava `PİX`** em `comprovantes.tipo_pagamento` (`VARCHAR(255)`, sem `CHECK`) | **real e persistente** |
+| `PedidoController:64` | `StatusPedido.valueOf(status.toUpperCase())` — único `Enum.valueOf` assim em produção | hoje inócuo, **por acidente** |
+| `PedidoSpecs:42` | filtro — efeito provável é registro sumir do resultado | **não lido individualmente** |
+| `ResumoMesServiceImpl:38` | agregação — mesmo efeito provável | **não lido individualmente** |
+
+**O caso mais grave é o `PaymentProofStrategy:81`**, e a razão é a persistência: o dado errado **fica no banco depois** de o locale ser corrigido. Os demais se resolvem sozinhos quando o ambiente volta ao normal.
+
+> ⚠️ **Correção de rota do Reviewer (achado `F1`, rodada 1):** a primeira versão do status afirmava que essa linha alimentava `Enum.valueOf` e **derrubava** o processamento da mensagem. É **falso** — o valor trafega e é persistido como `String`, e o rastreamento independente confirmou que não há `Enum.valueOf` nesse fluxo. Corrupção silenciosa, não exceção. Registrado aqui porque o ranqueamento errado quase entrou neste arquivo como incidente de disponibilidade.
+
+**Sobre o `PedidoController:64`:** é inócuo hoje **só porque** nenhum valor de `StatusPedido` (`PENDENTE`, `PAGO`, `CANCELADO`) contém a letra `i` — acidente, não proteção. E `PedidoController:65-67` já captura `IllegalArgumentException` devolvendo 400, então o modo de falha real é **mensagem enganosa**, não indisponibilidade. Não priorizar acima do que vale.
+
+**Fix sugerido:** `Locale.ROOT` em todas as 5. Ler antes as duas de `PedidoSpecs` e `ResumoMesServiceImpl`, que ninguém abriu ainda.
+
+**Esforço:** baixo — 5 linhas. **Prioridade:** **alta** para `PaymentProofStrategy:81` (corrompe dado persistido); média para as demais.
+
+**Nota de método:** nem o PIT nem os testes atuais pegam esses bugs — os testes rodam no locale da máquina. Um teste sob `-Duser.language=tr` pegaria.
+
+---
+
+### `AvoidCatchingGenericException` — 10 ocorrências em produção, 1 em teste
+
+**Contexto (QA-013, baseline do PMD):** é o **maior bloco do baseline** — 11 das 23 violações. Captura de `Exception`/`RuntimeException` genérica engole causa e dificulta diagnóstico.
+
+**Por que importa além do estilo:** é exatamente o modo de falha que o experimento de alocação de modelo quer medir em código gerado por LLM. O baseline alto significa que o sinal do experimento vai competir com ruído pré-existente se a medição não for por diff.
+
+**Fix sugerido:** não corrigir em bloco. Tratar quando o arquivo for tocado por outro motivo.
+
+**Prioridade:** média.
+
+---
+
+### Dois métodos com complexidade alta confirmada por duas métricas independentes
+
+**Contexto (QA-013, medição do PMD):**
+
+| Método | Ciclomática | Outra métrica |
+|---|---:|---|
+| `AtualizarFuncionarioServiceImpl.atualizar` | 12 | **NPath 2048** (threshold 200) |
+| `CadastrarFuncionarioServiceImpl.validarDadosPagamento` | 18 | **Cognitiva 17** |
+
+**Por que os dois casos são diferentes entre si:**
+
+- No primeiro, **NPath 2048** significa 2048 combinações de caminho. Cobertura de caminhos ali é inalcançável na prática — não é meta realista, e vale saber disso antes de alguém tentar.
+- No segundo, ciclomática e cognitiva **concordam** (18 e 17). Quando as duas concordam, não é artefato de contagem: é complexidade real de leitura. A limitação conhecida da ciclomática — não distinguir `switch` largo e legível de aninhamento profundo — não se aplica aqui, justamente porque a cognitiva confirma.
+
+**Fix sugerido:** extração de método, quando houver motivo para tocar nas classes. **Prioridade:** média.
+
+---
+
+### Nenhuma ferramenta do repositório mede conformidade arquitetural
+
+**Contexto (QA-013, desvio 2):** o PMD **não enxerga** violação de arquitetura hexagonal. O débito conhecido de `DataIntegrityViolationException` importada na camada de aplicação (registrado neste arquivo) continua **invisível** para o ferramental, mesmo depois de instalado.
+
+**O ponto que generaliza:** das três ferramentas da sprint 04 — PIT, PMD e (futuro) JaCoCo — **nenhuma** mede conformidade arquitetural. Cobrir exigiria configurar `LoosePackageCoupling` com a lista de pacotes, ou **ArchUnit**.
+
+**Convergência com o item #8 do backlog da sprint:** o gate da convenção `*IntegrationTest` já colocou ArchUnit em cima da mesa, e o argumento a favor dele era exatamente escalar para os outros invariantes que hoje só vivem em prosa no `financas_bot_telegram/CLAUDE.md` — JPA vive no adapter, adapters não se conhecem, nada novo em `usecases/`. **Este débito é a segunda evidência a favor da mesma decisão.**
+
+**Prioridade:** média — sobe se o item #8 escolher ArchUnit.
+
+---
+
+### Testcontainers não alcança o Docker na máquina de desenvolvimento
+
+**Contexto (QA-013, 2026-08-12/13):** 48 testes em 11 classes `*IntegrationTest` falham **localmente** com `Could not find a valid Docker environment` (`NpipeSocketClientProviderStrategy`). Sem container, o contexto cai em H2 sem schema e os testes morrem em `Table "AUTH_TOKEN" not found`.
+
+**Não é código, e isso foi provado por execução:** o CI rodou a suíte completa sobre o mesmo commit e devolveu `Tests run: 422, Failures: 0, Errors: 0` (run `31727999562`). Os testes estão sãos.
+
+**A armadilha:** `docker info` responde normalmente no shell. Isso **não** garante que a JVM do Maven alcança o daemon — foi o que enganou a primeira análise.
+
+**Efeito prático:** quem desenvolver nessa máquina só descobre quebra de integração **no CI**, depois de abrir o PR. E enquanto isso, toda task tende a fechar `parcial` por um gate que não reflete o repositório.
+
+**Fix sugerido:** FIX de ambiente próprio — configurar `DOCKER_HOST`/`TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE` ou trocar a estratégia de descoberta. **Não** consertar de carona em task de feature.
+
+**Prioridade:** **alta** — é o gate de teste local do repositório inteiro.
+
+---
+
+### `SimplifyBooleanReturns` excluída do ruleset por bug de versão, sem gatilho de reavaliação
+
+**Contexto (QA-013 + Reviewer, verificado por experimento controlado):** a regra foi removida do ruleset porque, no **PMD 7.7.0**, a mensagem sai com placeholder não substituído **e com o operador trocado em 2 dos 4 formatos** — sugere `!c || e` onde o correto é `!c && e`. Saída não acionável e que induz a erro é ruído legítimo de remover.
+
+**O problema:** a exclusão é consequência de um **defeito de versão**, não de propriedade permanente da regra. Sem gatilho, vira definitiva por inércia.
+
+**Fix sugerido:** amarrar a reavaliação ao próximo upgrade de PMD — junto com nova curadoria e **hash novo**.
+
+**Mesmo raciocínio vale para `MissingSerialVersionUID`:** 25 ocorrências, todas em `*Exception.java`, deliberadamente fora do ruleset. A justificativa procede hoje; se algum dia este stack serializar exceção, a decisão precisa ser revisitada. O gatilho está no status da QA-013, **não** no XML congelado — e é o XML que sobrevive.
+
+**Prioridade:** baixa.
+
+---
+
 ## Itens resolvidos
 
 ### ~~Esconder `@RequisitanteId` do Swagger UI~~
