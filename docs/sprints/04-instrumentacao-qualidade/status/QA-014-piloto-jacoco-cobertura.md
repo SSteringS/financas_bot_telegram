@@ -20,7 +20,7 @@ commits:
   - 6dff57f   # fix: 6 achados da revisao (A1 retratacao, M1 clean/append, B1-B4)
   - e1742bf   # docs: hash do commit de correcao no frontmatter
   - 606d250   # docs: coerencia interna do status
-  - COMMIT_C1 # fix: C1-C5 do delta-review (clean no comentario do pom, fonte do append)
+  - 33ca245   # fix: C1-C5 do delta-review (clean no comentario do pom, fonte do append)
 pr: null
 desvios: 0
 pendencias_humano: 0
