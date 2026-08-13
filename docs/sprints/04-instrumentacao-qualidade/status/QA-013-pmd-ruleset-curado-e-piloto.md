@@ -20,12 +20,12 @@ commits:
   - 2b9cdc7
 pr: null
 desvios: 2
-pendencias_humano: 1
+pendencias_humano: 0
 ---
 
 # QA-013 — PMD: ruleset curado e piloto de leitura interpretada
 
-> **Por que `estado: parcial` e não `concluido`:** todo o escopo da task foi entregue, mas o gate `testes` está **vermelho por causa alheia a esta task** — 48 testes de integração falham nesta máquina por indisponibilidade do Docker para o Testcontainers, e falham **igualmente sem as minhas mudanças** (evidência abaixo). Não fecho como `concluido` com gate vermelho, mesmo sendo pré-existente.
+> **Por que `estado: parcial` e não `concluido`:** todo o escopo da task foi entregue e a revisão independente aprovou, mas o gate `testes` está **vermelho por causa alheia a esta task** — 48 testes de integração falham nesta máquina por indisponibilidade do Docker para o Testcontainers, e falham **igualmente sem as minhas mudanças** (evidência abaixo). O humano decidiu em 2026-08-13 **mergear assim mesmo**, apoiado no fato de que o diff não tem nenhum arquivo `.java` (ver "Decisões pendentes"). A decisão libera o merge, mas não torna o gate verde: `concluido` exige todos os gates `ok` ou `na`, então o estado correto continua sendo `parcial`.
 
 ---
 
@@ -382,9 +382,22 @@ Não ampliei o conjunto do piloto porque o critério que dependia de contraste �
 
 ## Decisões pendentes (esperando humano)
 
-**1 pendência.**
+**Nenhuma — tarefa fechada.** A única pendência que existia foi decidida pelo humano em 2026-08-13 e está registrada abaixo.
+
+### Decidido: mergear com o gate `testes` vermelho — opção (a)
+
+**Decisão do humano, 2026-08-13:** seguir com o merge sem os testes de integração, *"até porque não teve mexida no código"*. O raciocínio se apoia no fato verificável do diff: **zero arquivos `.java` alterados** (`git diff --name-only origin/integration/04-instrumentacao-qualidade...HEAD | grep '\.java$'` → vazio). Não há comportamento novo que os testes de integração pudessem cobrir, então o que eles deixaram de exercitar nesta task é exatamente o mesmo que exercitavam antes dela.
+
+**O gate continua registrado como `fail`, não como `ok` nem `na`.** A decisão é de aceitar o risco, não de declarar o problema inexistente — `./mvnw test` sai vermelho nesta máquina, e falsear o frontmatter destruiria o valor do checklist como validação. Pelo mesmo motivo `estado` permanece **`parcial`**: a regra do `PRE-MERGE-CHECKLIST.md` é que `concluido` exige todos os gates `ok` ou `na`.
+
+**O que fica em aberto para a sprint:** o ambiente continua sem Docker acessível ao Testcontainers. A próxima task que **mexer em código** não pode herdar esta decisão — ali os 48 testes voltam a ser cobertura relevante, e o problema de ambiente precisa estar resolvido antes.
+
+<details>
+<summary>Registro original da pendência (para rastreabilidade)</summary>
 
 1. **Como tratar o gate `testes` vermelho por Docker indisponível.** 48 testes em 11 classes `*IntegrationTest` falham nesta máquina, e falham **igualmente com as mudanças desta task revertidas** — a causa é `Could not find a valid Docker environment` do Testcontainers (`NpipeSocketClientProviderStrategy`), apesar de `docker info` responder normalmente no shell; sem container, o contexto cai em H2 sem schema e os testes morrem em `Table "AUTH_TOKEN" not found`. **Não é regressão desta task e não é código do backend.** A QA-012 registrou `testes_total: 422` com `testes: ok` em 2026-08-10 — não verifiquei se a diferença veio de mudança no repositório desde então ou do ambiente da máquina, e a evidência do `git stash` só prova que **esta** task não é a causa. Decisão do humano: (a) tratar como problema de ambiente local e mergear com o gate vermelho documentado, ou (b) abrir FIX de ambiente antes do merge. Não toquei em nada disso — está fora do escopo declarado da task, que proíbe alterar classe de produção ou de teste.
+
+</details>
 
 ---
 
