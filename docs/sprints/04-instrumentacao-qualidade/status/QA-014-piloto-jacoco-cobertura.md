@@ -18,6 +18,9 @@ commits:
   - ff78be3   # feat: jacoco + lombok.config + runbooks/template/checklist
   - 1c1f216   # docs: status report
   - 6dff57f   # fix: 6 achados da revisao (A1 retratacao, M1 clean/append, B1-B4)
+  - e1742bf   # docs: hash do commit de correcao no frontmatter
+  - 606d250   # docs: coerencia interna do status
+  - COMMIT_C1 # fix: C1-C5 do delta-review (clean no comentario do pom, fonte do append)
 pr: null
 desvios: 0
 pendencias_humano: 0
@@ -37,7 +40,7 @@ pendencias_humano: 0
 
 `financas_bot_telegram/lombok.config` criado com `lombok.addLombokGeneratedAnnotation = true`. Não é detalhe de build: sem ele o relatório mede **quanto Lombok o projeto usa**, não quanto os testes cobrem. Os dois números foram medidos, não estimados (§Distorção do Lombok).
 
-Nenhuma classe de produção ou de teste foi tocada. O diff é: `pom.xml`, `lombok.config` (novo), `ROTEIRO-TESTES-BACKEND.md`, `_TEMPLATE-status.md`, `PRE-MERGE-CHECKLIST.md` e este status.
+Nenhuma classe de produção ou de teste foi tocada. O diff é: `pom.xml`, `lombok.config` (novo), `ROTEIRO-TESTES-BACKEND.md`, `_TEMPLATE-status.md`, `PRE-MERGE-CHECKLIST.md`, este status e o relatório da revisão em `avaliacoes/`.
 
 ### Evidência de execução
 
@@ -232,6 +235,18 @@ Primeira rodada: **`rejected`**, com 6 correções pontuais e **nenhuma remedia�
 | **B2** — "quase toda a cobertura de branch faltante" era Lombok | low | Quantificado: **55%** (126 de 230) |
 | **B3** — `\|\|` não escapado quebrava uma célula da tabela do runbook | low | Escapado |
 | **B4** — evidência fraca sobre `argLine` (olhava o parent, não o POM efetivo) | low | Trocada por `help:effective-pom` + `grep -c argLine` = **0** |
+
+Segunda rodada (delta-review): **`approved-with-comments`**, 1 achado `medium` e 4 cosméticos, todos aplicados.
+
+| Achado | Severidade | O que foi feito |
+|---|---|---|
+| **C1** — sobrou um **quarto** lugar publicando o comando sem `clean`: o comentário do `pom.xml` | medium | `clean` acrescentado, com a explicação do `append` junto. A lista de "três documentos" do fix M1 sub-enumerou os pontos de publicação — o `pom.xml` é justamente onde quem mexe no build lê primeiro |
+| **C2** — `commits:` parou em `6dff57f` | low | Frontmatter completo |
+| **C3** — "`append=true` (default do plugin)" tem a fonte trocada: o mojo declara `append` **sem `default-value`**; o `true` vem do default do agente | low | Corrigido no runbook |
+| **C4** — a enumeração do diff em §O que foi feito ficou fora da varredura de coerência | low | Corrigida |
+| **C5** — "os quatro goals": `clean` e `test` são fases, não goals | low | Reescrito como duas fases + dois goals |
+
+**Débito que não é meu e o planner precisa ver:** `plans/QA-014-piloto-jacoco-cobertura.md:49` **ainda** contém a frase que o achado A1 derrubou ("existe uma única ocorrência no repositório"). O status foi retratado, o plano não — e é o plano que o planner consulta ao fechar o item #6. `backlog-s04.md:123` e o `README.md` da sprint descrevem o item corretamente e **não** devem ser mexidos.
 
 Dois dos três achados de substância (**A1** e **M1**) têm a mesma raiz: **verificação herdada em vez de refeita**. A1 repetiu o grep do plano; M1 usou `clean` por acidente (o `lombok.config` exige recompilação) sem perceber que ele era condição de validade do número. Nenhum dos dois teria aparecido em revisão de estilo — os dois exigiram reexecução.
 

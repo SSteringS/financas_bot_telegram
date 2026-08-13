@@ -107,9 +107,9 @@ cd C:\Users\satya\src\financas_bot_telegram
 ./financas_bot_telegram/mvnw clean jacoco:prepare-agent test jacoco:report -f financas_bot_telegram/pom.xml -Dtest='!*IntegrationTest' -Dsurefire.failIfNoSpecifiedTests=false
 ```
 
-**Os quatro goals vão na mesma linha de comando de propósito.** `jacoco:prepare-agent` não está amarrado a fase nenhuma do build (mesmo padrão de PIT e PMD): ele define a property `argLine`, o `test` que vem em seguida na mesma sessão do Maven a consome, e o `jacoco:report` lê o `jacoco.exec` resultante.
+**As duas fases (`clean`, `test`) e os dois goals (`jacoco:prepare-agent`, `jacoco:report`) vão na mesma linha de comando de propósito.** `jacoco:prepare-agent` não está amarrado a fase nenhuma do build (mesmo padrão de PIT e PMD): ele define a property `argLine`, o `test` que vem em seguida na mesma sessão do Maven a consome, e o `jacoco:report` lê o `jacoco.exec` resultante.
 
-⚠️ **O `clean` não é higiene, é correção do número.** O `prepare-agent` roda com `append=true` (default do plugin), então cada execução **soma** ao `target/jacoco.exec` que já existia. Sem `clean`, um run anterior — inclusive um que tenha incluído os `*IntegrationTest` — continua contando, e o resultado deixa de ser `unit-only` **sem nada no log avisando**. Alternativa equivalente: `-Djacoco.append=false`.
+⚠️ **O `clean` não é higiene, é correção do número.** O `prepare-agent` roda em modo `append` — o parâmetro `append` do mojo **não declara `default-value`**; o `true` vem do default do próprio agente do JaCoCo —, então cada execução **soma** ao `target/jacoco.exec` que já existia. Sem `clean`, um run anterior — inclusive um que tenha incluído os `*IntegrationTest` — continua contando, e o resultado deixa de ser `unit-only` **sem nada no log avisando**. Alternativa equivalente: `-Djacoco.append=false`.
 
 ⚠️ **`jacoco:report` sozinho não falha — ele desiste em silêncio.** Sem `jacoco.exec` no lugar, o goal imprime `Skipping JaCoCo execution due to missing execution data file` e devolve `BUILD SUCCESS` sem gerar relatório algum. Se o `index.html` não apareceu, procure essa linha no log antes de procurar qualquer outra coisa.
 

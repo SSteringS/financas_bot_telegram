@@ -304,7 +304,13 @@
 				de comando que `test`, ele define a property `argLine` que o surefire consome
 				em seguida — o efeito e o mesmo de um execution, sem encarecer o build de
 				todo mundo:
-				  ./mvnw jacoco:prepare-agent test jacoco:report -Dtest='!*IntegrationTest' -f financas_bot_telegram/pom.xml
+				  ./mvnw clean jacoco:prepare-agent test jacoco:report -Dtest='!*IntegrationTest' -f financas_bot_telegram/pom.xml
+
+				O `clean` faz parte do comando, nao e higiene: o agente do JaCoCo roda com
+				`append=true` e SOMA ao target/jacoco.exec que ja existia. Sem ele, um run
+				anterior — inclusive um que tenha incluido os *IntegrationTest — continua
+				contando, e o numero deixa de ser unit-only sem nada no log avisando.
+				Alternativa equivalente: -Djacoco.append=false.
 
 				O recorte `!*IntegrationTest` espelha o excludedTestClasses do PIT. Nao e
 				conveniencia: cobertura e mutation score precisam descrever a MESMA populacao

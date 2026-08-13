@@ -154,7 +154,7 @@ Itens 1 a 3 são os que bloqueiam; 4 a 6 são correções de uma linha cada que 
 
 - none — o status declara "Nenhum" e confirmei: todos os itens de §Escopo/arquivos foram entregues, nada fora deles foi tocado, e as 5 decisões de execução registradas ficam dentro da latitude que o plano deixou aberta (versão do plugin, uso de `clean` na comparação, numeração da subseção do runbook). A reprodução do run do PIT (decisão 5) excede o escopo, mas na direção de reforçar um critério de aceitação — não é desvio.
 
-## Verdict
+## Verdict (rodada 1)
 - rejected
 
 **Por quê, sendo o núcleo de medição impecável.** É preciso separar as duas metades desta entrega.
@@ -167,3 +167,85 @@ A metade escrita é onde ela cai. O veredito é `rejected` por dois motivos inde
 2. M1 faz o comando documentado — que é entregável desta task, não anexo — produzir, em cenário realista, um número que contradiz a própria definição que o template acabou de escrever. A task instala uma métrica; a métrica precisa ser reprodutível pelo comando publicado, e hoje ela é reprodutível pelo comando da evidência (com `clean`) e não pelo comando do runbook.
 
 Os seis fixes são pontuais: cinco edições de texto e uma palavra (`clean`) em três arquivos. Nenhum exige remedição — todos os números permanecem válidos como estão. Re-revisão pode ser `delta-review` restrita aos itens 1 a 6.
+
+---
+
+# Delta-review — rodada 2 (2026-08-13)
+
+## Delta Scope
+
+Modo: `delta-review`. Diff `1c1f216..HEAD` — commits `6dff57f` (as 6 correções + o relatório desta revisão), `e1742bf` (hash no frontmatter), `606d250` (coerência interna). Cinco arquivos, nenhum `.java`, nenhum `.claude/`, nenhum `.codex/`.
+
+Escopo desta rodada, conforme combinado: **verificar aplicação e lastro das 6 correções**, não reproduzir medição. Os números da rodada 1 foram todos reproduzidos e não mudaram — verificado por diff (ver `Delta Verification`, último item).
+
+## Premise Checks (delta)
+
+- architecture_best_practice: pass — notes: nada de código no delta; o `pom.xml` não foi tocado pelos três commits.
+- technical_justifications_true: **pass** (era `fail` na rodada 1) — notes: A1 retratado e a nova redação bate com o `git grep` refeito nesta sessão; B4 trocado pela evidência forte. As três afirmações **novas** (retratação, parágrafo do `append`, texto do `effective-pom`) foram verificadas uma a uma abaixo; nenhuma entrou sem lastro. Resta uma imprecisão de atribuição, não de fato — `low` C3.
+- external_contract_source_verified: pass — notes: inalterado; a task não consome campo de sistema externo. As duas linhas do `.codex/` citadas no status foram conferidas **verbatim** contra o commit-base.
+- test_fixtures_from_real_source: pass — notes: `testes_novos: 0`, nada a auditar; nenhum número de medição alterado no delta.
+- no_process_doc_references_in_code: pass — notes: nenhum arquivo de código no delta.
+
+## Delta Verification
+
+- fix 1 (A1) | **aplicado, e a retratação confere.** A §"Correção de fato registrada no backlog" virou §"Retratação — o item #6 do backlog estava certo" (status linhas 205-218). Refiz as três checagens que a seção agora afirma: `git grep -in "jacoco" origin/integration/04-instrumentacao-qualidade | wc -l` → **77**; `.codex/agents/qa-test-specialist.toml:37` → `` - Cobertura: JaCoCo — `./mvnw jacoco:report` `` e `:186` → `` | Cobertura da classe principal | `./mvnw jacoco:report` → campo `cobertura_pct` | `` (citação **verbatim**, só com indentação cosmética a mais); `git grep -in jacoco -- .claude/agents/qa-test-specialist.md` no commit-base → **vazio**, e `git ls-tree` confirma que os dois arquivos de agente coexistem — logo "duas definições, uma por harness" é fato. A atribuição do erro ("repeti a verificação do plano em vez de refazê-la") bate com `plans/QA-014-...md:49`, que de fato limita o grep a `.claude/`, `docs/templates/` e `docs/runbooks/`. A instrução ao planner ("**não** fechar o item #6 com a 'correção' que estava aqui") é a conduta correta. Não troca um erro por outro.
+- fix 2 (M1) | **aplicado nos três documentos, mas há um quarto ponto de publicação que ficou de fora** — ver `medium` C1. `git grep "jacoco:prepare-agent" -- docs/` retorna exatamente três comandos publicados e **os três trazem `clean`**: `ROTEIRO-TESTES-BACKEND.md:107`, `PRE-MERGE-CHECKLIST.md:18`, `_TEMPLATE-status.md:17`. O status também: a tabela §Evidência de execução (linhas 46-47) já usava `clean` desde a rodada 1 e continua. O parágrafo novo do runbook (`:112`) e o do checklist (`:18`) descrevem a armadilha corretamente.
+- claim nova: "`Alternativa equivalente: -Djacoco.append=false`" (runbook `:112`) | **verificada na fonte.** Extraí `META-INF/maven/plugin.xml` do `jacoco-maven-plugin-0.8.12.jar`: o mojo `prepare-agent` declara `<append implementation="java.lang.Boolean">${jacoco.append}</append>` — a user property existe e o `-D` funciona. Lastro ok.
+- claim nova: "os runs da medição usaram `clean` **por acidente**" (status `:65`) | **coerente e verificável.** Bate com §Decisões tomadas item 2 (recompilação exigida pelo `lombok.config`) e com a tabela de evidência, que já publicava `clean` no comando. A auto-atribuição honesta ("foi encontrado pela revisão (M1), não por mim") é fiel ao que aconteceu.
+- fix 3 (M2) | **aplicado como débito 7**, com o comportamento descrito corretamente: `Skipping JaCoCo execution due to missing execution data file` + `BUILD SUCCESS` — idêntico ao que reproduzi na rodada 1, com `target/` limpo. `.codex/` **não** foi tocado (confirmado por `git diff --name-only 1c1f216..HEAD`), e a justificativa citada (território do humano, CLAUDE.md) é a correta. O runbook `:114` documenta o mesmo modo de falha para quem roda à mão. Severidade "média" no débito 7 = `medium` do achado; não suavizou.
+- fix 4 (B1) | **aplicado.** Status `:193` — "as **12 chamadas**", e a evidência foi trocada pela mais forte ("a string `null` **não aparece no arquivo inteiro**"), que é exatamente o que medi na rodada 1.
+- fix 5 (B2) | **aplicado e aritmeticamente correto.** Status `:82` — "**55% de toda a 'cobertura de branch faltante' do projeto (126 de 230)**", com a ressalva de que "os outros 104 desvios descobertos são código escrito à mão e continuam valendo como buraco real". 126/230 = 54,8% → 55%; 230−126 = 104. O rótulo qualitativo agora é o número.
+- fix 6 (B3) | **aplicado.** `ROTEIRO-TESTES-BACKEND.md:129` traz `` `\|\|` ``. Em GFM o `\|` é resolvido antes do parse inline, então a célula volta a ter 3 colunas e a coluna "Armadilha" da linha `BRANCH` renderiza.
+- B4 (opcional) | **aplicado, e com a admissão correta.** Status `:61` troca a evidência por `help:effective-pom` + `grep -c argLine` = 0 e **declara explicitamente** que a anterior era frágil porque o surefire *é* gerenciado pela cadeia de parents (3.5.3) — os dois fatos que confirmei na rodada 1. O runbook `:120` deixou de dizer "não existe plugin surefire configurado no `pom.xml`" e passou a dizer "não existe nenhum `<argLine>` no POM efetivo". Correto nos dois lugares.
+- §"Revisão independente (ADR 0005)" nova (status `:222-236`) | **fiel, sem suavização.** Confere um a um contra este relatório: veredito `rejected`, "6 correções pontuais e nenhuma remediação de código", severidades `high`/`medium`/`medium`/`low`×4 idênticas às minhas, e o texto de cada linha descreve o achado pelo que ele é (A1 "invertia um item correto do backlog"; M2 "passou a desistir em silêncio"). Não há achado omitido, rebaixado nem reatribuído a terceiros — A1 e M1 são assumidos como erro próprio ("verificação herdada em vez de refeita"). O parágrafo de fecho não reivindica mérito que não existe.
+- números de medição | **nenhum alterado.** `git diff 1c1f216..HEAD` filtrado por linhas com números: as únicas mudanças numéricas são `13 → 12` (a contagem errada, que é o próprio fix B1) e a adição de `55% (126 de 230)`. As tabelas do Lombok (12 valores), por classe, por pacote, os baselines de PIT e PMD, as 8 classes em 0% e os totais (374/422/148/174) estão byte a byte iguais.
+- `.claude/agents/backend.md` | **não entrou em commit nenhum.** `git diff --name-only 1c1f216..HEAD` lista cinco arquivos, todos em `docs/`; `git status --porcelain` continua mostrando ` M .claude/agents/backend.md` como alteração **não commitada** na árvore de trabalho — mesmo estado da rodada 1. A ressalva de ambiente segue valendo: não arrastar esse arquivo para o commit de merge.
+
+## Findings (delta, by severity)
+
+- critical: nenhum.
+- high: nenhum. **A1 está resolvido** e o premise check que estava `fail` passou.
+
+- medium:
+  - **C1 — sobrou um quarto lugar publicando o comando sem `clean`: o comentário do `pom.xml`.** `financas_bot_telegram/pom.xml:307` contém
+
+    ```
+    ./mvnw jacoco:prepare-agent test jacoco:report -Dtest='!*IntegrationTest' -f financas_bot_telegram/pom.xml
+    ```
+
+    sem `clean` e sem `-Djacoco.append=false`. É o mesmo defeito do M1, no arquivo que explica **por que** o plugin não tem `<executions>` — ou seja, o lugar em que alguém que mexe no build vai ler primeiro. O `pom.xml` não foi tocado por nenhum dos três commits de correção.
+
+    **Registro de honestidade:** a lista de "três lugares" é do meu próprio fix 2 da rodada 1, e ela sub-enumerou os pontos de publicação; o implementador cumpriu à risca o que foi pedido. Isso muda a atribuição, não o fato: o comando publicado no `pom.xml` continua produzindo, no cenário do M1, um número que contradiz a definição que esta mesma task escreveu. Efeito colateral menor: a frase do status `:65` ("o comando publicado **nos três documentos** não trazia o `clean`; passou a trazer") é verdadeira sobre os três, mas sugere completude que não há.
+
+    Correção: acrescentar `clean` na linha 307 do `pom.xml` (uma palavra, território do back, risco zero). Enquanto não entrar, o repositório contém duas versões do mesmo comando, uma delas explicitamente desaconselhada pelo runbook ao lado.
+
+- low:
+  - **C2 — `commits:` do frontmatter parou em `6dff57f`.** Faltam `e1742bf` e `606d250`. O último é insolúvel por construção (um commit não cita o próprio hash), mas `606d250` poderia ter registrado `e1742bf`. Impacto: rastreabilidade do status, não correção.
+  - **C3 — "`append=true` (default do plugin)" atribui o default ao lugar errado.** O `plugin.xml` do `jacoco-maven-plugin` 0.8.12 declara `append` **sem `default-value`** (diferente de `skip` e `destFile`, que têm); o `true` efetivo vem do default do **agente** JaCoCo. O comportamento afirmado está certo — reproduzi a acumulação na rodada 1 —, só a fonte do default está trocada. Vale para `ROTEIRO-TESTES-BACKEND.md:112`. Uma palavra: "default do agente".
+  - **C4 — a linha 40 do status ficou fora da varredura de coerência do `606d250`.** "O diff é: `pom.xml`, `lombok.config` (novo), `ROTEIRO-TESTES-BACKEND.md`, `_TEMPLATE-status.md`, `PRE-MERGE-CHECKLIST.md` e este status" — o commit `606d250` acrescentou o relatório de revisão à §Arquivos criados/modificados (linha 303) mas não a esta enumeração, que agora está incompleta em relação ao diff da branch.
+  - **C5 — "os quatro goals vão na mesma linha de comando" (runbook `:110`).** `clean` e `test` são **fases** do ciclo de vida, não goals; goals mesmo são dois (`jacoco:prepare-agent` e `jacoco:report`). A imprecisão é herdada da redação anterior ("três goals", que já contava `test`), então o fix só a propagou. Formulação exata: "os quatro itens da linha de comando".
+
+## Required Fixes (delta)
+
+1. **`clean` no comentário do `pom.xml:307`** (C1). Fecha o M1 no último lugar onde o comando é publicado.
+
+Opcionais, todos de uma palavra ou uma linha, e que podem ir no mesmo commit: C2 (acrescentar `e1742bf` ao frontmatter), C3 ("default do agente"), C4 (incluir o relatório de revisão na enumeração da linha 40), C5 ("os quatro itens da linha de comando").
+
+## Technical Debt Identified (delta)
+
+- item: nenhum débito **novo** — os sete da rodada 1 seguem válidos e o status incorporou o M2 como item 7 da própria tabela | impact: — | suggested_action: —
+- item: o plano da QA-014 (`plans/QA-014-...md:49`, §Contexto) **continua** carregando a afirmação falsa que o A1 derrubou | impact: o status foi retratado, o plano não; e o plano é o artefato que o planner consulta ao fechar o item #6 do backlog. Reconfirmado nesta rodada: a linha 49 do plano ainda diz "existe **uma única ocorrência no repositório**" | suggested_action: planner corrigir a §Contexto do plano junto do fechamento do item #6, usando `git grep -in "jacoco" <commit-base>` → 77 linhas como verificação. Não é exigível do implementador (o plano é território do planner), por isso permanece débito e não fix
+- item: `backlog-s04.md:123` e `README.md:13` da sprint descrevem o item #6 **corretamente** e não precisam de mudança | impact: nenhum — registro para evitar que a "correção" da rodada 1 seja aplicada a eles por engano | suggested_action: nenhuma ação; o item #6 fecha como estava escrito
+
+## Blocked Validations / Uncertainty (delta)
+
+- **Medição não reexecutada nesta rodada, por decisão de escopo.** Os números foram integralmente reproduzidos na rodada 1 e confirmei por diff que nenhum deles mudou; não é validação bloqueada, é validação já feita e verificada como intacta.
+- **O relatório de revisão da rodada 1 foi commitado pelo implementador (`6dff57f`) e eu não tenho cópia fora da árvore para diferenciar byte a byte.** O conteúdo em `HEAD` preserva os seis achados, as severidades e o veredito `rejected` — inclusive as passagens mais duras —, então não há sinal de edição; registro a limitação por completude.
+- **`.claude/agents/backend.md` continua modificado e não commitado** na árvore de trabalho. Fora do escopo da task e do diff revisado; anotado para não ser arrastado no commit de correção.
+
+## Verdict (rodada 2)
+- approved-with-comments
+
+**O que mudou.** As seis correções foram aplicadas, e nenhuma delas trocou um erro por outro. A retratação do A1 é o ponto alto: em vez de apagar a seção, o status registra o que afirmou antes, por que estava errado, qual comando derruba a afirmação, e instrui o planner a **não** fechar o item #6 com a correção invertida. Refiz as três verificações que a seção nova afirma — as 77 linhas do grep, as duas linhas do `.codex/` verbatim, a inexistência de menção a JaCoCo no agente do `.claude/` — e todas conferem. O premise check `technical_justifications_true`, que era o motivo formal do `rejected`, passou. As três afirmações novas do delta têm lastro verificado, incluindo a `-Djacoco.append=false`, que fui conferir no `plugin.xml` do próprio plugin. Nenhum número de medição foi tocado, nenhum achado foi suavizado na §Revisão independente, e `.claude/agents/backend.md` não entrou em commit nenhum.
+
+**O que ainda impede o merge:** um item, de uma palavra — o `clean` no comando publicado em `financas_bot_telegram/pom.xml:307` (C1). Não é premissa falsa nem número errado, e a lista de "três lugares" que deixou esse ponto de fora foi minha, não do implementador. Mas é o mesmo defeito do M1 sobrevivendo no arquivo que explica o desenho do plugin, e mesclar assim deixa o repositório publicando duas versões do mesmo comando, uma delas contrariando o aviso que o runbook ao lado acabou de escrever. Aplicado esse fix, a task está pronta — os quatro `low` (C2 a C5) são cosméticos e podem ir junto ou virar nota para o planner. Não é necessária nova rodada de revisão: a verificação do C1 é `git grep -n "prepare-agent" financas_bot_telegram/pom.xml` mostrando `clean` na linha.
