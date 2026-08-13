@@ -65,7 +65,7 @@ Ambiente: Maven 3.9.9, **JVM 23-ea** (única instalada; o `pom.xml` compila com 
 
 A cobertura **não veio zero** — veio 89,5% de instrução, com números por linha coerentes com a leitura manual do fonte, o que é a evidência positiva de que a instrumentação funcionou.
 
-⚠️ **`append=true` é o segundo modo de falha silencioso, e foi encontrado pela revisão (M1), não por mim.** O `prepare-agent` soma ao `target/jacoco.exec` existente em vez de substituí-lo. Sem `clean`, um run anterior que tenha incluído os `*IntegrationTest` continua contando e o resultado **deixa de ser unit-only sem nada no log avisando**. Os dois runs desta medição usaram `clean` — por causa da recompilação exigida pelo `lombok.config`, e não porque eu tivesse identificado o risco —, então **os números publicados aqui não estão contaminados**. O comando publicado nos três documentos não trazia o `clean`; passou a trazer.
+⚠️ **`append=true` é o segundo modo de falha silencioso, e foi encontrado pela revisão (M1), não por mim.** O `prepare-agent` soma ao `target/jacoco.exec` existente em vez de substituí-lo. Sem `clean`, um run anterior que tenha incluído os `*IntegrationTest` continua contando e o resultado **deixa de ser unit-only sem nada no log avisando**. Os dois runs desta medição usaram `clean` — por causa da recompilação exigida pelo `lombok.config`, e não porque eu tivesse identificado o risco —, então **os números publicados aqui não estão contaminados**. O comando publicado não trazia o `clean` em nenhum dos **quatro** pontos onde aparece (runbook, checklist, template e o comentário do `pom.xml`); passou a trazer nos quatro — o quarto só foi localizado no delta-review (achado C1).
 
 ---
 
