@@ -13,7 +13,12 @@ gates:
   testes: ok                      # ok | fail | na
   testes_total: 67                # int — total de testes que rodaram
   testes_novos: 12                # int — testes adicionados nesta tarefa
-  cobertura_pct: na               # number | na — cobertura % da classe/componente principal (BE: mvn jacoco:report; FE: jest --coverage); na quando task não cria lógica testável
+  cobertura_pct: na               # number | na — cobertura de LINHA das classes de PRODUÇÃO que a task tocou (regra provisória, QA-014; `na` quando a task não toca classe de produção)
+                                  # BE: ./financas_bot_telegram/mvnw clean jacoco:prepare-agent test jacoco:report -f financas_bot_telegram/pom.xml -Dtest='!*IntegrationTest' -Dsurefire.failIfNoSpecifiedTests=false
+                                  #     o `clean` é obrigatório: prepare-agent roda com append=true e soma ao jacoco.exec de runs anteriores
+                                  #     → target/site/jacoco/index.html (número é unit-only: SUBESTIMA a real). Detalhe: ROTEIRO-TESTES-BACKEND.md §Camada 1.6
+                                  # FE: jest --coverage
+                                  # Informativo, não bloqueante. Recorte "classes tocadas" é manual até o item #7 da sprint 04 automatizar.
   branch_convencao: ok            # ok | fail — bate com feature/<id>-<slug> a partir de develop
   territorio: ok                  # ok | fail — tocou só na pasta do território da instância
 commits:
