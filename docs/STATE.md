@@ -36,10 +36,17 @@
 - **Item 11 do `BACKLOG-evolucao-workflow`** (mudanças em `.claude/`) — commit `105d955`, 2026-08-12. Regra de asserção sobre valor na `writing-java-unit-tests`; consistência rótulo × número na `artifact-report-contract`; campo `mutation_gate` no planner/backend/reviewer e nos dois templates de plano; remoção das referências penduradas a `.github/instructions/`.
   - ⚠️ **Config de agente é carregada no spawn** — isso só vale a partir da próxima sessão.
 
+- **QA-013 — PMD: ruleset curado e piloto de leitura interpretada.** PRs #127 e #128. Reviewer: **aprovado com observações**, 2 rodadas (1 achado `high` derrubado e corrigido; `F6` `low` segue aberto, custo de duas frases). Absorveu o item #5 do backlog.
+  - `maven-pmd-plugin` fora do ciclo de vida + `pmd-ruleset.xml` com **10 regras justificadas uma a uma**. Gate `lint` do backend **deixa de ser `na`** — informativo, não bloqueante.
+  - **Baseline congelado — só vale junto com o hash:** `Q7_producao = 22` · `Q7_teste = 1` · `sha256 = 5100b68f387a0f0d4a8a6d8ba6540c715854709869790373df1118acb71755a9`. **Δ medido contra outro ruleset não é comparável.**
+  - Achado de maior valor: **2 bugs reais de locale**, um deles **gravando dado corrompido no banco** (`PaymentProofStrategy:81`). Ver registro de pendências.
+
 ### 🔵 Próximo a refinar
 
 - **Item #2 do backlog s04 — corrigir os testes fracos revelados pelo piloto.** Alvo concreto já identificado: falta caso com palavra-chave no **índice 0** em `LegendaParser`. Após escrever o teste, rodar o PIT e conferir que a classe sai de 6/8 para 7/8. Os outros dois sobreviventes são equivalentes e **não devem** ser perseguidos.
-- Demais frentes ainda não refinadas: PMD (item #4), JaCoCo (#6), mecanismo de "classes tocadas" (#7), hooks de coleta de custo, pinagem de modelo dos agentes.
+- **Item #6 — piloto do JaCoCo.** É o que **destrava `cobertura_pct`**, hoje `na` em 100% dos status reports. As 4 classes do piloto já têm mutation score e violações medidos; a cobertura fecha o trio sobre o mesmo código.
+- **Item #8 — gate da convenção `*IntegrationTest`.** A QA-013 trouxe **segunda evidência a favor do ArchUnit**: nenhuma das três ferramentas da sprint mede conformidade arquitetural.
+- Demais frentes não refinadas: mecanismo de "classes tocadas" (#7), hooks de coleta de custo, pinagem de modelo dos agentes.
 
 ### Decisão pendente da sprint
 
@@ -78,6 +85,8 @@
 - **`keystore_password` não confirmado em `finbot-prod-secrets`** — se faltar, o próximo recreate da EC2 aborta o bootstrap e a instância fica sem aplicação e sem reverse proxy.
 - **Validação funcional do webhook WhatsApp pós-deploy (FIX-006)** nunca registrada — o deploy verde prova que a app sobe, não que a guarda fail-closed funciona.
 - **QA-010 / QA-011** — gaps de teste de front e de E2E do caminho positivo, herdados da sprint 03.
+- 🔴 **`PaymentProofStrategy:81` grava dado corrompido sob locale não-inglês** — `toUpperCase()` sem `Locale` persiste `PİX` em `comprovantes.tipo_pagamento`. O dado errado **fica no banco depois** de o locale ser corrigido. Mais 4 ocorrências da mesma classe, 2 delas ainda não lidas. Achado da QA-013.
+- **Testcontainers não alcança o Docker na máquina local** — 48 testes de integração falham aqui e passam no CI (`Tests run: 422`, run `31727999562`). **Não é código**, é ambiente: `docker info` responder no shell não garante que a JVM do Maven alcança o daemon. Enquanto não resolver, toda task tende a fechar `parcial` por um gate que não reflete o repositório.
 - **DEP-07:** PR #64 aguarda merge + `terraform apply` (in-place confirmado).
 - **DEP-08:** webhook via Caddy/Let's Encrypt — Fase 2, aguarda ADR de topologia TLS.
 - **BE-20 / PREP-WA fases 4, 8, 9:** bloqueado por chip WhatsApp Business + Business Verification (dependência externa). Popular os 4 secrets em `finbot-prod-secrets` é pré-condição, e há duas guardas de sentinela a remover quando isso acontecer.

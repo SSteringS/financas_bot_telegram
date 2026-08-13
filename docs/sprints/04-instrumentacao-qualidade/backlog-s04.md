@@ -66,6 +66,19 @@ O PIT já reporta as duas. **Decidir se `test strength` vira métrica de primeir
 
 ## 4. PMD — ruleset e escopo, sem Checkstyle
 
+> ✅ **Concluído como [`QA-013`](plans/QA-013-pmd-ruleset-curado-e-piloto.md)** em 2026-08-12 (PRs #127 e #128). **Absorveu o item #5** — a curadoria de ruleset é empírica e não fechava sem o piloto. Reviewer: `aprovado_com_observacoes`, 2 rodadas.
+>
+> **Entregue:** `maven-pmd-plugin` fora do ciclo de vida, `pmd-ruleset.xml` com 10 regras justificadas uma a uma, baseline do legado e leitura interpretada das 8 violações do piloto.
+>
+> **Baseline congelado — só vale junto com o hash:**
+> ```
+> Q7_producao = 22    Q7_teste = 1
+> sha256 = 5100b68f387a0f0d4a8a6d8ba6540c715854709869790373df1118acb71755a9
+> ```
+> **Δ medido contra outro ruleset não é comparável.**
+>
+> O detalhamento abaixo fica como registro da origem. Débitos em [`pendencias-tecnicas.md`](pendencias-tecnicas.md).
+
 **Origem:** `04-metricas.md` Q6 e Q7 · `05-instrumentacao-e-harness.md` §5 (PMD não existe).
 
 **Decidido com o humano em 2026-08-10: instalar apenas PMD, não instalar Checkstyle.**
@@ -89,17 +102,15 @@ O PIT já reporta as duas. **Decidir se `test strength` vira métrica de primeir
 
 ---
 
-## 5. Piloto do PMD — escopo reduzido
+## 5. ~~Piloto do PMD — escopo reduzido~~ — absorvido pelo #4
 
-**Depende de:** #4 (decisão de ruleset).
-
-Aplicar em **conjunto pequeno de classes já existentes**, para o humano ver a ferramenta funcionando antes de decidir escopo definitivo.
-
-**Escopo sugerido:** as mesmas quatro classes do piloto do PIT, mais **uma classe reconhecidamente complexa** para contraste — candidata natural: `FecharMesServiceImpl`, que o `PENDENCIAS-TECNICAS.md` já aponta como tendo acoplamento questionável.
-
-Rodar só nas classes limpas não ensina nada: sem violação, o humano não vê a ferramenta trabalhar. **O contraste é o ponto pedagógico.**
-
-**Entregável:** relatório + leitura interpretada. Para cada violação, classificar em (a) problema real, (b) falso positivo, (c) regra que não queremos. O resultado de (c) alimenta a curadoria do ruleset do item #4.
+> ⬛ **Não vira task própria.** Absorvido pela [`QA-013`](plans/QA-013-pmd-ruleset-curado-e-piloto.md) por decisão do humano em 2026-08-12.
+>
+> **Por que a separação não se sustentava:** a curadoria de ruleset é **empírica** — não se escolhe regra a regra sem ver o que cada uma dispara no código real —, e este item declarava que a classificação "(c) regra que não queremos" alimenta a curadoria do #4. O #4 dependia de um output que só o #5 produzia.
+>
+> **Executado dentro da QA-013:** as 4 classes do piloto do PIT mais `FecharMesServiceImpl` como contraste, com as 8 violações classificadas em (a)/(b)/(c) e justificativa por violação. A curadoria levou **2 rodadas** até o ruleset estabilizar.
+>
+> Resultado da classificação: **2 problemas reais** (bugs de locale), o resto falso positivo ou regra descartada. Os dois `(a)` estão no registro global de pendências.
 
 ---
 
@@ -156,6 +167,25 @@ Runs diferentes tocam conjuntos diferentes de classes, logo têm denominadores d
 Portanto: **Q3, Q6 e Q7 só são interpretados junto com Q4** (critérios de aceitação satisfeitos) **e Q5** (tamanho do diff). Run que falha Q4 sai da comparação de qualidade ou entra sinalizado.
 
 **Ação:** emendar no `04-metricas.md` e incluir no pré-registro — **não como nota de rodapé no artigo**.
+
+### Premissas medidas pelos pilotos — ler antes de estimar
+
+Três fatos que os pilotos do PIT e do PMD produziram e que **mudam o desenho deste item**:
+
+1. **O piso de custo do PIT é a suíte unitária inteira, não o tamanho de `targetClasses`** (QA-012). A fase de cobertura roda as 70 classes de teste uma vez antes de mutar qualquer coisa — 22s dos 48s do piloto. **Restringir `targetClasses` reduz a fase de mutação, não a de cobertura.** Mitigação a avaliar: `targetTests` explícito, e/ou `historyInputLocation`.
+
+2. **Regras sensíveis a resolução de tipo mudam de resultado com o estado do build** (QA-013, medido pelo Reviewer). `LawOfDemeter` deu **2** violações sem `target/classes` e **26** com. O ruleset congelado é **insensível** — 22 nos dois casos, verificado —, mas isso é propriedade deste ruleset, não do PMD. **O Δ precisa fixar e declarar se mede com o projeto compilado.**
+
+3. **`-Dpmd.rulesets` não existe** (QA-013). Trocar de ruleset exige editar o `pom.xml` — não é flag de linha de comando, e a edição muda o hash. O Reviewer precisou montar projetos-cópia para reproduzir números com ruleset diferente.
+
+**Baseline já congelado, disponível para o Δ:**
+
+```
+Q7_producao = 22    Q7_teste = 1
+sha256(pmd-ruleset.xml) = 5100b68f387a0f0d4a8a6d8ba6540c715854709869790373df1118acb71755a9
+```
+
+⚠️ **Não silenciar violação com `@SuppressWarnings("PMD…")`** — supressão espalhada pelo código torna o `Q7` incomparável entre runs **sem deixar rastro no hash**.
 
 ### Entrega
 
