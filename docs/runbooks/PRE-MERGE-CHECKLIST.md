@@ -15,6 +15,7 @@ Conceito: o status report é um *output schema* (forma garantida, parseável). E
 | `build` | Back: `./mvnw -q -DskipTests package` · Front: `npm run build` | Sai com código 0, sem erro de compilação/TS |
 | `lint` | Front: `npm run lint` · Back: `./financas_bot_telegram/mvnw pmd:pmd -f financas_bot_telegram/pom.xml` (PMD, ruleset curado em `financas_bot_telegram/pmd-ruleset.xml`) | Front: sem erros. **Back: `ok` quando o comando roda e o relatório foi lido — não quando o número é zero.** O gate é **informativo, não bloqueante**: PMD não está ligado a fase de build nem ao CI, e o legado tem violações conhecidas de baseline (ver status da QA-013). Violação **nova, em código que a task alterou**, precisa ser corrigida ou justificada por escrito no status. `na` só quando a task não toca código Java |
 | `testes` + `testes_total` + `testes_novos` | Back: `./mvnw test` · Front: `npm test` | Todos verdes. Anotar o total e quantos foram adicionados nesta tarefa |
+| `cobertura_pct` | Back: `./financas_bot_telegram/mvnw jacoco:prepare-agent test jacoco:report -f financas_bot_telegram/pom.xml -Dtest='!*IntegrationTest' -Dsurefire.failIfNoSpecifiedTests=false` → `target/site/jacoco/index.html` · Front: `jest --coverage` | Preenchido com a **cobertura de linha das classes de produção que a task tocou** (regra provisória, QA-014); `na` quando a task não toca classe de produção. Gate **informativo, não bloqueante** — não existe threshold, e `jacoco:check` não está configurado de propósito. ⚠️ O número do back é **unit-only** (exclui `*IntegrationTest`) e portanto **subestima** a cobertura real. Cobertura 0% inesperada = `argLine` sobrescrito, não ausência de teste. Ver `ROTEIRO-TESTES-BACKEND.md` §Camada 1.6 |
 | `branch_convencao` | `git rev-parse --abbrev-ref HEAD` e `git merge-base --is-ancestor origin/develop HEAD` | Nome bate `^(feature/(be|fe|dep|evo|ci|qa)-\d{3}[a-z]?-|fix/\d{3}-|hotfix/\d{3}-)` **e** develop é ancestral (direto para fix/hotfix/integration; via integration para feature/). Pattern: `^(feature/(be|fe|dep|evo|ci|qa)-\d{3}[a-z]?-|fix/\d{3}-|hotfix/\d{3}-|integration/\d{2}-)`. Ver CLAUDE.md |
 | `territorio` | `git diff --name-only origin/develop...HEAD` | Todos os caminhos alterados estão dentro do território da instância (ver tabela abaixo) |
 
@@ -36,6 +37,7 @@ O gate `territorio` falha quando uma instância altera **código fora** do seu t
 - [ ] `build` verde
 - [ ] `lint` verde (ou `na`)
 - [ ] `testes` verdes; `testes_total` e `testes_novos` preenchidos
+- [ ] `cobertura_pct` preenchido (cobertura de linha das classes de produção tocadas) ou `na` justificado — informativo, não bloqueia
 - [ ] Todo componente/classe com lógica não-trivial tem ao menos 1 teste (regra do CLAUDE.md)
 - [ ] `branch_convencao` ok (nome correto + saiu de develop)
 - [ ] `territorio` ok (não vazou pra fora da pasta da instância)

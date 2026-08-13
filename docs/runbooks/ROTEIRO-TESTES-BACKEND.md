@@ -98,6 +98,44 @@ Baseline das quatro classes e a leitura interpretada de cada sobrevivente estão
 
 ---
 
+## Camada 1.6 — Cobertura de código (JaCoCo), sob demanda
+
+**O que valida:** quais linhas e quais desvios do código de produção foram **executados** pela suíte. Só isso. Cobertura não diz que o teste verifica alguma coisa — quem responde isso é a Camada 1.5. As duas juntas separam os dois buracos: **linha não executada** (cobertura) de **linha executada sem ninguém conferir o resultado** (mutação).
+
+```bash
+cd C:\Users\satya\src\financas_bot_telegram
+./financas_bot_telegram/mvnw jacoco:prepare-agent test jacoco:report -f financas_bot_telegram/pom.xml -Dtest='!*IntegrationTest' -Dsurefire.failIfNoSpecifiedTests=false
+```
+
+**Os três goals vão na mesma linha de comando de propósito.** `jacoco:prepare-agent` não está amarrado a fase nenhuma do build (mesmo padrão de PIT e PMD): ele define a property `argLine`, o `test` que vem em seguida na mesma sessão do Maven a consome, e o `jacoco:report` lê o `jacoco.exec` resultante. Rodar `jacoco:report` sozinho, sem o `prepare-agent test` antes, ou falha por falta do `.exec` ou reporta um `.exec` velho.
+
+**Saída:** `financas_bot_telegram/target/site/jacoco/` — `index.html` (abrir no navegador; pinta cada linha de verde/amarelo/vermelho e cada desvio com losango) e `jacoco.xml` (parseável). A pasta fica sob `target/`, **não é commitada**.
+
+⚠️ **O número é `unit-only` e SUBESTIMA a cobertura real.** O `-Dtest='!*IntegrationTest'` espelha o `excludedTestClasses` do PIT, por duas razões: (1) cobertura e mutation score precisam descrever a **mesma população de testes**, senão comparar as duas ferramentas vira ruído; (2) os `*IntegrationTest` exigem Docker, indisponível na máquina local hoje. Consequência: pacotes exercitados sobretudo por teste de integração — adapters de persistência, handlers REST — aparecem baixos aqui **sem que isso signifique ausência de teste**. Quem comparar este número com número de mercado precisa saber disso.
+
+⚠️ **Modo de falha silencioso: `argLine`.** Hoje **não existe** plugin surefire configurado no `pom.xml`, logo não existe `<argLine>` próprio. Se alguém adicionar um sem incluir `@{argLine}`, ele sobrescreve o agente do JaCoCo e a cobertura sai **0% sem erro nenhum** — com cara de "projeto sem teste". Critério de sanidade: cobertura 0% ou perto disso não é falta de teste, é instrumentação quebrada.
+
+**`lombok.config` é parte da medição, não detalhe de build.** `financas_bot_telegram/lombok.config` liga `lombok.addLombokGeneratedAnnotation = true`, que faz o Lombok marcar getter/setter/`equals`/`hashCode`/`toString`/builder gerados com `@lombok.Generated` — anotação que o JaCoCo exclui por padrão. Sem esse arquivo o relatório mede **quanto Lombok o projeto usa**, não quanto os testes cobrem. Medido na QA-014: a cobertura de **branch** do projeto sobe de **58,8% para 75,8%** só por parar de contar `equals`/`hashCode` gerados. Apagar o arquivo quebra a comparabilidade com todo baseline anterior.
+
+**Como ler o resultado:**
+
+| Métrica | O que conta | Armadilha |
+|---|---|---|
+| `LINE` | linha com **pelo menos uma** instrução executada | linha parcialmente executada conta como **coberta** — por isso linha ≥ branch quase sempre |
+| `BRANCH` | cada saída de `if`/`&&`/`||`/ternário/`switch` | é onde a cobertura de linha mente; `if` de uma linha só testado por um lado dá 100% de linha e 50% de branch |
+| `INSTRUCTION` | bytecode; a métrica mais granular | não tem leitura intuitiva — servem para comparar runs, não para reportar |
+| `METHOD` / `CLASS` | assinatura executada ao menos uma vez | quase sempre otimista |
+
+**Reportar linha e branch juntas.** Sozinha, a de linha é a mais fácil de enganar. Caso concreto deste projeto (QA-014): `FecharMesServiceImpl` tem **100% de linha e 79% de branch** — os `null`-guards dentro dos `.filter(...)` nunca foram exercitados com `null`, e a métrica de linha não enxerga isso.
+
+**Divergência com a cobertura reportada pelo PIT é esperada e tem causa conhecida.** O PIT roda a própria passada de cobertura, com regras de filtro diferentes. Exemplo medido: `LegendaParser` dá **17/18 = 94%** no PIT e **17/17 = 100%** no JaCoCo — o JaCoCo tem filtro nativo para **construtor privado vazio de classe utilitária**, e o PIT não; a linha divergente é exatamente o `private LegendaParser() {}`. Não é bug de nenhum dos dois.
+
+**Quando rodar:** ao fechar uma task que mexeu em classe de produção, para preencher `cobertura_pct` no status report. **Não é gate de merge**, não roda no CI, e `jacoco:check` (o goal que quebra o build por threshold) **não está configurado de propósito** — mesmo motivo do PMD: build que falha por cobertura faz escrever teste para a métrica em vez de para o comportamento, contaminando a variável que o experimento mede.
+
+Baseline do projeto, tabela por classe do piloto e a comparação de três números (cobertura JaCoCo × cobertura PIT × mutation score) estão em [`docs/sprints/04-instrumentacao-qualidade/status/QA-014-piloto-jacoco-cobertura.md`](../sprints/04-instrumentacao-qualidade/status/QA-014-piloto-jacoco-cobertura.md).
+
+---
+
 ## Camada 2 — Verificação estática (humano + ferramentas, 5-10 min)
 
 **O que valida:** que o código compila limpo, que a API expõe o que deveria, que o git histórico está aceitável.
