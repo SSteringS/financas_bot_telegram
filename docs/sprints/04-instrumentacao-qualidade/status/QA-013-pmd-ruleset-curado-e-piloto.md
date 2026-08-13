@@ -4,11 +4,11 @@ titulo: "PMD — ruleset curado e piloto de leitura interpretada"
 data: 2026-08-12
 branch: feature/qa-013-pmd-ruleset-curado-e-piloto
 responsavel: claude-back
-estado: parcial
+estado: concluido
 gates:
   build: ok
   lint: ok
-  testes: fail
+  testes: ok
   testes_total: 422
   testes_novos: 0
   cobertura_pct: na
@@ -28,7 +28,7 @@ pendencias_humano: 0
 
 # QA-013 — PMD: ruleset curado e piloto de leitura interpretada
 
-> **Por que `estado: parcial` e não `concluido`:** todo o escopo da task foi entregue e a revisão independente aprovou, mas o gate `testes` está **vermelho por causa alheia a esta task** — 48 testes de integração falham nesta máquina por indisponibilidade do Docker para o Testcontainers, e falham **igualmente sem as minhas mudanças** (evidência abaixo). O humano decidiu em 2026-08-13 **mergear assim mesmo**, apoiado no fato de que o diff não tem nenhum arquivo `.java` (ver "Decisões pendentes"). A decisão libera o merge, mas não torna o gate verde: `concluido` exige todos os gates `ok` ou `na`, então o estado correto continua sendo `parcial`.
+> **Sobre o gate `testes`, que passou por três estados:** durante a execução local ele ficou **vermelho** (48 erros nos `*IntegrationTest`), o humano decidiu mergear assim mesmo, e o **CI então rodou a suíte inteira verde** — `422 testes, 0 falhas, 0 erros`, no commit `15ae35e`. O gate está `ok` com a evidência do CI; a falha local era da máquina, não do repositório. O histórico dos três estados está preservado em "Decisões pendentes", porque a causa local **continua de pé** e o próximo implementador nessa máquina vai esbarrar nela.
 
 ---
 
@@ -47,8 +47,9 @@ Nenhuma classe de produção ou de teste foi tocada. O diff é: `pom.xml`, `pmd-
 | `./mvnw pmd:pmd -f financas_bot_telegram/pom.xml` | `BUILD SUCCESS` · 22 violações · `target/pmd.xml` + `target/reports/pmd.html` |
 | `./mvnw pmd:pmd ... -Dpmd.includeTests=true` | `BUILD SUCCESS` · 23 violações (produção + teste) |
 | `./mvnw -q -DskipTests package` | exit **0** |
-| `./mvnw test` | `Tests run: 422, Failures: 0, Errors: 48, Skipped: 0` — `BUILD FAILURE` |
-| `./mvnw test` **com as mudanças da task revertidas via `git stash`** | `Tests run: 422, Failures: 0, Errors: 48, Skipped: 0` — idêntico |
+| `./mvnw test` **no CI** (job `backend`, commit `15ae35e`) | **`Tests run: 422, Failures: 0, Errors: 0, Skipped: 0`** — `BUILD SUCCESS` |
+| `./mvnw test` **local** | `Tests run: 422, Failures: 0, Errors: 48, Skipped: 0` — `BUILD FAILURE` (Docker indisponível, ver abaixo) |
+| `./mvnw test` **local, com as mudanças da task revertidas via `git stash`** | `Tests run: 422, Failures: 0, Errors: 48, Skipped: 0` — idêntico |
 
 Ambiente: Maven 3.9.6, **JVM 23-ea** (única instalada; o `pom.xml` compila com `--release 21` e o CI usa Temurin 21 — mesma ressalva registrada na QA-012).
 
@@ -387,13 +388,22 @@ Não ampliei o conjunto do piloto porque o critério que dependia de contraste �
 
 **Nenhuma — tarefa fechada.** A única pendência que existia foi decidida pelo humano em 2026-08-13 e está registrada abaixo.
 
-### Decidido: mergear com o gate `testes` vermelho — opção (a)
+### Decidido: mergear com o gate vermelho — e o CI tornou a decisão desnecessária
 
-**Decisão do humano, 2026-08-13:** seguir com o merge sem os testes de integração, *"até porque não teve mexida no código"*. O raciocínio se apoia no fato verificável do diff: **zero arquivos `.java` alterados** (`git diff --name-only origin/integration/04-instrumentacao-qualidade...HEAD | grep '\.java$'` → vazio). Não há comportamento novo que os testes de integração pudessem cobrir, então o que eles deixaram de exercitar nesta task é exatamente o mesmo que exercitavam antes dela.
+**Decisão do humano, 2026-08-13:** seguir com o merge sem os testes de integração, *"até porque não teve mexida no código"*. O raciocínio se apoiava no fato verificável do diff: **zero arquivos `.java` alterados**. Não havia comportamento novo que os testes de integração pudessem cobrir.
 
-**O gate continua registrado como `fail`, não como `ok` nem `na`.** A decisão é de aceitar o risco, não de declarar o problema inexistente — `./mvnw test` sai vermelho nesta máquina, e falsear o frontmatter destruiria o valor do checklist como validação. Pelo mesmo motivo `estado` permanece **`parcial`**: a regra do `PRE-MERGE-CHECKLIST.md` é que `concluido` exige todos os gates `ok` ou `na`.
+**Desfecho: a decisão não precisou ser exercida.** Ao abrir o PR #127, o CI rodou a suíte no runner do GitHub Actions — onde o Docker **está** disponível — e devolveu:
 
-**O que fica em aberto para a sprint:** o ambiente continua sem Docker acessível ao Testcontainers. A próxima task que **mexer em código** não pode herdar esta decisão — ali os 48 testes voltam a ser cobertura relevante, e o problema de ambiente precisa estar resolvido antes.
+```
+Tests run: 422, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+Run `31727999562`, job `backend`, commit `15ae35e` (topo desta branch, com todas as mudanças da task). Por isso o gate `testes` está **`ok`** e o estado é **`concluido`**: a evidência é de execução real da suíte completa sobre este código, num ambiente onde as pré-condições dos testes de integração são satisfeitas.
+
+**Isso responde a pergunta que eu tinha deixado explicitamente em aberto.** No status original eu registrei que *"não verifiquei se a diferença veio de mudança no repositório desde então ou do ambiente da máquina"*. Agora está verificado: **é da máquina.** Os `*IntegrationTest` estão sãos; o que falta é Docker acessível à JVM do Maven localmente.
+
+**O que continua de pé:** nesta máquina, `./mvnw test` continua saindo com 48 erros, e `docker info` responder no shell **não** significa que o Testcontainers alcança o daemon (o `NpipeSocketClientProviderStrategy` falha). Quem for rodar a suíte local vai bater nisso, e não é regressão de código — é ambiente. Registrado como débito para a sprint.
 
 <details>
 <summary>Registro original da pendência (para rastreabilidade)</summary>
@@ -419,6 +429,7 @@ Nenhum corrigido aqui — o plano é explícito em tratar o legado como baseline
 | 5 | **`CadastrarFuncionarioServiceImpl.validarDadosPagamento`: ciclomática 18, cognitiva 17** | baseline | As duas métricas concordam: é complexo de verdade, não é artefato de contagem |
 | 6 | **O PMD não enxerga violação de arquitetura hexagonal** | desvio 2 | O débito de `DataIntegrityViolationException` na application layer continua invisível. Cobrir exigiria configurar `LoosePackageCoupling` com a lista de pacotes, ou ArchUnit. **Nenhuma das três ferramentas da sprint mede conformidade arquitetural** |
 | 7 | **`MissingSerialVersionUID`: 25 ocorrências deliberadamente fora do ruleset** | rodada 1 | Se algum dia este stack serializar exceção, a decisão precisa ser revisitada |
+| 8 | **Testcontainers não alcança o Docker na máquina de desenvolvimento** | local: 48 erros em 11 `*IntegrationTest`; CI no mesmo commit: 422 verdes | **Não é código** — o CI provou que os testes estão sãos. Mas `docker info` responder no shell **não** garante que a JVM do Maven alcança o daemon (`NpipeSocketClientProviderStrategy` falha, o contexto cai em H2 sem schema). Efeito prático: quem desenvolver nessa máquina só descobre quebra de integração **no CI**, e não antes de abrir o PR. Candidato a FIX de ambiente |
 
 ---
 
@@ -426,7 +437,7 @@ Nenhum corrigido aqui — o plano é explícito em tratar o legado como baseline
 
 - **`-Dpmd.rulesets` não existe e `-Dpmd.includeTests` só funciona por causa da property que adicionei.** Quem for medir escopo por diff no item #7 vai bater nisso: trocar de ruleset exige editar o `pom.xml`. Documentado no runbook.
 - **O baseline para o Δ do item #7 é `Q7_producao = 22` e `Q7_teste = 1`**, com o ruleset de hash `5100b68f…`. Δ medido contra outro ruleset não é comparável.
-- **Ao contrário do PIT, o PMD não precisa de suíte verde** — analisa fonte. Ele roda **agora**, com os 48 testes de integração vermelhos, sem prejuízo nenhum ao resultado. **Mas "não precisa de build" não vale para regra nenhuma:** regras com resolução de tipo consultam o `auxclasspath`, e o Reviewer mediu `LawOfDemeter` dando **2** sem `target/classes` e **26** com. O ruleset congelado é insensível (**22 nos dois casos**, verificado) — quem medir com ruleset diferente no item #7 precisa fixar e declarar se compila antes.
+- **Ao contrário do PIT, o PMD não precisa de suíte verde** — analisa fonte. Ele rodou, aqui, **com os 48 testes de integração vermelhos localmente**, sem prejuízo nenhum ao resultado — o baseline de 22 saiu com a suíte quebrada e é o mesmo que o CI validaria. **Mas "não precisa de build" não vale para regra nenhuma:** regras com resolução de tipo consultam o `auxclasspath`, e o Reviewer mediu `LawOfDemeter` dando **2** sem `target/classes` e **26** com. O ruleset congelado é insensível (**22 nos dois casos**, verificado) — quem medir com ruleset diferente no item #7 precisa fixar e declarar se compila antes.
 - **Não silenciar violação com `@SuppressWarnings("PMD…")`.** A discussão é no ruleset, com justificativa escrita; supressão espalhada pelo código torna o Q7 incomparável entre runs sem deixar rastro no hash.
 - **Item #5 do `backlog-s04.md` sai** (absorvido por esta task) e o **#4** fecha, conforme a seção "Após merge" do plano. Falta ainda registrar baseline e hash no `STATE.md` — é do planner.
 - Para o item **#6** (JaCoCo): as 4 classes do piloto do PIT já têm mutation score e violações medidos. Fechar com cobertura completa o trio sobre o mesmo código.
