@@ -15,9 +15,12 @@ gates:
   branch_convencao: ok
   territorio: ok
 commits:
-  - 1a8057d
-  - b8de250
-  - 2b9cdc7
+  - 1a8057d   # feat: plugin + ruleset curado + runbooks
+  - b8de250   # docs: status report
+  - 2b9cdc7   # fix: F1 da revisao (locale corrompe, nao lanca) + hash refeito
+  - 767706b   # docs: commits no frontmatter
+  - 9f30765   # docs: F6 do delta-review + debito 1c
+  - 7966466   # docs: decisao do humano sobre o gate de testes
 pr: null
 desvios: 2
 pendencias_humano: 0
