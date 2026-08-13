@@ -688,6 +688,57 @@ Sob collation `en_US`, `[a-z]` casa maiúscula pela ordem de collation, não pel
 
 ---
 
+### Código defensivo nunca exercitado — 3 gaps confirmados por duas ferramentas independentes
+
+**Contexto (QA-014, medição do JaCoCo; confirmados pelo Reviewer):** cobertura de **branch** revelou buracos que a cobertura de **linha** escondia — as três classes têm 90–100% de linha.
+
+| Onde | O gap | Por que importa |
+|---|---|---|
+| `FecharMesServiceImpl` linhas 59, 83, 85, 86, 87 | os **5 guards de `null`** de `fechar(...)` nunca são exercitados com `null` — 100% de linha, **79% de branch** | código defensivo que **nunca foi provado defender**. É o maior dos três |
+| `PaymentRequestStrategy` linhas 88 e 97 | o `throw new InvalidMessageFormatException` de `parsePedido` nunca é atingido no recorte unitário | **é a mensagem de erro que o usuário final vê** — o caminho não verificado é o que ele encontra quando erra |
+| `MetaSignatureValidator` linhas 57-59 | `catch (NoSuchAlgorithmException \| InvalidKeyException)` sem cobertura | baixa — exige HMAC-SHA256 ausente da JVM. Já era o `NO_COVERAGE` da QA-012; **JaCoCo confirmou independentemente** |
+
+**O que torna isso confiável:** PIT e JaCoCo apontaram **as mesmas linhas**, não só percentuais parecidos. Duas ferramentas com implementações independentes concordando linha a linha é evidência forte de que o gap é real.
+
+**Fix sugerido:** os dois primeiros são alvo natural do item #2 do backlog da sprint 04, junto com o `LegendaParser`. O terceiro provavelmente não vale o teste.
+
+**Prioridade:** média para os dois primeiros; baixa para o terceiro.
+
+---
+
+### Cobertura da suíte de integração nunca foi medida
+
+**Contexto (QA-014):** o baseline de cobertura é **unit-only** por decisão de plano — comparabilidade com o PIT e independência do Docker. A consequência é que **a cobertura real do projeto é desconhecida**, não apenas menor.
+
+Os pacotes mais penalizados no recorte unitário são exatamente os que existem para conversar com infraestrutura:
+
+| Pacote | Linha | Branch |
+|---|---:|---:|
+| `adapters/in/whatsapp/exceptionhandler` | 4/53 = **8%** | 0/18 = **0%** |
+| `adapters/in/rest` (`RestExceptionHandler`) | 8/28 = 29% | — |
+| `adapters/out/persistence/idempotencia` | 4/10 = 40% | — |
+| `adapters/out/persistence` | 74/97 = 76% | 0/18 = 0% |
+
+⚠️ **Não afirmar que esses pacotes estão descobertos.** Eles podem ser cobertos pelos `*IntegrationTest` — isso **não foi medido e não é mensurável nesta máquina hoje** (débito do Docker/Testcontainers). O `GlobalWhatsAppExceptionHandler`, pior número do projeto, é **indeterminado**, não ruim.
+
+**Desbloqueia com:** o FIX de ambiente do Docker. Enquanto ele não vier, o número real fica declarado como não medido.
+
+**Prioridade:** média — herda a do débito de ambiente.
+
+---
+
+### Oito classes em 0% de cobertura no recorte unitário
+
+**Contexto (QA-014, verificado pelo Reviewer):** `ApiTelegramClientException`, `WhatsAppContact`, `WhatsAppMetadata`, `WhatsAppProfile`, `InvalidWhatsAppPayloadException`, `WhatsAppMediaDownloadException`, `MensagemProcessadaEntity`, `TelegramFileDownloadException`.
+
+**Impacto baixo, e o Reviewer confirmou o porquê:** todas têm de **1 a 6 linhas** e são exceções ou DTOs. Entram no registro só para não sumirem do radar.
+
+**Fix sugerido:** candidatas naturais a **exclusão de escopo** quando o recorte por diff do item #7 for automatizado — não a alvo de teste.
+
+**Prioridade:** baixa.
+
+---
+
 ## Itens resolvidos
 
 ### ~~Esconder `@RequisitanteId` do Swagger UI~~

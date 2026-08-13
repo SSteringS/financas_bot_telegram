@@ -116,6 +116,22 @@ O PIT já reporta as duas. **Decidir se `test strength` vira métrica de primeir
 
 ## 6. Piloto do JaCoCo — escopo reduzido
 
+> ✅ **Concluído como [`QA-014`](plans/QA-014-piloto-jacoco-cobertura.md)** em 2026-08-13 (PRs #130 e #131). Reviewer: **2 rodadas** — rodada 1 `rejected` por premissa falha, rodada 2 aprovada após 6 correções. Nenhum número precisou ser refeito.
+>
+> **O texto deste item estava correto e não foi alterado.** O plano da QA-014 afirmou que ele registrava um fato errado; **a afirmação do plano é que era falsa** (`.codex/agents/qa-test-specialist.toml` instrui `./mvnw jacoco:report` mesmo). Plano retratado; este item fecha como foi escrito.
+>
+> **Baseline do projeto — unit-only, com `lombok.config`:**
+> ```
+> Linha 1681/1864 = 90,2%    Branch 326/430 = 75,8%
+> Instrução 89,5%  ·  Método 87,5%  ·  Classe 94,6%  ·  Complexidade 78,5%
+> 374 testes executados (dos 422 da suíte completa) · 148 classes
+> ```
+> ⚠️ **Subestima a cobertura real** — a suíte de integração está fora do recorte, e isso é definição da métrica, não rodapé.
+>
+> **O achado que mais ensinou:** o Lombok inflava o denominador em 604 métodos e 128 desvios, e **126 dos 128 desvios estavam descobertos** — 55% de toda a "cobertura de branch faltante" do projeto era `equals`/`hashCode` gerado. E a cobertura de **linha mal se moveu** (+0,9 pp) enquanto a de **branch subiu 17 pp**. Primeiro argumento com dado deste projeto para **nunca reportar cobertura de linha sozinha**.
+>
+> Débitos em [`pendencias-tecnicas.md`](pendencias-tecnicas.md).
+
 **Escopo sugerido:** as mesmas quatro classes do piloto do PIT — assim os três relatórios (cobertura, mutation score, violações) descrevem **o mesmo código**, e dá para comparar o que cada ferramenta enxerga e o que nenhuma enxerga.
 
 **Entregável:** relatório + leitura comparada. O ponto pedagógico é encontrar, no código do próprio projeto, **uma classe com cobertura alta e mutation score baixo** — a demonstração concreta de por que cobertura sozinha engana. Se nenhuma das quatro exibir o padrão, ampliar o escopo até encontrar uma que exiba.

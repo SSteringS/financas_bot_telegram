@@ -2,7 +2,7 @@
 
 > **Registro de sprint.** Débitos levantados pelas tasks desta sprint, consolidados pelo planner a partir dos status reports e das avaliações do Reviewer.
 >
-> **Consolidação lida até:** `QA-012` (status + avaliação) e `QA-013` (status + avaliação, 2 rodadas). Próxima consolidação começa da QA-014.
+> **Consolidação lida até:** `QA-012`, `QA-013` e `QA-014` — status + avaliação de cada, incluindo as rodadas de delta-review. Próxima consolidação começa da QA-015.
 >
 > **O que fica aqui e o que vai para o global:** débito de **código ou de repositório** — que sobrevive ao fim da sprint — é promovido para [`../../PENDENCIAS-TECNICAS.md`](../../PENDENCIAS-TECNICAS.md) e aqui fica só o ponteiro. O que é **metodológico ou específico do ferramental desta sprint** fica aqui.
 
@@ -25,10 +25,65 @@ Ver [`docs/PENDENCIAS-TECNICAS.md`](../../PENDENCIAS-TECNICAS.md):
 | Piso de custo do PIT é a suíte inteira | QA-012 débito 7 | média |
 | PIT sem histórico incremental; medido em JVM diferente da do CI | QA-012 débitos 4, 5 | baixa |
 | Repo não tem infraestrutura de captura de log em teste | QA-012 débito 2 | baixa |
+| Código defensivo nunca exercitado — 3 gaps confirmados por PIT **e** JaCoCo | QA-014 débitos 1, 2, 3 | média |
+| Cobertura da suíte de integração nunca medida — pacotes de infra **indeterminados** | QA-014 débitos 4, 5 | média |
+| 8 classes em 0% no recorte unitário (exceções e DTOs de 1 a 6 linhas) | QA-014 | baixa |
 
 ---
 
 ## Itens metodológicos — ficam nesta sprint
+
+### `.codex/agents/qa-test-specialist.toml` manda rodar um comando que agora falha em silêncio
+
+**Origem:** QA-014, débito 7 + achado `M2` do Reviewer. **Verificado com `target/` limpo.**
+
+As linhas **37** e **186** do arquivo instruem `./mvnw jacoco:report` puro. Antes da QA-014 o comando **falhava alto** — não havia plugin. Depois dela, com o plugin instalado **sem `<executions>`**, ele passa a devolver:
+
+```
+Skipping JaCoCo execution due to missing execution data file
+BUILD SUCCESS
+```
+
+**Piorou.** O agente de QA recebe verde e **nenhum relatório**, com risco de preencher `cobertura_pct` com número inexistente ou herdado de um `.exec` velho.
+
+**Duas saídas, e a segunda contraria uma decisão da sprint:**
+
+1. As duas linhas passam a citar o comando completo do §Camada 1.6 do runbook.
+2. O plugin ganha `<executions>` — **mas isso amarra o JaCoCo ao ciclo de vida**, contra a decisão explícita de manter as três ferramentas fora dele.
+
+**Recomendo (1).** ⚠️ **Exige autorização explícita do humano** — `.codex/` é território dele e do `ai-engineer`. O implementador **corretamente não tocou** no arquivo.
+
+---
+
+### A regra de território do `CLAUDE.md` não cobre `.codex/`
+
+**Origem:** achado colateral do planner ao consolidar a QA-014, 2026-08-13.
+
+O `CLAUDE.md` §"Regra de ouro" declara **`.claude/`** como território do humano e do `ai-engineer`. **Não menciona `.codex/`** — verificado por `grep -n "codex" CLAUDE.md`, zero ocorrências.
+
+Só que `.codex/agents/` existe e tem **8 definições de agente** (`planner`, `backend`, `reviewer`, `qa-test-specialist`, `architect`, `frontend`, `dba-data-model-analyst`, `engenheiro-de-ia`). É a segunda encarnação dos mesmos papéis, para outro harness.
+
+**Consequência:** hoje, formalmente, **qualquer instância pode editar `.codex/` sem pedir nada** — e alterar ali muda o comportamento de todas as sessões futuras daquele harness, exatamente o raio de alcance que motivou a regra para `.claude/`. O implementador da QA-014 tratou como território restrito por bom senso, não por regra escrita.
+
+**Fix sugerido:** estender a regra para `.claude/` **e** `.codex/`. É edição no `CLAUDE.md` da raiz.
+
+**Prioridade:** média — não quebrou nada ainda, mas a proteção depende de bom senso em vez de regra.
+
+---
+
+### `append=true` é o default do JaCoCo e nada no repositório protege contra ele
+
+**Origem:** QA-014, achado `M1` do Reviewer.
+
+O agente do JaCoCo tem `append=true` por padrão: comando de cobertura **sem `clean`** mistura o `.exec` do run atual com os anteriores. O número reportado deixa de descrever a população de testes que ele diz descrever.
+
+Foi o que derrubou a rodada 1 da revisão: o comando publicado no runbook produzia, em cenário realista, número que contradizia a definição que o próprio template acabara de escrever. Corrigido acrescentando `clean` ao comando documentado.
+
+**Débito residual:** o default seguro continua dependendo de **disciplina de quem digita**. Avaliar fixar `<append>false</append>` na configuração do plugin — aí o comando errado passa a ser inofensivo em vez de silenciosamente errado.
+
+**Prioridade:** média — é o segundo modo de falha silencioso desta ferramenta, junto com o `argLine`.
+
+---
 
 ### Premissa obrigatória do item #7: regras sensíveis a resolução de tipo mudam com o estado do build
 

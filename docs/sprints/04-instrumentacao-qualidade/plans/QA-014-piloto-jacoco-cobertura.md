@@ -46,7 +46,17 @@ mutation_rationale: ""
 | `PaymentProofStrategy` | 100% (33/33) | 100% | 100% |
 | `MetaSignatureValidator` | 90% (26/29) | 79% | 85% |
 
-**Correção de um fato que o backlog registra errado.** O item #6 diz que *"o comando `jacoco:report` que o agente QA é instruído a rodar falha hoje"*. Verificado por `grep -rn "jacoco"` em `.claude/`, `docs/templates/` e `docs/runbooks/`: existe **uma única ocorrência no repositório**, um comentário no frontmatter de `docs/templates/_TEMPLATE-status.md:16`. O agente `qa-test-specialist` **não menciona JaCoCo**. Não há comando falhando — há um campo cujo template aponta uma ferramenta que nunca existiu. O efeito é o mesmo (`cobertura_pct: na` sempre), a causa é outra.
+> ⚠️ **RETRATAÇÃO (planner, 2026-08-13, após o achado `A1` da revisão da QA-014).**
+>
+> Este parágrafo afirmava que o item #6 do backlog registrava um fato errado — que não existia agente instruído a rodar `jacoco:report`, e que a única ocorrência de `jacoco` no repositório era um comentário em `_TEMPLATE-status.md:16`.
+>
+> **A afirmação era falsa e o erro foi meu.** O `grep` que a sustentava varreu apenas `.claude/`, `docs/templates/` e `docs/runbooks/`, e a conclusão foi publicada como se valesse para o repositório inteiro. `git grep -in "jacoco"` no commit-base devolve **77 linhas**. O repositório tem **duas** definições do agente de QA, uma por harness, e a segunda — `.codex/agents/qa-test-specialist.toml`, linhas 37 e 186 — instrui `./mvnw jacoco:report` explicitamente.
+>
+> **O item #6 do backlog estava certo:** existia mesmo um agente mandando rodar um comando de JaCoCo num projeto sem JaCoCo. O `backlog-s04.md` e o `README.md` da sprint **não precisam de correção alguma**, e o item #6 fecha como foi escrito.
+>
+> A lição, registrada para não se repetir: **`grep` de escopo estreito não sustenta afirmação de escopo amplo.** Verificação de "não existe X no repositório" se faz com `git grep` na árvore inteira.
+
+**Contexto real do campo `cobertura_pct`:** o `docs/templates/_TEMPLATE-status.md:16` aponta `mvn jacoco:report` como fonte do número, e o `.codex/agents/qa-test-specialist.toml` instrui o agente de QA a rodá-lo. Sem o plugin no `pom.xml`, o comando falha — e é por isso que `cobertura_pct` sai `na` em 100% dos status reports. Este piloto fecha a lacuna.
 
 **Estado do ambiente:** 48 testes em 11 classes `*IntegrationTest` falham **localmente** por Docker inacessível ao Testcontainers. O CI roda a mesma suíte verde (`Tests run: 422, Failures: 0, Errors: 0`, run `31727999562`). É débito registrado, **não** é escopo desta task.
 

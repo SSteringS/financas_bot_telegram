@@ -41,12 +41,20 @@
   - **Baseline congelado — só vale junto com o hash:** `Q7_producao = 22` · `Q7_teste = 1` · `sha256 = 5100b68f387a0f0d4a8a6d8ba6540c715854709869790373df1118acb71755a9`. **Δ medido contra outro ruleset não é comparável.**
   - Achado de maior valor: **2 bugs reais de locale**, um deles **gravando dado corrompido no banco** (`PaymentProofStrategy:81`). Ver registro de pendências.
 
+- **QA-014 — Piloto do JaCoCo: cobertura medida e comparada com PIT e PMD.** PRs #130 e #131. Reviewer: **2 rodadas** — rodada 1 `rejected` por premissa falha (afirmação do plano que não se sustentava), rodada 2 aprovada após 6 correções de texto. **Nenhum número precisou ser refeito.**
+  - **Baseline unit-only, com `lombok.config`:** linha **90,2%** (1681/1864) · branch **75,8%** (326/430) · 374 testes executados dos 422 · 148 classes. ⚠️ **Subestima a cobertura real** — a suíte de integração está fora do recorte, e isso é definição da métrica.
+  - **As três ferramentas agora descrevem o mesmo código.** PIT e JaCoCo concordam **linha a linha** em 3 das 4 classes; a única divergência (`LegendaParser`, 94% × 100%) é o construtor privado de classe utilitária, que o JaCoCo filtra e o PIT não — e **o número do JaCoCo é o melhor**.
+  - **Achado que mais ensinou:** o Lombok inflava o denominador em 604 métodos e 128 desvios, com **126 dos 128 descobertos** — 55% de toda a "cobertura de branch faltante" era `equals`/`hashCode` gerado. A cobertura de **linha mal se moveu** (+0,9 pp) enquanto a de **branch subiu 17 pp**. Argumento concreto para **nunca reportar cobertura de linha sozinha**.
+  - `cobertura_pct` **destravado**, com regra provisória: cobertura das classes de produção que a task tocou; `na` quando não toca nenhuma.
+
 ### 🔵 Próximo a refinar
 
 - **Item #2 do backlog s04 — corrigir os testes fracos revelados pelo piloto.** Alvo concreto já identificado: falta caso com palavra-chave no **índice 0** em `LegendaParser`. Após escrever o teste, rodar o PIT e conferir que a classe sai de 6/8 para 7/8. Os outros dois sobreviventes são equivalentes e **não devem** ser perseguidos.
-- **Item #6 — piloto do JaCoCo.** É o que **destrava `cobertura_pct`**, hoje `na` em 100% dos status reports. As 4 classes do piloto já têm mutation score e violações medidos; a cobertura fecha o trio sobre o mesmo código.
-- **Item #8 — gate da convenção `*IntegrationTest`.** A QA-013 trouxe **segunda evidência a favor do ArchUnit**: nenhuma das três ferramentas da sprint mede conformidade arquitetural.
+- **Item #8 — gate da convenção `*IntegrationTest`.** A QA-013 trouxe **segunda evidência a favor do ArchUnit**: nenhuma das três ferramentas da sprint mede conformidade arquitetural. Decisão ArchUnit × reflection puro segue com o humano.
+- **Ferramental de qualidade está completo** — PIT, PMD e JaCoCo instalados, com baseline congelado em cada. O que resta da sprint é instrumentação de medição e configuração de agentes.
 - Demais frentes não refinadas: mecanismo de "classes tocadas" (#7), hooks de coleta de custo, pinagem de modelo dos agentes.
+
+> ⚠️ **Dois arquivos de configuração de agente, não um.** O repo tem `.claude/agents/` **e** `.codex/agents/` (8 definições cada frente), uma por harness. O `CLAUDE.md` só declara `.claude/` como território restrito. Descoberto na QA-014, quando o `.codex/agents/qa-test-specialist.toml` derrubou uma afirmação do plano. **Verificação de "não existe X no repositório" tem que usar `git grep` na árvore inteira.**
 
 ### Decisão pendente da sprint
 
