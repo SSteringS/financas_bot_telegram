@@ -54,7 +54,7 @@ Saída do JaCoCo: `financas_bot_telegram/target/site/jacoco/index.html` (34.160 
 
 Ambiente: Maven 3.9.9, **JVM 23-ea** (única instalada; o `pom.xml` compila com `--release 21` e o CI usa Temurin 21 — mesma ressalva registrada na QA-012 e QA-013), locale `pt_BR`.
 
-### Por que os três goals vão na mesma linha de comando
+### Por que os goals vão todos na mesma linha de comando
 
 `jacoco:prepare-agent` não precisa de `<executions>`: ele define a property `argLine`, o `test` seguinte **na mesma sessão do Maven** a consome, e o `jacoco:report` lê o `jacoco.exec` resultante. É isso que permite manter o plugin fora do ciclo de vida sem perder função — a mesma propriedade que a sprint vem preservando em PIT e PMD.
 
@@ -300,3 +300,4 @@ Omitido — task de instrumentação (QA-\*), sem lógica de produção. Nenhuma
 - `docs/templates/_TEMPLATE-status.md` (modificado: `cobertura_pct` ganha a regra provisória e o comando real)
 - `docs/runbooks/PRE-MERGE-CHECKLIST.md` (modificado: `cobertura_pct` vira linha da tabela de gates, informativa e não bloqueante, + item no checklist operacional)
 - `docs/sprints/04-instrumentacao-qualidade/status/QA-014-piloto-jacoco-cobertura.md` (novo: este arquivo)
+- `docs/sprints/04-instrumentacao-qualidade/avaliacoes/review-QA-014-piloto-jacoco-cobertura.md` (novo: relatório da revisão independente, escrito pelo Reviewer)
