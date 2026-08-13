@@ -17,7 +17,7 @@ gates:
 commits:
   - ff78be3   # feat: jacoco + lombok.config + runbooks/template/checklist
   - 1c1f216   # docs: status report
-  - COMMIT_FIX # fix: 6 achados da revisao (A1 retratacao, M1 clean/append, B1-B4)
+  - 6dff57f   # fix: 6 achados da revisao (A1 retratacao, M1 clean/append, B1-B4)
 pr: null
 desvios: 0
 pendencias_humano: 0
