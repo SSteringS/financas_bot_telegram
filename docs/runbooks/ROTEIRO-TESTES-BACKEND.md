@@ -104,16 +104,20 @@ Baseline das quatro classes e a leitura interpretada de cada sobrevivente estão
 
 ```bash
 cd C:\Users\satya\src\financas_bot_telegram
-./financas_bot_telegram/mvnw jacoco:prepare-agent test jacoco:report -f financas_bot_telegram/pom.xml -Dtest='!*IntegrationTest' -Dsurefire.failIfNoSpecifiedTests=false
+./financas_bot_telegram/mvnw clean jacoco:prepare-agent test jacoco:report -f financas_bot_telegram/pom.xml -Dtest='!*IntegrationTest' -Dsurefire.failIfNoSpecifiedTests=false
 ```
 
-**Os três goals vão na mesma linha de comando de propósito.** `jacoco:prepare-agent` não está amarrado a fase nenhuma do build (mesmo padrão de PIT e PMD): ele define a property `argLine`, o `test` que vem em seguida na mesma sessão do Maven a consome, e o `jacoco:report` lê o `jacoco.exec` resultante. Rodar `jacoco:report` sozinho, sem o `prepare-agent test` antes, ou falha por falta do `.exec` ou reporta um `.exec` velho.
+**Os quatro goals vão na mesma linha de comando de propósito.** `jacoco:prepare-agent` não está amarrado a fase nenhuma do build (mesmo padrão de PIT e PMD): ele define a property `argLine`, o `test` que vem em seguida na mesma sessão do Maven a consome, e o `jacoco:report` lê o `jacoco.exec` resultante.
+
+⚠️ **O `clean` não é higiene, é correção do número.** O `prepare-agent` roda com `append=true` (default do plugin), então cada execução **soma** ao `target/jacoco.exec` que já existia. Sem `clean`, um run anterior — inclusive um que tenha incluído os `*IntegrationTest` — continua contando, e o resultado deixa de ser `unit-only` **sem nada no log avisando**. Alternativa equivalente: `-Djacoco.append=false`.
+
+⚠️ **`jacoco:report` sozinho não falha — ele desiste em silêncio.** Sem `jacoco.exec` no lugar, o goal imprime `Skipping JaCoCo execution due to missing execution data file` e devolve `BUILD SUCCESS` sem gerar relatório algum. Se o `index.html` não apareceu, procure essa linha no log antes de procurar qualquer outra coisa.
 
 **Saída:** `financas_bot_telegram/target/site/jacoco/` — `index.html` (abrir no navegador; pinta cada linha de verde/amarelo/vermelho e cada desvio com losango) e `jacoco.xml` (parseável). A pasta fica sob `target/`, **não é commitada**.
 
 ⚠️ **O número é `unit-only` e SUBESTIMA a cobertura real.** O `-Dtest='!*IntegrationTest'` espelha o `excludedTestClasses` do PIT, por duas razões: (1) cobertura e mutation score precisam descrever a **mesma população de testes**, senão comparar as duas ferramentas vira ruído; (2) os `*IntegrationTest` exigem Docker, indisponível na máquina local hoje. Consequência: pacotes exercitados sobretudo por teste de integração — adapters de persistência, handlers REST — aparecem baixos aqui **sem que isso signifique ausência de teste**. Quem comparar este número com número de mercado precisa saber disso.
 
-⚠️ **Modo de falha silencioso: `argLine`.** Hoje **não existe** plugin surefire configurado no `pom.xml`, logo não existe `<argLine>` próprio. Se alguém adicionar um sem incluir `@{argLine}`, ele sobrescreve o agente do JaCoCo e a cobertura sai **0% sem erro nenhum** — com cara de "projeto sem teste". Critério de sanidade: cobertura 0% ou perto disso não é falta de teste, é instrumentação quebrada.
+⚠️ **Modo de falha silencioso: `argLine`.** Hoje **não existe nenhum `<argLine>` no POM efetivo** — verificado com `./mvnw help:effective-pom` (zero ocorrências da string). Se alguém adicionar um sem incluir `@{argLine}`, ele sobrescreve o agente do JaCoCo e a cobertura sai **0% sem erro nenhum** — com cara de "projeto sem teste". Critério de sanidade: cobertura 0% ou perto disso não é falta de teste, é instrumentação quebrada.
 
 **`lombok.config` é parte da medição, não detalhe de build.** `financas_bot_telegram/lombok.config` liga `lombok.addLombokGeneratedAnnotation = true`, que faz o Lombok marcar getter/setter/`equals`/`hashCode`/`toString`/builder gerados com `@lombok.Generated` — anotação que o JaCoCo exclui por padrão. Sem esse arquivo o relatório mede **quanto Lombok o projeto usa**, não quanto os testes cobrem. Medido na QA-014: a cobertura de **branch** do projeto sobe de **58,8% para 75,8%** só por parar de contar `equals`/`hashCode` gerados. Apagar o arquivo quebra a comparabilidade com todo baseline anterior.
 
@@ -122,7 +126,7 @@ cd C:\Users\satya\src\financas_bot_telegram
 | Métrica | O que conta | Armadilha |
 |---|---|---|
 | `LINE` | linha com **pelo menos uma** instrução executada | linha parcialmente executada conta como **coberta** — por isso linha ≥ branch quase sempre |
-| `BRANCH` | cada saída de `if`/`&&`/`||`/ternário/`switch` | é onde a cobertura de linha mente; `if` de uma linha só testado por um lado dá 100% de linha e 50% de branch |
+| `BRANCH` | cada saída de `if`/`&&`/`\|\|`/ternário/`switch` | é onde a cobertura de linha mente; `if` de uma linha só testado por um lado dá 100% de linha e 50% de branch |
 | `INSTRUCTION` | bytecode; a métrica mais granular | não tem leitura intuitiva — servem para comparar runs, não para reportar |
 | `METHOD` / `CLASS` | assinatura executada ao menos uma vez | quase sempre otimista |
 

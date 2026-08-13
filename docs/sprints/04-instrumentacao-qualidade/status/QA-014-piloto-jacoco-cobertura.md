@@ -16,6 +16,8 @@ gates:
   territorio: ok
 commits:
   - ff78be3   # feat: jacoco + lombok.config + runbooks/template/checklist
+  - 1c1f216   # docs: status report
+  - COMMIT_FIX # fix: 6 achados da revisao (A1 retratacao, M1 clean/append, B1-B4)
 pr: null
 desvios: 0
 pendencias_humano: 0
@@ -56,7 +58,11 @@ Ambiente: Maven 3.9.9, **JVM 23-ea** (única instalada; o `pom.xml` compila com 
 
 `jacoco:prepare-agent` não precisa de `<executions>`: ele define a property `argLine`, o `test` seguinte **na mesma sessão do Maven** a consome, e o `jacoco:report` lê o `jacoco.exec` resultante. É isso que permite manter o plugin fora do ciclo de vida sem perder função — a mesma propriedade que a sprint vem preservando em PIT e PMD.
 
-**O modo de falha silencioso foi verificado, não assumido:** não existe bloco `<plugin>` de surefire nem `<argLine>` no `pom.xml`, e o parent `spring-boot-starter-parent:3.4.5` também não define nenhum dos dois (`grep -i "jacoco\|surefire\|argLine"` no POM do parent em `~/.m2`: **zero ocorrências**). Logo não há nada para sobrescrever o agente hoje. A cobertura **não veio zero** — veio 89,5% de instrução, com números por linha coerentes com a leitura manual do fonte, o que é a evidência positiva de que a instrumentação funcionou.
+**O modo de falha silencioso foi verificado, não assumido** — e a evidência foi **trocada por uma mais forte após o achado B4 da revisão**. A original olhava só o `pom.xml` do módulo e o POM do `spring-boot-starter-parent:3.4.5`, o que é frágil: o surefire **é** gerenciado pela cadeia de parents (versão 3.5.3), então "o parent não menciona surefire" era falso como generalização. A verificação correta é o POM efetivo, que resolve a cadeia inteira: `./mvnw help:effective-pom -Doutput=...` seguido de `grep -c argLine` devolve **0**. Não existe `<argLine>` em lugar nenhum da configuração resolvida, logo não há nada para sobrescrever o agente hoje.
+
+A cobertura **não veio zero** — veio 89,5% de instrução, com números por linha coerentes com a leitura manual do fonte, o que é a evidência positiva de que a instrumentação funcionou.
+
+⚠️ **`append=true` é o segundo modo de falha silencioso, e foi encontrado pela revisão (M1), não por mim.** O `prepare-agent` soma ao `target/jacoco.exec` existente em vez de substituí-lo. Sem `clean`, um run anterior que tenha incluído os `*IntegrationTest` continua contando e o resultado **deixa de ser unit-only sem nada no log avisando**. Os dois runs desta medição usaram `clean` — por causa da recompilação exigida pelo `lombok.config`, e não porque eu tivesse identificado o risco —, então **os números publicados aqui não estão contaminados**. O comando publicado nos três documentos não trazia o `clean`; passou a trazer.
 
 ---
 
@@ -73,7 +79,7 @@ Dois runs limpos (`clean` nos dois), idênticos exceto pela presença do `lombok
 | Classe | 162/174 = 93,1% | 140/148 = 94,6% | +1,5 pp |
 | Complexidade | 945/1318 = 71,7% | 510/650 = 78,5% | +6,8 pp |
 
-**A frase:** o Lombok inflava o denominador em **604 métodos (58% do total), 3.824 instruções (33%) e 128 desvios (23%)**, e **126 desses 128 desvios estavam descobertos** — ou seja, quase toda a "cobertura de branch faltante" do projeto era `equals`/`hashCode` gerado que ninguém escreveu e ninguém deveria testar.
+**A frase:** o Lombok inflava o denominador em **604 métodos (58% do total), 3.824 instruções (33%) e 128 desvios (23%)**, e **126 desses 128 desvios estavam descobertos** — isto é, **55% de toda a "cobertura de branch faltante" do projeto (126 de 230)** era `equals`/`hashCode` gerado que ninguém escreveu e ninguém deveria testar. Os outros 104 desvios descobertos são código escrito à mão e continuam valendo como buraco real.
 
 **O detalhe que quase engana:** a métrica de **linha mal se move** (+0,9 pp). Quem tivesse medido só linha concluiria que o Lombok não distorce nada. Ele distorce — o código gerado é atribuído às **linhas da anotação e dos campos**, que já estavam cobertas por outra coisa, então some da contagem de linha e aparece inteiro na de branch e de método. É o primeiro argumento concreto, com dado deste projeto, para **nunca reportar cobertura de linha sozinha**.
 
@@ -184,7 +190,7 @@ Corolário direto para o experimento: **`cobertura_pct` sozinho não é medida d
 
 | Linha | Código | Desvio não exercitado |
 |---:|---|---|
-| 59 | `BigDecimal ajusteEfetivo = ajuste != null ? ajuste : BigDecimal.ZERO;` | o lado `null`. Verificado: as **13 chamadas** a `service.fechar(...)` em `FecharMesServiceImplTest` passam `BigDecimal.ZERO`, `new BigDecimal("200.00")` ou `new BigDecimal("-150.00")` — **nenhuma passa `null`** |
+| 59 | `BigDecimal ajusteEfetivo = ajuste != null ? ajuste : BigDecimal.ZERO;` | o lado `null`. Verificado: as **12 chamadas** a `service.fechar(...)` em `FecharMesServiceImplTest` passam `BigDecimal.ZERO`, `new BigDecimal("200.00")` ou `new BigDecimal("-150.00")`; a string `null` **não aparece no arquivo inteiro** |
 | 83 | `.filter(a -> a.getDataInicio() != null` | o lado `null` |
 | 85 | `.filter(a -> a.getParcelasPagas() != null` | o lado `null` |
 | 86 | `&& a.getNumParcelas() != null` | o lado `null` |
@@ -196,9 +202,38 @@ Vale notar o inverso na mesma tabela do piloto: `MetaSignatureValidator` tem **9
 
 ---
 
-## Correção de fato registrada no backlog
+## Retratação — o item #6 do backlog estava certo
 
-O item #6 afirma que *"o comando `jacoco:report` que o agente QA é instruído a rodar falha hoje"*. Reconfirmado nesta execução: não havia comando algum. Antes desta task, a única ocorrência da string `jacoco` no repositório era um comentário no frontmatter de `docs/templates/_TEMPLATE-status.md:16`; o agente `qa-test-specialist` não mencionava JaCoCo. O efeito observado (`cobertura_pct: na` em 100% dos status) era real, a causa era outra: **campo cujo template apontava uma ferramenta que nunca existiu no projeto**. Agora existe, e o comentário do template aponta o comando que roda.
+**Esta seção começou afirmando o contrário e foi corrigida após o achado A1 da revisão.** O que foi publicado antes: que o item #6 do backlog errava ao dizer que *"o comando `jacoco:report` que o agente QA é instruído a rodar falha hoje"*, porque a única ocorrência de `jacoco` no repositório seria um comentário em `_TEMPLATE-status.md:16`.
+
+**Está errado, e o erro é meu:** repeti a verificação do plano em vez de refazê-la. `git grep -in "jacoco" origin/integration/04-instrumentacao-qualidade` devolve **77 linhas**. O grep original (do plano) varreu `.claude/`, `docs/templates/` e `docs/runbooks/` — e o projeto tem **duas** definições do agente de QA, uma por harness:
+
+```
+.codex/agents/qa-test-specialist.toml:37:  - Cobertura: JaCoCo — `./mvnw jacoco:report`
+.codex/agents/qa-test-specialist.toml:186: | Cobertura da classe principal | `./mvnw jacoco:report` → campo `cobertura_pct` |
+```
+
+Ou seja: **existia sim um agente instruído a rodar um comando de JaCoCo em um projeto sem JaCoCo.** O item #6 descreveu a causa corretamente; quem errou o diagnóstico foi o plano, e eu o repeti. O planner **não** deve fechar o item #6 com a "correção" que estava aqui.
+
+**Débito aberto por esta constatação (M2 da revisão):** com o plugin instalado mas **sem `<executions>`**, `./mvnw jacoco:report` puro deixou de falhar e passou a **desistir em silêncio** — verificado nesta sessão, com `target/` limpo: `Skipping JaCoCo execution due to missing execution data file` seguido de `BUILD SUCCESS`. A instrução do `.codex/agents/qa-test-specialist.toml` antes falhava alto; agora passa verde sem produzir relatório, o que é pior. **Não corrigi o arquivo**: `.claude/` e `.codex/` são território do humano e do `ai-engineer`, e alterá-los exige autorização explícita, que não foi pedida nem dada. Está na tabela de débitos como item 7.
+
+---
+
+## Revisão independente (ADR 0005)
+
+Primeira rodada: **`rejected`**, com 6 correções pontuais e **nenhuma remediação de código** — o Reviewer reproduziu os 12 valores da tabela do Lombok, as 5 linhas da tabela por classe, os baselines de PIT e PMD, a tabela por pacote e a igualdade byte a byte das 5 classes do piloto, e **nenhum número divergiu**. O relatório está em `docs/sprints/04-instrumentacao-qualidade/avaliacoes/review-QA-014-piloto-jacoco-cobertura.md`.
+
+| Achado | Severidade | O que foi feito |
+|---|---|---|
+| **A1** — a §"Correção de fato" invertia um item correto do backlog | high | Seção **retratada**. `.codex/agents/qa-test-specialist.toml` de fato instrui `jacoco:report`; o grep do plano não cobria `.codex/` |
+| **M1** — comando publicado sem `clean`; `prepare-agent` roda com `append=true` | medium | `clean` acrescentado nos **3** documentos + a armadilha registrada no runbook e no checklist |
+| **M2** — `jacoco:report` puro passou a **desistir em silêncio** em vez de falhar | medium | Registrado como **débito 7**; não corrigido porque `.codex/` exige autorização do humano |
+| **B1** — "13 chamadas" a `service.fechar(...)` | low | Corrigido para **12**; a conclusão ficou mais forte (a string `null` não existe no arquivo) |
+| **B2** — "quase toda a cobertura de branch faltante" era Lombok | low | Quantificado: **55%** (126 de 230) |
+| **B3** — `\|\|` não escapado quebrava uma célula da tabela do runbook | low | Escapado |
+| **B4** — evidência fraca sobre `argLine` (olhava o parent, não o POM efetivo) | low | Trocada por `help:effective-pom` + `grep -c argLine` = **0** |
+
+Dois dos três achados de substância (**A1** e **M1**) têm a mesma raiz: **verificação herdada em vez de refeita**. A1 repetiu o grep do plano; M1 usou `clean` por acidente (o `lombok.config` exige recompilação) sem perceber que ele era condição de validade do número. Nenhum dos dois teria aparecido em revisão de estilo — os dois exigiram reexecução.
 
 ---
 
@@ -236,6 +271,7 @@ Nenhum foi corrigido: o escopo do plano proíbe escrever teste nesta task, e a p
 | 4 | `GlobalWhatsAppExceptionHandler` — 4/53 linhas e **0/18 branches** no recorte unitário; pior número do projeto | tabela §Baseline | **indeterminada até medir com integração** — pode ser coberto por `*IntegrationTest`, o que **não foi medido** |
 | 5 | Cobertura da suíte de integração **não medida** e não mensurável nesta máquina (Docker/Testcontainers) | débito já registrado em `pendencias-tecnicas.md` | herda a severidade do débito de ambiente |
 | 6 | `LegendaParser` continua com mutation score 75% apesar de 100% de linha **e** de branch | §Por que cobertura alta… | é o item **#2** do backlog da sprint — agora com terceiro número confirmando |
+| 7 | `.codex/agents/qa-test-specialist.toml` (linhas 37 e 186) instrui `./mvnw jacoco:report` puro, que agora **passa verde sem gerar relatório** em vez de falhar | §Retratação; verificado com `target/` limpo | **média** — corrigir exige autorização do humano (`.codex/` é território dele). Ou o arquivo passa a citar o comando completo do runbook, ou o plugin ganha `<executions>` — e a segunda opção contraria a decisão de manter o JaCoCo fora do ciclo de vida |
 
 ---
 
