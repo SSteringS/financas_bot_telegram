@@ -250,6 +250,46 @@ Isso torna todo o ferramental de mutation testing da sprint dependente de uma co
 
 ---
 
+## 9. Mensagem de erro morta em `PaymentRequestStrategy`
+
+**Origem:** planejamento da QA-015, 2026-08-16. Descoberto ao verificar o débito 2 da QA-014 no código, em vez de aceitar o relatório da ferramenta.
+
+**O fato, verificado por leitura de `MensagemEntranteService:57-73` e `PaymentRequestStrategy:44-98`:** `supports()` (linha 48) e `parsePedido` (linha 87) aplicam **o mesmo `PEDIDO_PATTERN`, sobre o mesmo `caption.trim()`, do mesmo `dto`**, e nada modifica o DTO entre as duas chamadas. O dispatcher só chama `process()` depois de `supports()` devolver `true` — logo `!matcher.matches()` nunca é verdadeiro em produção e o `throw` da linha 88 é **inalcançável pelo caminho real**.
+
+**A consequência que interessa:** a mensagem que o usuário vê quando manda legenda malformada vem do `orElseThrow` do dispatcher (`MensagemEntranteService:60-63`, constante `ERROR_MESSAGE`) — genérica, cobrindo pedido e comprovante. A mensagem que está dentro do `parsePedido`, com **cinco exemplos** e a explicação de que o tipo é detectado pela palavra-chave, **nunca chegou a ninguém**. Alguém escreveu uma mensagem de erro melhor que a de produção e ela ficou num ramo morto.
+
+⚠️ **A QA-014 registrou este débito com a justificativa "é a mensagem de erro que o usuário final vê". Isso é falso**, e o registro fica aqui para corrigir o dado, não para culpar a task — a QA-014 tinha proibição de escrever teste e leu o relatório do JaCoCo, que não tem como enxergar alcançabilidade entre classes.
+
+**Decisão de produto embutida, a tomar:** ou a mensagem boa sobe para o dispatcher (e aí o usuário passa a ver os exemplos), ou o ramo defensivo vira uma exceção seca declarando que é defesa e não caminho de usuário. **Não** é para simplesmente apagar a validação redundante — defesa em método público de `@Component` é razoável.
+
+**Severidade:** baixa em risco, média em valor de produto. **Território:** código de produção.
+
+---
+
+## 10. Upload ao S3 antes da validação, e dentro da transação
+
+**Origem:** planejamento da QA-015, 2026-08-16, mesma leitura de código do item #9.
+
+**A ordem em `PaymentRequestStrategy.process`:** guarda de `fileBytes` (56) → **upload ao S3** (61) → `parsePedido`, que valida (65) → persistência (69).
+
+Pelo caminho da legenda inválida não vaza nada hoje, porque o `throw` é inalcançável (item #9). **Mas existe um caminho alcançável agora:** `MensagemEntranteService.processar` é `@Transactional` (linha 48) e o upload acontece dentro dessa transação. Se `salvarPedidoPagamentoUsecase.execute` falhar — constraint, banco fora, qualquer exceção —, o rollback desfaz o insert e **não desfaz o objeto no S3**. Não há compensação. Sobra arquivo órfão no bucket, sem pedido apontando para ele e sem nada que o recolha.
+
+É o problema clássico de efeito colateral externo dentro de fronteira transacional: o banco tem rollback, o S3 não.
+
+**Por que nenhuma ferramenta desta sprint pegaria isso:** PIT, PMD e JaCoCo olham uma classe por vez. "Escrita externa não compensada dentro de transação" é propriedade de **relação entre classes** — o mesmo tipo de invariante que o item #8 discute com o ArchUnit, e mais uma evidência a favor dele.
+
+**Antes de dimensionar:** medir se já existem órfãos em `bot-financas-pagamentos-satyan`. O tamanho do problema real é desconhecido — não estimar.
+
+**Caminhos possíveis:** inverter a ordem (validar antes de subir) resolve o caso da legenda; o caso do rollback exige mais — upload após o commit (`@TransactionalEventListener(AFTER_COMMIT)`, padrão que o repo já usa na EVO-02) ou rotina de limpeza de órfãos.
+
+**Severidade:** média. **Território:** código de produção.
+
+---
+
+> 📦 **Nota de sequenciamento (2026-08-16).** O humano cogita empacotar os itens **#9** e **#10** junto do **#2** (`QA-015`). ⚠️ **Não cabem na mesma task:** a QA-015 declara `testes_novos > 0` com **zero linha de `src/main/`** no diff, e o critério de aceitação dela é uma comparação antes/depois do PIT. Mudança de produção no mesmo commit contamina o "depois" e destrói a única prova que a task tem a dar. O pacote é viável como **sequência** — QA-015 primeiro, depois uma task de produção com #9 e #10 —, e as duas cabem antes da tag do marco zero. Decisão do humano.
+
+---
+
 ## Itens ainda não detalhados
 
 Levantados na revisão, aguardando o humano chegar neles:
