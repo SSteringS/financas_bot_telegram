@@ -43,9 +43,30 @@ O `.codex/agents/qa-test-specialist.toml` era o **único** lugar do repositório
 
 **O que não funciona:** nada **instrui** o agente de QA a medir. A QA-014 instalou a ferramenta e destravou o campo, mas a causa original de `cobertura_pct: na` — ausência de instrução no agente que a Claude usa — **não mudou**.
 
-**Fix sugerido:** acrescentar ao `.claude/agents/qa-test-specialist.md` o comando do §Camada 1.6 e a regra provisória do campo. ⚠️ **Exige autorização explícita do humano** — `.claude/` é território dele e do `ai-engineer`.
+**Fix aplicado em parte — 2026-08-16.** O humano autorizou explicitamente a mudança; o `ai-engineer` especificou e o planner aplicou. O `.claude/agents/qa-test-specialist.md` ganhou a seção `Coverage Measurement (conditional)` com o comando completo (com `clean`), os dois modos de falha silenciosa, a regra de reportar linha **e** branch juntas, e a política de publicar o número para o implementador copiar em vez de editar o status. Mais 4 guardrails e 3 itens de checklist. ⚠️ Config de agente é lida no spawn — **vale a partir da próxima sessão**.
 
-**Prioridade:** média — barato de corrigir, e sem isso a ferramenta instalada nesta sprint não é usada por ninguém.
+**O que a mudança NÃO resolve — e é o ponto que decide o débito:** o `qa-test-specialist` só roda quando o plano declara `qa_required: true`. Task com `qa_required: false` continua sem medir nada. Ou seja, a correção acima vale **onde o QA roda**, e não é sozinha a correção de "`cobertura_pct` sai `na` em 100% dos reports".
+
+**Parte 2, ainda aberta — escolher uma das duas:**
+
+1. Passo equivalente em `.claude/agents/backend.md`. É o implementador quem preenche o campo e quem já roda o gate de mutação no mesmo padrão, então encaixa na estrutura existente. Se as duas cópias do texto divergirem, extrair para skill compartilhada.
+2. Política do planner: `qa_required: true` obrigatório sempre que a task tocar classe de produção.
+
+A opção 1 é mais barata. **Decisão do humano** — e a opção 1 mexe em `.claude/`, logo exige autorização nova.
+
+**Fecha também, em parte, o débito 7 da QA-014.** O arquivo que ele citava (`.codex/agents/qa-test-specialist.toml`) já não existe; o que restava dele era exatamente a ausência coberta aqui.
+
+**Prioridade:** média.
+
+---
+
+### Duas incoerências do `_TEMPLATE-status.md` reveladas pelo fix acima
+
+**Origem:** `ai-engineer`, 2026-08-16, ao especificar a seção de cobertura. Nenhuma foi corrigida — as duas mudam schema ou comando de outra stack e merecem decisão própria.
+
+1. **O schema do `cobertura_pct` não tem valor para "tentei medir e não deu".** `_TEMPLATE-status.md:16` admite `number | na`, e `na` significa "não tocou classe de produção". Suíte vermelha, instrumentação quebrada ou stack sem procedimento definido não têm como ser reportados sem escolher entre um número inventado e um `na` falso. A instrução do agente foi escrita usando `na` + motivo escrito ao lado, justamente para **não** introduzir um terceiro valor à revelia. Se o valor `unknown` for aceito, o template e o `artifact-report-contract` mudam juntos. **Decisão pendente.**
+
+2. **`_TEMPLATE-status.md:20` manda o front rodar `jest --coverage`, e o front usa vitest.** Verificado em `frontend/package.json`: `"test": "vitest run"`, com `@vitest/coverage-v8`. É a mesma classe de erro que o `.codex` cometia com o `jacoco:report` — instrução que aponta para comando inexistente. **Prioridade:** média, e é uma linha.
 
 ---
 
