@@ -18,7 +18,7 @@ commits:
   - db25d1c   # test: os dois casos novos
   - a9a9369   # docs: status report
   - a0927da   # docs: M1 da revisao + secao de revisao independente + relatorio do Reviewer
-pr: null
+pr: https://github.com/SSteringS/financas_bot_telegram/pull/133
 desvios: 0
 pendencias_humano: 0
 ---
