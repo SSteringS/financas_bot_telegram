@@ -4,7 +4,7 @@ titulo: "Fortalecer os testes fracos revelados pelos pilotos de PIT e JaCoCo"
 data: 2026-08-16
 branch: feature/qa-015-fortalecer-testes-revelados-pelos-pilotos
 responsavel: claude-back
-estado: parcial
+estado: concluido
 gates:
   build: ok
   lint: na
@@ -16,6 +16,7 @@ gates:
   territorio: ok
 commits:
   - db25d1c   # test: os dois casos novos
+  - a9a9369   # docs: status report
 pr: null
 desvios: 0
 pendencias_humano: 0
@@ -23,7 +24,7 @@ pendencias_humano: 0
 
 # QA-015 — Fortalecer os testes fracos revelados pelos pilotos de PIT e JaCoCo
 
-> **`estado: parcial` é provisório:** o único item aberto é a revisão independente (ADR 0005), ainda não concluída no momento em que este arquivo foi escrito. Vira `concluido` quando o Reviewer aprovar; nenhum gate está vermelho.
+> **`estado: concluido`:** Reviewer deu `approved-with-notes` (§Revisão independente), a única correção obrigatória foi aplicada, todos os gates estão `ok`/`na` e `pendencias_humano: 0`. **Sem gate de QA** — o plano declara `fluxos_qa: []` e `qa_required: false`, com a justificativa de que o critério de aceitação já é um número medido que o Reviewer reproduz; acionar o QA duplicaria a mesma verificação. Registrado como **`not-applicable`**, não como pulado.
 >
 > **Sobre `testes_total: 376`.** É o número de testes que **efetivamente rodaram** nesta máquina, no recorte unit-only (`-Dtest='!*IntegrationTest'`) — 374 da QA-014 mais os 2 desta task. Os 48 testes das 11 classes `*IntegrationTest` ficam fora porque o Docker não está acessível ao Testcontainers aqui (débito de ambiente já registrado). **Não é regressão.** A suíte completa nesta base é verde no CI e a verificação foi **refeita nesta sessão**, não herdada da QA-014: `gh run view 31727999562 --log | grep "Tests run:"` devolve `Tests run: 422, Failures: 0, Errors: 0, Skipped: 0`, e `git merge-base --is-ancestor 15ae35e HEAD` responde **sim**. A suíte completa com esta task deveria dar **424**; esse número **não foi executado localmente** e está declarado como não verificado.
 >
@@ -50,6 +51,7 @@ Ambiente: Maven 3.9.9, **JVM 23-ea** (`openjdk version "23-ea" 2024-09-17`, buil
 | 3 | `./financas_bot_telegram/mvnw org.pitest:pitest-maven:mutationCoverage -f financas_bot_telegram/pom.xml` (**depois**) | `BUILD SUCCESS` · `Line Coverage: 125/129 (97%)` · `Generated 42 mutations Killed 38 (90%)` · `Test strength 93%` |
 | 4 | `./financas_bot_telegram/mvnw clean jacoco:prepare-agent test jacoco:report -f financas_bot_telegram/pom.xml -Dtest='!*IntegrationTest' -Dsurefire.failIfNoSpecifiedTests=false` | `BUILD SUCCESS` · `Tests run: 376, Failures: 0, Errors: 0, Skipped: 0` |
 | 5 | `gh run view 31727999562 --log \| grep "Tests run:"` (CI, commit `15ae35e`, ancestral de HEAD) | `Tests run: 422, Failures: 0, Errors: 0, Skipped: 0` |
+| 6 | `./financas_bot_telegram/mvnw -q -DskipTests package -f financas_bot_telegram/pom.xml` | exit **0** — é a evidência de `build: ok` (acrescentada após o achado L3 da revisão) |
 
 Os números por classe saíram de **parse programático** dos relatórios (`target/pit-reports/mutations.xml` e `target/site/jacoco/jacoco.xml`), não de leitura de percentual arredondado no HTML. Os dois arquivos estão sob `target/` e não são commitados.
 
@@ -196,7 +198,25 @@ Registro isso como **incerteza honesta**, não como afirmação de que a injeç�
 
 ## Revisão independente (ADR 0005)
 
-_A preencher: revisão em andamento no momento da escrita._
+Veredito: **`approved-with-notes`**. Relatório em `docs/sprints/04-instrumentacao-qualidade/avaliacoes/review-QA-015-fortalecer-testes-revelados-pelos-pilotos.md`. **Zero achado `critical` ou `high`; nenhuma remediação de código.**
+
+O Reviewer **reexecutou** PIT, JaCoCo e build no mesmo ambiente e reproduziu os dois números que eram o entregável (`LegendaParser` 7/8, `PaymentRequestStrategy` 8/8 branch), o denominador do gate e a igualdade do frontmatter com o diff. Além disso trouxe **duas evidências mais fortes que as minhas**, que vale registrar:
+
+- Dos dois `ConditionalsBoundaryMutator` da linha 28, o `mutations.xml` traz o de `index 52` como `KILLED` com `<killingTest>` **exclusivo** apontando `LegendaParserTest.detectaPalavraChaveNoInicioDaLegenda()`, e o de `index 55` como `SURVIVED` com `<killingTest/>` vazio. Isso prova, num só campo, o ganho do teste novo, que o "antes" era 6/8, e que o sobrevivente remanescente é o `pos <=`. Eu havia provado as três coisas separadamente.
+- A inalcançabilidade do `throw` foi verificada não só nas duas aplicações do `PEDIDO_PATTERN`, mas no **único call site de `process()` em produção** — `MensagemEntranteService:73`, logo após o `.filter(s -> s.supports(dto))` da linha 58, sem mutação do DTO no meio. É a verificação que fecha o argumento: eu havia checado que as duas validações são idênticas, não que não existe outro caminho até `process()`.
+
+A demonstração de equivalência do sobrevivente foi reconstruída passo a passo pelo Reviewer contra o fonte e **não caiu**.
+
+| Achado | Severidade | O que foi feito |
+|---|---|---|
+| **M1** — §Próximos passos mandava passar o teto do `STATE.md` de 39/42 para **40/42**. O 39/42 é **teto** (`42 − 2 equivalentes − 1 inalcançável`), não score; o mutante morto aqui já estava contado como matável dentro dele. O que muda é o score: **37/42 → 38/42** | medium | Corrigido em §Próximos passos, com a conta dos 4 não-mortos. **A raiz está no plano**, que carrega o mesmo `40/42` — sinalizado ao planner ali e no débito 6 |
+| **L1** — o comentário do teste cita "QA-012", o que roça a regra de não referenciar processo em código | low | Mantido: a citação foi **exigida pelo plano** (§Escopo/arquivos) e é auto-contida — o comentário explica o mutante em termos técnicos e usa "QA-012" só como origem da medição, sem número de seção |
+| **L2** — `commits:` não listava o commit do status | low | Frontmatter completo |
+| **L3** — `build: ok` sem o comando canônico registrado | low | `mvnw -q -DskipTests package` → exit 0, na linha 6 da tabela de evidência |
+| **L4** — `lint: na` estica a letra do checklist | low | Justificativa mantida (o `pmd.includeTests=false` deixa um diff só-de-teste fora do escopo do linter); o buraco do checklist virou **débito 7** |
+| **L5** — `Tests run: 23 (13 + 10)` com a ordem invertida em relação ao comando | low | A ordem no comando é `LegendaParserTest,PaymentRequestStrategyTest`; a saída do surefire veio na ordem inversa (13 da `PaymentRequestStrategyTest`, 10 da `LegendaParserTest`). Registrado aqui em vez de reescrito, porque o número por classe é o que importa |
+
+O único achado de substância (M1) tem a mesma raiz dos achados A1/M1 da QA-014: **verificação herdada em vez de refeita**. Copiei do plano um número que não conferi contra o `STATE.md`, e o `39/42` está a uma linha de distância (`STATE.md:31`), com a fórmula escrita ao lado.
 
 ---
 
@@ -229,15 +249,22 @@ Nenhuma — tarefa fechada. (O merge do PR `feature → integration` é do imple
 |---|---|---|---|
 | 1 | **Resolução de path relativo nos assets das skills falha.** `references/<arquivo>.md` dos `SKILL.md` resolve contra o cwd do repo, não contra o diretório da skill. Confirmado com o par falha/sucesso sobre o **mesmo arquivo existente** | §Verificação de carregamento de skills, tentativas 2 e 3 | **média** — a maior parte do conteúdo das duas skills Java está nos assets, e a falha é silenciosa. Correção exige mexer em `.claude/`, que precisa de autorização do humano |
 | 2 | **`clean` do comando do JaCoCo apaga `target/pit-reports/`.** Rodar §Camada 1.6 depois de §Camada 1.5 destrói o relatório do PIT sem aviso | Observado nesta sessão | **baixa** — sugestão: uma linha no runbook mandando capturar os números do PIT antes, ou rodar JaCoCo primeiro |
-| 3 | **A severidade do débito 2 da QA-014 está superestimada.** Ele descreve o `throw` de `parsePedido` como "a mensagem de erro que o usuário final vê"; o caminho é inalcançável pelo dispatcher | §Alvo 2; `PaymentRequestStrategy` linhas 48 e 85-87 | **baixa** — é correção de registro, não de código. Vale ajustar ao fechar o item |
+| 3 | **A severidade do débito 2 da QA-014 está superestimada.** Ele descreve o `throw` de `parsePedido` como "a mensagem de erro que o usuário final vê"; o caminho é inalcançável pelo dispatcher. O Reviewer confirmou no fonte e localizou a origem real da mensagem que o usuário vê: **`MensagemEntranteService:60-63`**, não este `throw` | §Alvo 2; `PaymentRequestStrategy` linhas 48 e 85-87; `MensagemEntranteService:58` e `:73` | **baixa** — é correção de registro, não de código. Vale ajustar ao fechar o item |
 | 4 | **Redundância de validação em `PaymentRequestStrategy`.** O mesmo `PEDIDO_PATTERN` é aplicado em `supports()` e em `parsePedido`. Não é bug e **não foi mexido** (a task proíbe tocar produção); é decisão a tomar com calma — ou o `throw` vira genuinamente alcançável, ou a duplicação sai | §Alvo 2 | **baixa** — agora protegida por teste, que era o objetivo |
-| 5 | Débitos herdados **não tocados**, conforme §Fora de escopo do plano: 5 guards de `null` em `FecharMesServiceImpl`; `GlobalWhatsAppExceptionHandler` 0/18 branches; `catch` do `MetaSignatureValidator`; `toLowerCase()` sem `Locale`; JVM 23-ea local × Temurin 21 no CI; suíte de integração não executável nesta máquina | registros da QA-012/013/014 | herdadas |
+| 5 | **O plano da QA-015 manda elevar o teto do `STATE.md` de 39/42 para 40/42** (§Coordenação > "Após merge"). Está errado pela mesma conta do achado M1: 39/42 é teto, e o mutante morto aqui já estava dentro dele. O status foi corrigido; **o plano não** | §Revisão independente, M1; `STATE.md:31` | **média** — é o documento que o planner consulta ao fechar o item #2, e o erro vai direto para o `STATE.md` se ninguém corrigir |
+| 6 | **`MetaSignatureValidator:28` é o único mutante matável ainda vivo** nas quatro classes do `targetClasses` (o warn de `app-secret` ausente). Matá-lo exige infra de captura de appender de log, que o repo não tem | run desta sessão: 4 não-mortos = 2 equivalentes + 1 `NO_COVERAGE` + este | **baixa** — já registrado pela QA-012; a novidade é que agora ele é o **último**, o que torna o custo/benefício da infra de log decidível |
+| 7 | **O `PRE-MERGE-CHECKLIST` não cobre "tocou Java, mas fora do escopo configurado do linter"** (achado L4 do Reviewer). Hoje o campo `lint` só admite `ok`/`fail`/`na`, e um diff só-de-teste com `pmd.includeTests=false` cai em `na` — que passa a significar duas coisas diferentes | §bloco do topo; `pom.xml`, property `pmd.includeTests` | **baixa** — ambiguidade de registro, não de qualidade |
+| 8 | Débitos herdados **não tocados**, conforme §Fora de escopo do plano: 5 guards de `null` em `FecharMesServiceImpl`; `GlobalWhatsAppExceptionHandler` 0/18 branches; `catch` do `MetaSignatureValidator`; `toLowerCase()` sem `Locale`; JVM 23-ea local × Temurin 21 no CI; suíte de integração não executável nesta máquina | registros da QA-012/013/014 | herdadas |
 
 ---
 
 ## Próximos passos / observações pro próximo
 
-- **Atualizar o `STATE.md`:** baseline de `LegendaParser` passa de **6/8 para 7/8**, e o teto das quatro classes do `targetClasses` passa de **39/42 para 40/42**. Os dois precisam mudar juntos — corrigir só o primeiro faz o `STATE.md` mentir no agregado. O número do run completo desta sessão é `Generated 42 mutations Killed 38 (90%)`, `Test strength 93%`.
+- **Atualizar o `STATE.md`:** baseline de `LegendaParser` passa de **6/8 para 7/8**, e o **score agregado** das quatro classes do `targetClasses` passa de **37/42 para 38/42** (`Generated 42 mutations Killed 38 (90%)`, `Test strength 93%`, run desta sessão).
+
+  ⚠️ **O teto de `39/42` do `STATE.md:31` NÃO muda — e a instrução em contrário está errada.** O erro nasceu no plano (§Coordenação > "Após merge", que manda passar o teto "de 39/42 para 40/42"), foi repetido aqui na primeira escrita deste status, e foi derrubado pelo Reviewer (achado M1). O `39/42` é **teto**, não score: `42 − 2 equivalentes demonstrados − 1 inalcançável na prática` (`STATE.md:31` e QA-012 §Próximos passos, linha 264). O mutante que esta task matou **já estava contado como matável dentro dos 39** — matá-lo aproxima o score do teto em vez de elevá-lo. Verificado no run: dos 4 mutantes não mortos, `LegendaParser:28` e `MetaSignatureValidator:64` são equivalentes, `MetaSignatureValidator:59` é `NO_COVERAGE` inalcançável, e sobra **`MetaSignatureValidator:28` como o único matável ainda vivo** nas quatro classes — exatamente o `38 + 1 = 39`.
+
+  **Para o planner:** o `40/42` continua vivo no **plano** da QA-015. Corrigir só este status deixa a fonte do erro de pé, e é o plano que se consulta ao fechar o item #2.
 - **Fechar o item #2 do `backlog-s04.md`** com: `LegendaParser` 6/8 → 7/8; `PaymentRequestStrategy` branch 7/8 → 8/8; sobrevivente restante declarado equivalente.
 - **A tag do marco zero do experimento está desbloqueada** por esta task e deve ser criada **depois** do merge — as duas classes que a feature do experimento toca agora estão no estado final.
 - **O que sobrou em `LegendaParser` é teto, não pendência.** 7/8 é o máximo alcançável; nenhum reforço futuro de teste vai levar a 8/8, e uma task que prometa isso está prometendo o impossível.
