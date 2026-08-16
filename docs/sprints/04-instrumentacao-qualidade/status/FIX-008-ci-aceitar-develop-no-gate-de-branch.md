@@ -4,7 +4,7 @@ titulo: "Aceitar develop no gate de convenção de branch do CI"
 data: 2026-08-12
 branch: fix/008-ci-aceitar-develop-no-gate-de-branch
 responsavel: claude-plan
-estado: parcial
+estado: concluido
 gates:
   build: na
   lint: na
@@ -19,12 +19,14 @@ commits:
   - 7cddde7
 pr: https://github.com/SSteringS/financas_bot_telegram/pull/126
 desvios: 1
-pendencias_humano: 1
+pendencias_humano: 0
 ---
 
 # FIX-008 — Aceitar `develop` no gate de convenção de branch do CI
 
-> **Por que `estado: parcial`:** o PR #126 está aberto e não mergeado. Não há gate falhando nem pendência técnica — falta apenas o merge, que é ação do humano. Vira `concluido` quando mergear.
+> **Fechada em 2026-08-16.** Esteve `parcial` enquanto o PR #126 aguardava merge — nunca houve gate falhando nem pendência técnica, só a ação humana. **Os dois PRs foram mergeados** (`gh pr list`: #126 `MERGED`, e o #125 em seguida, na ordem exigida). O `parcial` sobreviveu ao merge por alguns dias; foi o planner quem atualizou o frontmatter, não o autor da task.
+>
+> ⚠️ **Fecha sem revisão independente** — ver §Desvios do plano. O desvio não some com o fechamento.
 
 ---
 
@@ -73,9 +75,9 @@ Justificativa registrada do humano: *"é uma alteração rápida e não mexe no 
 
 ## Decisões pendentes (esperando humano)
 
-**1 pendência.**
+**Nenhuma.** ✅
 
-1. **Mergear o PR #126 e, em seguida, o #125.** Nesta ordem: o #125 só passa no gate depois que a correção estiver em `develop`. Nenhum dos dois foi mergeado.
+1. ~~**Mergear o PR #126 e, em seguida, o #125.**~~ **Feito.** A ordem foi respeitada — o #125 só passava no gate com a correção já em `develop`. Verificado em 2026-08-16 por `gh pr list --state all`: ambos `MERGED`.
 
 ---
 
