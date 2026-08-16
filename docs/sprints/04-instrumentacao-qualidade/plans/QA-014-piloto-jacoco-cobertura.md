@@ -55,6 +55,8 @@ mutation_rationale: ""
 > **O item #6 do backlog estava certo:** existia mesmo um agente mandando rodar um comando de JaCoCo num projeto sem JaCoCo. O `backlog-s04.md` e o `README.md` da sprint **não precisam de correção alguma**, e o item #6 fecha como foi escrito.
 >
 > A lição, registrada para não se repetir: **`grep` de escopo estreito não sustenta afirmação de escopo amplo.** Verificação de "não existe X no repositório" se faz com `git grep` na árvore inteira.
+>
+> **Nota posterior (2026-08-13):** o humano deletou o `.codex/` inteiro — não usava aquele harness. O arquivo que derrubou esta afirmação não existe mais, mas a retratação fica: o fato era verdadeiro quando a task rodou, e é o que explica por que a rodada 1 da revisão foi rejeitada.
 
 **Contexto real do campo `cobertura_pct`:** o `docs/templates/_TEMPLATE-status.md:16` aponta `mvn jacoco:report` como fonte do número, e o `.codex/agents/qa-test-specialist.toml` instrui o agente de QA a rodá-lo. Sem o plugin no `pom.xml`, o comando falha — e é por isso que `cobertura_pct` sai `na` em 100% dos status reports. Este piloto fecha a lacuna.
 

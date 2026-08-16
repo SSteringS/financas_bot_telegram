@@ -33,41 +33,35 @@ Ver [`docs/PENDENCIAS-TECNICAS.md`](../../PENDENCIAS-TECNICAS.md):
 
 ## Itens metodológicos — ficam nesta sprint
 
-### `.codex/agents/qa-test-specialist.toml` manda rodar um comando que agora falha em silêncio
+### Nenhum agente instrui a medir cobertura — `cobertura_pct` pode continuar `na` por omissão
 
-**Origem:** QA-014, débito 7 + achado `M2` do Reviewer. **Verificado com `target/` limpo.**
+**Origem:** resíduo da deleção do `.codex/` pelo humano em 2026-08-13.
 
-As linhas **37** e **186** do arquivo instruem `./mvnw jacoco:report` puro. Antes da QA-014 o comando **falhava alto** — não havia plugin. Depois dela, com o plugin instalado **sem `<executions>`**, ele passa a devolver:
+O `.codex/agents/qa-test-specialist.toml` era o **único** lugar do repositório que mandava um agente rodar cobertura (`./mvnw jacoco:report`, linhas 37 e 186). Com ele deletado, o comando enganoso sumiu — mas sobrou o buraco: **`.claude/agents/qa-test-specialist.md` nunca mencionou JaCoCo**, verificado por `grep -rn "jacoco" .claude/`, zero ocorrências.
 
-```
-Skipping JaCoCo execution due to missing execution data file
-BUILD SUCCESS
-```
+**O que ainda funciona:** `docs/templates/_TEMPLATE-status.md:16` define a regra do campo, e o `ROTEIRO-TESTES-BACKEND.md` §Camada 1.6 tem o comando completo, com `clean`. Quem ler o template chega ao número.
 
-**Piorou.** O agente de QA recebe verde e **nenhum relatório**, com risco de preencher `cobertura_pct` com número inexistente ou herdado de um `.exec` velho.
+**O que não funciona:** nada **instrui** o agente de QA a medir. A QA-014 instalou a ferramenta e destravou o campo, mas a causa original de `cobertura_pct: na` — ausência de instrução no agente que a Claude usa — **não mudou**.
 
-**Duas saídas, e a segunda contraria uma decisão da sprint:**
+**Fix sugerido:** acrescentar ao `.claude/agents/qa-test-specialist.md` o comando do §Camada 1.6 e a regra provisória do campo. ⚠️ **Exige autorização explícita do humano** — `.claude/` é território dele e do `ai-engineer`.
 
-1. As duas linhas passam a citar o comando completo do §Camada 1.6 do runbook.
-2. O plugin ganha `<executions>` — **mas isso amarra o JaCoCo ao ciclo de vida**, contra a decisão explícita de manter as três ferramentas fora dele.
-
-**Recomendo (1).** ⚠️ **Exige autorização explícita do humano** — `.codex/` é território dele e do `ai-engineer`. O implementador **corretamente não tocou** no arquivo.
+**Prioridade:** média — barato de corrigir, e sem isso a ferramenta instalada nesta sprint não é usada por ninguém.
 
 ---
 
-### A regra de território do `CLAUDE.md` não cobre `.codex/`
+### ~~`.codex/agents/qa-test-specialist.toml` manda rodar comando que falha em silêncio~~ ✅ resolvido
 
-**Origem:** achado colateral do planner ao consolidar a QA-014, 2026-08-13.
+**Resolvido em 2026-08-13** — o humano **deletou o `.codex/` inteiro** ("nem uso o codex"). Os 8 arquivos de definição de agente saíram do repositório.
 
-O `CLAUDE.md` §"Regra de ouro" declara **`.claude/`** como território do humano e do `ai-engineer`. **Não menciona `.codex/`** — verificado por `grep -n "codex" CLAUDE.md`, zero ocorrências.
+O débito era: depois da QA-014, `./mvnw jacoco:report` puro deixou de falhar e passou a devolver `BUILD SUCCESS` **sem gerar relatório** (`Skipping JaCoCo execution due to missing execution data file`) — pior que falhar alto. Sem o arquivo, não há mais instrução enganosa. O resíduo virou o item acima.
 
-Só que `.codex/agents/` existe e tem **8 definições de agente** (`planner`, `backend`, `reviewer`, `qa-test-specialist`, `architect`, `frontend`, `dba-data-model-analyst`, `engenheiro-de-ia`). É a segunda encarnação dos mesmos papéis, para outro harness.
+---
 
-**Consequência:** hoje, formalmente, **qualquer instância pode editar `.codex/` sem pedir nada** — e alterar ali muda o comportamento de todas as sessões futuras daquele harness, exatamente o raio de alcance que motivou a regra para `.claude/`. O implementador da QA-014 tratou como território restrito por bom senso, não por regra escrita.
+### ~~A regra de território do `CLAUDE.md` não cobre `.codex/`~~ ✅ resolvido por remoção
 
-**Fix sugerido:** estender a regra para `.claude/` **e** `.codex/`. É edição no `CLAUDE.md` da raiz.
+**Resolvido em 2026-08-13** pela mesma deleção. A regra do `CLAUDE.md` continua citando só `.claude/`, e agora isso está **correto** — é o único diretório de configuração de agente que existe.
 
-**Prioridade:** média — não quebrou nada ainda, mas a proteção depende de bom senso em vez de regra.
+> ⚠️ **Se um segundo harness voltar** (`.codex/`, `.cursor/`, `.github/copilot-instructions.md` ou equivalente), a lacuna reabre: a regra é escrita por caminho literal, não por categoria. Registrado para que a decisão seja consciente na volta, e não descoberta de novo por acidente.
 
 ---
 
