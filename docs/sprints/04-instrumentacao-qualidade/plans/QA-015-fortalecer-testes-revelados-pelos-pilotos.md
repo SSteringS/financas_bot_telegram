@@ -135,6 +135,24 @@ Rodar, com os comandos canônicos do `docs/runbooks/ROTEIRO-TESTES-BACKEND.md`:
 
 ---
 
+## Coleta de evidência — verificação de carregamento de skills
+
+> ⚠️ **Isto NÃO é critério de aceitação da task.** É observação sobre o harness, aproveitando que esta é a primeira task Java depois da ADR 0022. Nada aqui reprova a entrega: uma resposta "não consegui" é resultado válido e é justamente o dado que se quer. **Rodada única** — não vira praxe, não entra em plano futuro.
+
+**Por que agora:** desde 2026-08-16 o `.claude/agents/backend.md` pré-carrega `developing-java-spring-applications` e `writing-java-unit-tests` via campo `skills:` do frontmatter. Mas os dois `SKILL.md` linkam seus arquivos de apoio por **path relativo** (`references/mvc-architecture.md`, `examples/...`), e a documentação oficial **nunca diz** como esse path é resolvido em disco — a própria existência da substituição `${CLAUDE_SKILL_DIR}` sugere que caminho relativo **não** é ancorado automaticamente no diretório da skill. Isso importa porque a maior parte do conteúdo dessas duas skills mora nos assets: **todos os exemplos de código estão lá** (~3/4 dos bytes em `developing-java-spring-applications`, ~60% em `writing-java-unit-tests`). Se o path não resolver, o agente recebe a política **sem os padrões** — e a falha é silenciosa, ninguém percebe. Detalhe em `docs/aprendizado/skills-em-subagentes-preload-vs-sob-demanda.md` §"Risco em aberto".
+
+O agente `backend` deve registrar no status report uma seção **`Verificação de carregamento de skills`** com estes três pontos:
+
+1. **Pré-carga.** Se o conteúdo de `developing-java-spring-applications` e `writing-java-unit-tests` estava disponível **desde o primeiro turno**, sem precisar invocar nada. Responder por skill, não em bloco.
+2. **Assets.** Se leu algum arquivo de `references/` ou `examples/` dessas duas skills. Em caso positivo: **qual path exato** usou, e se **acertou na primeira tentativa** ou precisou de `Glob`/tentativa e erro para localizar o arquivo. O path errado que falhou, quando houver, é mais informativo que o certo — registrar os dois.
+3. **Se não leu nenhum asset**, dizer explicitamente qual dos dois casos ocorreu: **não foi necessário** (a task não exigiu consultar exemplo), ou **não conseguiu resolver o path**.
+
+**Como isso vai ser usado:** se a resolução de path falhar, acrescentamos âncora explícita nos dois `SKILL.md`. Se funcionar, o risco em aberto da ADR 0022 fecha com evidência de runtime em vez de leitura de doc.
+
+> Observação de honestidade da coleta: esta task é de **teste puro**, então é plausível que o ponto 2 caia legitimamente no "não foi necessário" — a `writing-java-unit-tests` é a skill relevante aqui, e a de Spring provavelmente não será consultada. Isso é resultado, não falha da coleta. **Não** consultar um asset artificialmente só para produzir o dado: um `Read` forçado responde se o path resolve, mas mente sobre o comportamento natural do agente. Se o implementador quiser testar o path sem ter necessidade real, deve dizer no status que a leitura foi **deliberada para esta verificação**.
+
+---
+
 ## Critérios de aceitação
 
 1. `LegendaParserTest` tem caso com palavra-chave no índice 0, e ele **passa** contra o código atual.
@@ -189,6 +207,7 @@ Rodar, com os comandos canônicos do `docs/runbooks/ROTEIRO-TESTES-BACKEND.md`:
   - Conferir que o mutante equivalente continua vivo e **declarado** — se ele morreu, alguma coisa mudou que não deveria ter mudado.
   - Cobrar a declaração de inalcançabilidade do `throw`. É a afirmação mais fácil de exagerar nesta task.
   - `mutation_gate: true` — **esta é a primeira task do repositório sob o gate.** Verificar o cálculo do `test strength` (mortos ÷ **cobertos**, não ÷ gerados) e que o denominador contém só as duas classes alteradas.
+  - §"Verificação de carregamento de skills" **não é critério de aceitação** — conferir que a seção existe no status e responde aos três pontos, e **não** reprovar a task pelo conteúdo da resposta. "Não consegui resolver o path" é resultado válido. O que reprova é a seção faltar ou responder de forma vaga ("as skills funcionaram bem") em vez de dizer o path usado.
 - **Atenção pro QA:** `fluxos_qa: []`, **`qa_required: false`** — a task não altera comportamento de produto e seu critério de aceitação já é um número medido que o Reviewer reproduz. Acionar o QA duplicaria a mesma verificação.
 - **Após merge:** fechar o item **#2** no `backlog-s04.md` com os números; atualizar o baseline de `LegendaParser` no `STATE.md` (de 6/8 para 7/8) — **o teto de 39/42 das quatro classes muda para 40/42** e precisa ser corrigido junto, sob pena de o `STATE.md` passar a mentir; registrar no `pendencias-tecnicas.md` qualquer achado novo.
 
@@ -208,3 +227,4 @@ Gates do `docs/runbooks/PRE-MERGE-CHECKLIST.md`, status report válido conforme 
 - `docs/decisions/0021-gate-de-mutation-testing-opcional-por-task.md` — critério do gate.
 - `docs/runbooks/ROTEIRO-TESTES-BACKEND.md` §Camada 1.5 (PIT) e §Camada 1.6 (JaCoCo).
 - `docs/aprendizado/teste-mutante-e-pit.md` — conceito de mutante equivalente e por que 100% não é meta.
+- `docs/decisions/0022-skills-em-subagentes-via-de-entrega-declarada.md` e `docs/aprendizado/skills-em-subagentes-preload-vs-sob-demanda.md` — origem da §"Verificação de carregamento de skills" e do risco de resolução de path dos assets.
