@@ -17,6 +17,7 @@ gates:
 commits:
   - db25d1c   # test: os dois casos novos
   - a9a9369   # docs: status report
+  - a0927da   # docs: M1 da revisao + secao de revisao independente + relatorio do Reviewer
 pr: null
 desvios: 0
 pendencias_humano: 0
@@ -287,3 +288,4 @@ Task exclusivamente de teste, sem lógica de produção nova. O que se aplica:
 - `financas_bot_telegram/src/test/java/.../domain/service/LegendaParserTest.java` (modificado: 1 `@Test` novo — palavra-chave no índice 0, com comentário do motivo)
 - `financas_bot_telegram/src/test/java/.../application/strategy/PaymentRequestStrategyTest.java` (modificado: 1 `@Test` novo — contrato de `process()` com legenda inválida; 2 imports)
 - `docs/sprints/04-instrumentacao-qualidade/status/QA-015-fortalecer-testes-revelados-pelos-pilotos.md` (novo: este arquivo)
+- `docs/sprints/04-instrumentacao-qualidade/avaliacoes/review-QA-015-fortalecer-testes-revelados-pelos-pilotos.md` (novo: relatório da revisão independente, escrito pelo Reviewer)
