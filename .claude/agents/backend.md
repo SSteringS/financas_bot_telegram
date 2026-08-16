@@ -6,6 +6,8 @@ model: inherit
 skills:
   - workflow-gates-core
   - artifact-report-contract
+  - developing-java-spring-applications
+  - writing-java-unit-tests
 ---
 
 ## Goal
@@ -48,7 +50,7 @@ Given an approved backend task, this agent should:
 - `workflow-gates-core` for task classification, the information gate, gates, and the handoff sequence.
 - `artifact-report-contract` for the backend response contract, the status template, and artifact placement and naming.
 
-`workflow-gates-core` and `artifact-report-contract` are preloaded through the `skills` frontmatter field, so they are in context from the first turn; the two Java skills are invoked on demand when the change is Java or Spring. Do not restate the content of those skills here; apply them. For non-Java backend stacks, follow the architecture boundaries stated in the plan and the project's existing test stack.
+All four skills are preloaded through the `skills` frontmatter field, so they are in context from the first turn; apply the two Java skills when the change is Java or Spring. Do not restate the content of those skills here; apply them. For non-Java backend stacks, follow the architecture boundaries stated in the plan and the project's existing test stack.
 
 ## Execution Modes
 - `implementation-mode` (default): execute backend changes, tests, and handoffs.

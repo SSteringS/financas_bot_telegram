@@ -60,6 +60,7 @@ Não é documentação de arquitetura (pra isso, `docs/architecture/`) nem plano
 
 - [`structured-outputs.md`](structured-outputs.md) — saídas estruturadas de LLM (schema mode, semântica vs. sintaxe), aplicação no parser do bot e no workflow de Claudes
 - [`taxonomia-agent-skill-workflow.md`](taxonomia-agent-skill-workflow.md) — fronteiras Agent/Role/Skill/Workflow em sistemas multi-agente; calibragens pro nosso setup multi-sessão; skill como context engineering / RAG; base da ADR 0015
+- [`skills-em-subagentes-preload-vs-sob-demanda.md`](skills-em-subagentes-preload-vs-sob-demanda.md) — `skills:` é pré-carga, não permissão; quem barra acesso é a ausência da ferramenta `Skill` em `tools:`; falha silenciosa quando a prosa cita skill inalcançável; assets não são carregados em nenhum dos dois modos; base da ADR 0022
 
 ### Infra / deploy / AWS
 

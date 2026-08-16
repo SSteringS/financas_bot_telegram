@@ -50,6 +50,14 @@ As três primeiras são **exatamente o código que a feature Baixa do experiment
 
 ## 2. Corrigir os testes fracos revelados pelo piloto
 
+> ✅ **Refinado como [`QA-015`](plans/QA-015-fortalecer-testes-revelados-pelos-pilotos.md)** em 2026-08-16. O plano é a fonte da verdade; o detalhamento abaixo fica como registro da origem.
+>
+> **Escopo fechado com o humano — dois alvos:** (1) `LegendaParser`, caso com palavra-chave no **índice 0**, matando o sobrevivente nº 1 da QA-012 (6/8 → **7/8**); (2) `PaymentRequestStrategy`, o `throw` de `parsePedido` que a QA-014 registrou como débito 2 (branch 7/8 → **8/8**).
+>
+> **Primeira task do repositório com `mutation_gate: true`** — adotado por decisão explícita do humano. Piso de 80% de `test strength` sobre as duas classes, conforme ADR 0021.
+>
+> **Ordem em relação ao marco zero: resolvida.** O humano autorizou esta task **antes** da tag.
+
 **Depende de:** #1. Escopo definido pelo resultado do piloto.
 
 **Atenção:** melhorar os testes de `LegendaParser` e das strategies **antes do congelamento do baseline** é desejável — todos os runs partem do mesmo ponto, e um baseline melhor mede melhor. Mas precisa acontecer **antes** da tag do marco zero, nunca no meio do experimento.
@@ -115,6 +123,22 @@ O PIT já reporta as duas. **Decidir se `test strength` vira métrica de primeir
 ---
 
 ## 6. Piloto do JaCoCo — escopo reduzido
+
+> ✅ **Concluído como [`QA-014`](plans/QA-014-piloto-jacoco-cobertura.md)** em 2026-08-13 (PRs #130 e #131). Reviewer: **2 rodadas** — rodada 1 `rejected` por premissa falha, rodada 2 aprovada após 6 correções. Nenhum número precisou ser refeito.
+>
+> **O texto deste item estava correto e não foi alterado.** O plano da QA-014 afirmou que ele registrava um fato errado; **a afirmação do plano é que era falsa** — o `.codex/agents/qa-test-specialist.toml` instruía `./mvnw jacoco:report` mesmo (arquivo deletado pelo humano em 2026-08-13, depois do fato). Plano retratado; este item fecha como foi escrito.
+>
+> **Baseline do projeto — unit-only, com `lombok.config`:**
+> ```
+> Linha 1681/1864 = 90,2%    Branch 326/430 = 75,8%
+> Instrução 89,5%  ·  Método 87,5%  ·  Classe 94,6%  ·  Complexidade 78,5%
+> 374 testes executados (dos 422 da suíte completa) · 148 classes
+> ```
+> ⚠️ **Subestima a cobertura real** — a suíte de integração está fora do recorte, e isso é definição da métrica, não rodapé.
+>
+> **O achado que mais ensinou:** o Lombok inflava o denominador em 604 métodos e 128 desvios, e **126 dos 128 desvios estavam descobertos** — 55% de toda a "cobertura de branch faltante" do projeto era `equals`/`hashCode` gerado. E a cobertura de **linha mal se moveu** (+0,9 pp) enquanto a de **branch subiu 17 pp**. Primeiro argumento com dado deste projeto para **nunca reportar cobertura de linha sozinha**.
+>
+> Débitos em [`pendencias-tecnicas.md`](pendencias-tecnicas.md).
 
 **Escopo sugerido:** as mesmas quatro classes do piloto do PIT — assim os três relatórios (cobertura, mutation score, violações) descrevem **o mesmo código**, e dá para comparar o que cada ferramenta enxerga e o que nenhuma enxerga.
 
@@ -223,6 +247,48 @@ Isso torna todo o ferramental de mutation testing da sprint dependente de uma co
 **Critério de aceitação:** um teste renomeado de propósito para violar a regra faz o `mvn test` falhar, com mensagem que nomeia a classe violadora.
 
 **Regra já declarada (mas não verificada):** `financas_bot_telegram/CLAUDE.md` §"Convenções que valem hoje" · `docs/PENDENCIAS-TECNICAS.md` §"Convenção `*IntegrationTest` não é verificada por nada".
+
+---
+
+## 9. Mensagem de erro morta em `PaymentRequestStrategy`
+
+**Origem:** planejamento da QA-015, 2026-08-16. Descoberto ao verificar o débito 2 da QA-014 no código, em vez de aceitar o relatório da ferramenta.
+
+**O fato, verificado por leitura de `MensagemEntranteService:57-73` e `PaymentRequestStrategy:44-98`:** `supports()` (linha 48) e `parsePedido` (linha 87) aplicam **o mesmo `PEDIDO_PATTERN`, sobre o mesmo `caption.trim()`, do mesmo `dto`**, e nada modifica o DTO entre as duas chamadas. O dispatcher só chama `process()` depois de `supports()` devolver `true` — logo `!matcher.matches()` nunca é verdadeiro em produção e o `throw` da linha 88 é **inalcançável pelo caminho real**.
+
+**A consequência que interessa:** a mensagem que o usuário vê quando manda legenda malformada vem do `orElseThrow` do dispatcher (`MensagemEntranteService:60-63`, constante `ERROR_MESSAGE`) — genérica, cobrindo pedido e comprovante. A mensagem que está dentro do `parsePedido`, com **cinco exemplos** e a explicação de que o tipo é detectado pela palavra-chave, **nunca chegou a ninguém**. Alguém escreveu uma mensagem de erro melhor que a de produção e ela ficou num ramo morto.
+
+⚠️ **A QA-014 registrou este débito com a justificativa "é a mensagem de erro que o usuário final vê". Isso é falso**, e o registro fica aqui para corrigir o dado, não para culpar a task — a QA-014 tinha proibição de escrever teste e leu o relatório do JaCoCo, que não tem como enxergar alcançabilidade entre classes.
+
+**Decisão de produto embutida, a tomar:** ou a mensagem boa sobe para o dispatcher (e aí o usuário passa a ver os exemplos), ou o ramo defensivo vira uma exceção seca declarando que é defesa e não caminho de usuário. **Não** é para simplesmente apagar a validação redundante — defesa em método público de `@Component` é razoável.
+
+**Severidade:** baixa em risco, média em valor de produto. **Território:** código de produção.
+
+---
+
+## 10. Upload ao S3 antes da validação, e dentro da transação
+
+**Origem:** planejamento da QA-015, 2026-08-16, mesma leitura de código do item #9.
+
+**A ordem em `PaymentRequestStrategy.process`:** guarda de `fileBytes` (56) → **upload ao S3** (61) → `parsePedido`, que valida (65) → persistência (69).
+
+Pelo caminho da legenda inválida não vaza nada hoje, porque o `throw` é inalcançável (item #9). **Mas existe um caminho alcançável agora:** `MensagemEntranteService.processar` é `@Transactional` (linha 48) e o upload acontece dentro dessa transação. Se `salvarPedidoPagamentoUsecase.execute` falhar — constraint, banco fora, qualquer exceção —, o rollback desfaz o insert e **não desfaz o objeto no S3**. Não há compensação. Sobra arquivo órfão no bucket, sem pedido apontando para ele e sem nada que o recolha.
+
+É o problema clássico de efeito colateral externo dentro de fronteira transacional: o banco tem rollback, o S3 não.
+
+**Por que nenhuma ferramenta desta sprint pegaria isso:** PIT, PMD e JaCoCo olham uma classe por vez. "Escrita externa não compensada dentro de transação" é propriedade de **relação entre classes** — o mesmo tipo de invariante que o item #8 discute com o ArchUnit, e mais uma evidência a favor dele.
+
+**Antes de dimensionar:** medir se já existem órfãos em `bot-financas-pagamentos-satyan`. O tamanho do problema real é desconhecido — não estimar.
+
+**Caminhos possíveis:** inverter a ordem (validar antes de subir) resolve o caso da legenda; o caso do rollback exige mais — upload após o commit (`@TransactionalEventListener(AFTER_COMMIT)`, padrão que o repo já usa na EVO-02) ou rotina de limpeza de órfãos.
+
+**Severidade:** média. **Território:** código de produção.
+
+---
+
+> 📦 **Sequenciamento resolvido (2026-08-16).** Os itens **#9** e **#10** foram refinados juntos como [`BE-031`](plans/BE-031-validacao-antes-do-upload-e-mensagem-morta.md), **depois** da `QA-015` e não dentro dela: a QA-015 exige zero linha de `src/main/` no diff e seu critério de aceitação é a comparação antes/depois do PIT, que mudança de produção no mesmo commit destrói. O pacote é a **sequência** QA-015 → BE-031, as duas antes da tag do marco zero.
+>
+> ⚠️ **O `BE-031` fecha o #9 inteiro e o #10 apenas em parte.** Ele conserta o caminho **inalcançável** (legenda inválida não escreve mais no S3) e **não** conserta o alcançável (rollback deixa órfão no bucket) — esse precisa de ADR, porque as três saídas possíveis são todas decisões de arquitetura e o repositório **não tem nenhum delete de S3** hoje.
 
 ---
 

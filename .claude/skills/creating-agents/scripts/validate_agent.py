@@ -98,6 +98,16 @@ MCP_TOOL_PATTERN = re.compile(r"^(mcp__.+|.+/\*|[A-Za-z0-9_-]+:.+)$")
 
 RECOMMENDED_BODY_SECTIONS = ("Scope", "Output Format")
 
+# Skill reachability (see validate_skill_reachability).
+# A skill mention only counts when it is written as an identifier -- inside
+# backticks -- which is how this repo names skills in agent prose. Bare prose
+# words are ignored on purpose: a false positive here trains readers to ignore
+# the validator, and the cost of missing one mention is lower.
+SKILL_MENTION_PATTERN = re.compile(r"`([A-Za-z0-9][A-Za-z0-9_-]*)`")
+FENCED_BLOCK_PATTERN = re.compile(r"^```.*?^```", re.MULTILINE | re.DOTALL)
+BLOCK_SEQUENCE_ITEM_PATTERN = re.compile(r"(?:^|\s)-\s+")
+SKILL_TOOL_NAME = "Skill"
+
 
 def print_result(title: str, items: list[str]) -> None:
     print(title)
@@ -171,6 +181,111 @@ def parse_yaml_list(value: str) -> list[str]:
 
     entries = [entry.strip().strip("'\"") for entry in stripped.split(",")]
     return [entry for entry in entries if entry]
+
+
+def parse_yaml_sequence(value: str | None) -> list[str]:
+    """Parse a frontmatter list in inline OR block form.
+
+    `extract_frontmatter` collapses a block sequence onto one line, so
+    `skills:\\n  - a\\n  - b` arrives here as `- a - b`. Splitting that on
+    commas (as `parse_yaml_list` does) would return a single bogus entry, and
+    splitting on a bare '-' would shred hyphenated skill names, so block form
+    is split on a dash followed by whitespace.
+    """
+    if value is None:
+        return []
+
+    stripped = value.strip()
+
+    if not stripped:
+        return []
+
+    if stripped.startswith("-"):
+        entries = [
+            entry.strip().strip("'\"")
+            for entry in BLOCK_SEQUENCE_ITEM_PATTERN.split(stripped)
+        ]
+        return [entry for entry in entries if entry]
+
+    return parse_yaml_list(stripped)
+
+
+def find_skills_dir(agent_file: Path) -> Path | None:
+    """Locate `.claude/skills/` by walking up from the agent file.
+
+    Falls back to the invocation directory (the script is run from the repo
+    root today) and then to the script's own location, so a validated agent
+    file living outside the repo still resolves the repo's skill catalog.
+    """
+    starts = [
+        agent_file.resolve().parent,
+        Path.cwd().resolve(),
+        Path(__file__).resolve().parent,
+    ]
+
+    for start in starts:
+        for directory in [start, *start.parents]:
+            candidate = directory / ".claude" / "skills"
+            if candidate.is_dir():
+                return candidate
+
+    return None
+
+
+def discover_skill_names(skills_dir: Path | None) -> set[str]:
+    if skills_dir is None:
+        return set()
+
+    return {
+        entry.name
+        for entry in skills_dir.iterdir()
+        if entry.is_dir() and (entry / "SKILL.md").is_file()
+    }
+
+
+def validate_skill_reachability(
+    agent_file: Path, metadata: dict[str, str], body: str
+) -> list[str]:
+    """Catch skills the agent's prose delegates to but cannot reach.
+
+    Two independent mechanisms deliver a skill to a subagent: preload, via the
+    `skills:` frontmatter list, and on demand, via the `Skill` tool. `skills:`
+    is preload only, never access control. `tools:`, when present, is an
+    exhaustive allowlist; when absent the agent inherits every built-in tool,
+    `Skill` included. So a referenced skill is unreachable only when it is
+    absent from `skills:` AND `tools:` is present without `Skill`. Claude Code
+    raises no error in that case -- the delegation just never happens.
+    """
+    known_skills = discover_skill_names(find_skills_dir(agent_file))
+
+    if not known_skills:
+        return []
+
+    preloaded = set(parse_yaml_sequence(metadata.get("skills")))
+
+    tools_value = metadata.get("tools")
+    tools_declared = tools_value is not None and tools_value.strip() != ""
+
+    if not tools_declared:
+        # No `tools:` field: all built-in tools are inherited, `Skill` included.
+        return []
+
+    tool_entries = {entry.lower() for entry in parse_yaml_sequence(tools_value)}
+
+    if SKILL_TOOL_NAME.lower() in tool_entries:
+        return []
+
+    prose = FENCED_BLOCK_PATTERN.sub("", body)
+    mentioned = set(SKILL_MENTION_PATTERN.findall(prose)) & known_skills
+    unreachable = sorted(mentioned - preloaded)
+
+    return [
+        f"skills: '{name}' is referenced in the body of {agent_file.name} but is "
+        "unreachable: it is not preloaded in 'skills:' and the 'tools:' allowlist "
+        f"does not include '{SKILL_TOOL_NAME}'. Fix by adding '{name}' to 'skills:' "
+        f"(preload) or by adding '{SKILL_TOOL_NAME}' to 'tools:' (on demand)."
+        for name in unreachable
+    ]
 
 
 def is_valid_model_entry(entry: str) -> bool:
@@ -307,6 +422,9 @@ def validate_file(agent_file: Path) -> tuple[list[str], list[str]]:
         link_errors, link_warnings = validate_links(agent_file, body)
         errors += link_errors
         warnings += link_warnings
+
+        if metadata is not None:
+            errors += validate_skill_reachability(agent_file, metadata, body)
 
     return errors, warnings
 
