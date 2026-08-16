@@ -50,6 +50,14 @@ As três primeiras são **exatamente o código que a feature Baixa do experiment
 
 ## 2. Corrigir os testes fracos revelados pelo piloto
 
+> ✅ **Refinado como [`QA-015`](plans/QA-015-fortalecer-testes-revelados-pelos-pilotos.md)** em 2026-08-16. O plano é a fonte da verdade; o detalhamento abaixo fica como registro da origem.
+>
+> **Escopo fechado com o humano — dois alvos:** (1) `LegendaParser`, caso com palavra-chave no **índice 0**, matando o sobrevivente nº 1 da QA-012 (6/8 → **7/8**); (2) `PaymentRequestStrategy`, o `throw` de `parsePedido` que a QA-014 registrou como débito 2 (branch 7/8 → **8/8**).
+>
+> **Primeira task do repositório com `mutation_gate: true`** — adotado por decisão explícita do humano. Piso de 80% de `test strength` sobre as duas classes, conforme ADR 0021.
+>
+> **Ordem em relação ao marco zero: resolvida.** O humano autorizou esta task **antes** da tag.
+
 **Depende de:** #1. Escopo definido pelo resultado do piloto.
 
 **Atenção:** melhorar os testes de `LegendaParser` e das strategies **antes do congelamento do baseline** é desejável — todos os runs partem do mesmo ponto, e um baseline melhor mede melhor. Mas precisa acontecer **antes** da tag do marco zero, nunca no meio do experimento.
@@ -118,7 +126,7 @@ O PIT já reporta as duas. **Decidir se `test strength` vira métrica de primeir
 
 > ✅ **Concluído como [`QA-014`](plans/QA-014-piloto-jacoco-cobertura.md)** em 2026-08-13 (PRs #130 e #131). Reviewer: **2 rodadas** — rodada 1 `rejected` por premissa falha, rodada 2 aprovada após 6 correções. Nenhum número precisou ser refeito.
 >
-> **O texto deste item estava correto e não foi alterado.** O plano da QA-014 afirmou que ele registrava um fato errado; **a afirmação do plano é que era falsa** (`.codex/agents/qa-test-specialist.toml` instrui `./mvnw jacoco:report` mesmo). Plano retratado; este item fecha como foi escrito.
+> **O texto deste item estava correto e não foi alterado.** O plano da QA-014 afirmou que ele registrava um fato errado; **a afirmação do plano é que era falsa** — o `.codex/agents/qa-test-specialist.toml` instruía `./mvnw jacoco:report` mesmo (arquivo deletado pelo humano em 2026-08-13, depois do fato). Plano retratado; este item fecha como foi escrito.
 >
 > **Baseline do projeto — unit-only, com `lombok.config`:**
 > ```
