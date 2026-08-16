@@ -71,7 +71,8 @@ Diferente da 02b (kaizen), esta sprint é **mista** — e o fluxo muda por task:
 Atualizado em 2026-08-16. Os passos 1 a 5 originais (revisão dos docs, refino dos pilotos, criação da branch de integração, dispatch do PIT) estão **cumpridos**.
 
 1. ✅ **Item #2 refinado** como [`QA-015`](plans/QA-015-fortalecer-testes-revelados-pelos-pilotos.md) em 2026-08-16 — `pronto-pra-execucao`, **aguardando dispatch para o `backend`**. Primeira task sob `mutation_gate: true`.
-2. **Fechar a decisão ArchUnit × reflection puro** (item #8) com o humano, para destravar o gate da convenção `*IntegrationTest`.
-3. **Corrigir o resíduo do `.codex/`:** nenhum agente instrui a medir cobertura. Território `.claude/` — exige autorização explícita; executor a definir (`ai-engineer` ou planner autorizado).
-4. Refinar a frente de instrumentação de medição, começando pelo mecanismo de "classes tocadas" (#7) — é pré-requisito de quatro métricas.
-5. Fechar o escopo restante da decisão 2 (o que mais precede a tag do marco zero) e corrigir o item 6 do `README.md` do experimento, que ainda cita o FIX-006 como bloqueador.
+2. **Pacote da QA-015:** [`BE-031`](plans/BE-031-validacao-antes-do-upload-e-mensagem-morta.md) (itens #9 e #10), planejada em 2026-08-16 e **`aguardando-decisao-humana`** — gate de mutação e destino da mensagem de erro. Roda **depois** da QA-015, que ela toca no mesmo arquivo de teste.
+3. **Fechar a decisão ArchUnit × reflection puro** (item #8) com o humano, para destravar o gate da convenção `*IntegrationTest`.
+4. ✅ **Resíduo do `.codex/` tratado** em 2026-08-16, em duas frentes: `qa-test-specialist` passa a medir cobertura, e o `reviewer` passa a **auditar** o número (ausente, irreproduzível ou mal descrito reprova; percentual baixo **não** reprova — não existe piso no repositório). Resta a parte 2 registrada em [`pendencias-tecnicas.md`](pendencias-tecnicas.md).
+5. Refinar a frente de instrumentação de medição, começando pelo mecanismo de "classes tocadas" (#7) — é pré-requisito de quatro métricas.
+6. Fechar o escopo restante da decisão 2 (o que mais precede a tag do marco zero) e corrigir o item 6 do `README.md` do experimento, que ainda cita o FIX-006 como bloqueador.

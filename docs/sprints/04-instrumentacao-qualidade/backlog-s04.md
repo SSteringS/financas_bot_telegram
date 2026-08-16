@@ -286,7 +286,9 @@ Pelo caminho da legenda inválida não vaza nada hoje, porque o `throw` é inalc
 
 ---
 
-> 📦 **Nota de sequenciamento (2026-08-16).** O humano cogita empacotar os itens **#9** e **#10** junto do **#2** (`QA-015`). ⚠️ **Não cabem na mesma task:** a QA-015 declara `testes_novos > 0` com **zero linha de `src/main/`** no diff, e o critério de aceitação dela é uma comparação antes/depois do PIT. Mudança de produção no mesmo commit contamina o "depois" e destrói a única prova que a task tem a dar. O pacote é viável como **sequência** — QA-015 primeiro, depois uma task de produção com #9 e #10 —, e as duas cabem antes da tag do marco zero. Decisão do humano.
+> 📦 **Sequenciamento resolvido (2026-08-16).** Os itens **#9** e **#10** foram refinados juntos como [`BE-031`](plans/BE-031-validacao-antes-do-upload-e-mensagem-morta.md), **depois** da `QA-015` e não dentro dela: a QA-015 exige zero linha de `src/main/` no diff e seu critério de aceitação é a comparação antes/depois do PIT, que mudança de produção no mesmo commit destrói. O pacote é a **sequência** QA-015 → BE-031, as duas antes da tag do marco zero.
+>
+> ⚠️ **O `BE-031` fecha o #9 inteiro e o #10 apenas em parte.** Ele conserta o caminho **inalcançável** (legenda inválida não escreve mais no S3) e **não** conserta o alcançável (rollback deixa órfão no bucket) — esse precisa de ADR, porque as três saídas possíveis são todas decisões de arquitetura e o repositório **não tem nenhum delete de S3** hoje.
 
 ---
 
