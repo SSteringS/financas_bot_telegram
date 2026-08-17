@@ -6,8 +6,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.InvalidMessageFormatException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.in.telegram.exception.PhotoProcessingException;
 import br.com.satyan.stering.saita.financasbottelegram.adapters.out.s3.service.S3ImageUploadService;
 import br.com.satyan.stering.saita.financasbottelegram.application.dto.PaymentMessageDTO;
@@ -165,6 +167,26 @@ class PaymentRequestStrategyTest {
 
         assertThatThrownBy(() -> strategy.process(dto))
                 .isInstanceOf(PhotoProcessingException.class);
+    }
+
+    // Contrato do metodo publico process(): chamado com legenda fora do formato
+    // `<valor> <descricao>`, a classe rejeita a entrada em vez de persistir lixo.
+    // NAO e a reproducao de um cenario de usuario: supports() e parsePedido aplicam o
+    // mesmo PEDIDO_PATTERN sobre o mesmo caption.trim(), e pelo caminho do dispatcher
+    // process() so roda depois de supports() devolver true — logo este throw e
+    // inalcancavel em producao hoje. O teste existe para que a redundancia defensiva
+    // deixe de ser removivel sem quebrar nada.
+    @Test
+    void deveLancarInvalidMessageFormatExceptionQuandoLegendaNaoTemValor() {
+        PaymentMessageDTO dto = dtoCompleto("Apenas descricao sem valor", 12345L, "99", "msg_15", "file_bad");
+
+        assertThatThrownBy(() -> strategy.process(dto))
+            .isInstanceOf(InvalidMessageFormatException.class)
+            .hasMessageContaining("<valor> <descrição>")
+            .extracting(e -> ((InvalidMessageFormatException) e).getChatId())
+            .isEqualTo(12345L);
+
+        verifyNoInteractions(salvarPedidoPagamentoUsecase, canalNotificadorPort);
     }
 
     // --- helpers ---

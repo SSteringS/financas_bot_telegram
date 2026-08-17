@@ -51,4 +51,13 @@ class LegendaParserTest {
     void detectaPixMaiusculo() {
         assertThat(LegendaParser.parseTipo("500 PIX aluguel")).isEqualTo(TipoPagamento.PIX);
     }
+
+    // Palavra-chave no indice 0. Nao e redundante com detectaPix: todos os demais casos
+    // comecam pelo valor, entao indexOf nunca devolve 0 e a fronteira `pos >= 0` nunca e
+    // exercitada no limite. Sem este caso, trocar `pos >= 0` por `pos > 0` nao quebra
+    // nenhum teste. Lacuna medida pelo mutation testing na QA-012.
+    @Test
+    void detectaPalavraChaveNoInicioDaLegenda() {
+        assertThat(LegendaParser.parseTipo("pix 200")).isEqualTo(TipoPagamento.PIX);
+    }
 }
