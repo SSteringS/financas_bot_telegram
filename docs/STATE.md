@@ -2,7 +2,7 @@
 
 > **Doc vivo de orientação.** Existe pra uma sessão que começa fria (planner, back, front ou reviewer) se situar em 1 minuto, sem re-derivar contexto. **Curto de propósito.** Detalhe mora nos planos (`docs/sprints/<NN>-<slug>/plans/`), status reports (`docs/sprints/<NN>-<slug>/status/`) e ADRs (`docs/decisions/`).
 >
-> **Última atualização:** 2026-08-16 (sprint 04 em execução — QA-012, QA-013, QA-014 e FIX-008 concluídas; ferramental de qualidade completo; auditoria de alcance de skills nos agentes fechada com a ADR 0022; `integration/04` sincronizada com `develop` pelo PR #132; sprint 03 com duas tasks de front não executadas; produção restaurada em 2026-08-09).
+> **Última atualização:** 2026-08-16 (sprint 04 em execução — QA-012, QA-013, QA-014, **QA-015** e FIX-008 concluídas; ferramental de qualidade completo e **item #2 do backlog fechado**; **tag do marco zero desbloqueada**; auditoria de alcance de skills fechada com a ADR 0022 e seu risco de assets **confirmado em runtime**; sprint 03 com duas tasks de front não executadas; produção restaurada em 2026-08-09).
 > **Fonte:** derivado do frontmatter `estado:` dos status reports, do log do git e do histórico de runs do workflow `Deploy to Production`. Onde uma afirmação foi verificada por comando, o comando está citado. **O frontmatter dos status reports manda** — quando este resumo divergir dele, ele está errado.
 
 ---
@@ -11,7 +11,7 @@
 
 **Sprint 04 — Instrumentação e qualidade** (`docs/sprints/04-instrumentacao-qualidade/README.md`).
 
-**Modo:** 🟠 **em execução** — três tasks de ferramental entregues (QA-012, QA-013, QA-014) mais a FIX-008. **O ferramental de qualidade está completo**; o que resta é instrumentação de medição, configuração de agentes e o item #2 (corrigir os testes fracos revelados pelos pilotos).
+**Modo:** 🟠 **em execução** — três tasks de ferramental entregues (QA-012, QA-013, QA-014), mais a QA-015 e a FIX-008. **O ferramental de qualidade está completo e o item #2 fechou**; o que resta é instrumentação de medição, configuração de agentes e as decisões pendentes com o humano.
 
 **Objetivo:** instalar o ferramental de qualidade e a instrumentação de medição que o repositório não tem (JaCoCo, PIT, PMD, coleta de custo por papel), e corrigir a configuração dos subagentes que impede medir modelo por papel.
 
@@ -29,6 +29,7 @@
 
 - **QA-012 — Piloto do PIT (mutation testing) em escopo reduzido.** PIT 1.25.9 + `pitest-junit5-plugin` 1.2.3 no `pom.xml`, escopo de 4 classes, 42 mutantes, leitura interpretada dos 5 sobreviventes. Reviewer: **aprovado com ressalvas** (11/11 critérios, 5 achados de prosa corrigidos). PRs #123 e #124.
   - Baseline registrado por classe no status report. Teto realista das 4 classes: **39/42 ≈ 93%** — 2 sobreviventes são equivalentes demonstrados e 1 é inalcançável na prática. **Não tratar 100% como meta.**
+  - **Score atualizado pela QA-015: 37/42 → 38/42** (`Test strength 93%`). ⚠️ **O teto de 39/42 NÃO mudou** — o mutante que a QA-015 matou já estava contado como matável dentro dele. Matar mutante aproxima o score do teto; não eleva o teto. O plano da QA-015 mandava elevá-lo para 40/42, foi derrubado pelo Reviewer e está com errata registrada. **Falta 1 para o teto:** `MetaSignatureValidator:28`, o warn de `app-secret`, que exige infra de captura de log que o repo não tem.
 
 - **QA-013 — PMD: ruleset curado e piloto de leitura interpretada.** PRs #127 e #128. Reviewer: **aprovado com observações**, 2 rodadas (1 achado `high` derrubado e corrigido; `F6` `low` segue aberto, custo de duas frases). Absorveu o item #5 do backlog.
   - `maven-pmd-plugin` fora do ciclo de vida + `pmd-ruleset.xml` com **10 regras justificadas uma a uma**. Gate `lint` do backend **deixa de ser `na`** — informativo, não bloqueante.
@@ -40,6 +41,12 @@
   - **As três ferramentas agora descrevem o mesmo código.** PIT e JaCoCo concordam **linha a linha** em 3 das 4 classes; a única divergência (`LegendaParser`, 94% × 100%) é o construtor privado de classe utilitária, que o JaCoCo filtra e o PIT não — e **o número do JaCoCo é o melhor**.
   - **Achado que mais ensinou:** o Lombok inflava o denominador em 604 métodos e 128 desvios, com **126 dos 128 descobertos** — 55% de toda a "cobertura de branch faltante" era `equals`/`hashCode` gerado. A cobertura de **linha mal se moveu** (+0,9 pp) enquanto a de **branch subiu 17 pp**. Argumento concreto para **nunca reportar cobertura de linha sozinha**.
   - `cobertura_pct` **destravado**, com regra provisória: cobertura das classes de produção que a task tocou; `na` quando não toca nenhuma.
+
+- **QA-015 — Fortalecer os testes fracos revelados pelos pilotos.** PRs #133 e #134. Reviewer: **`approved-with-notes`**, zero achado `critical`/`high`, **nenhuma remediação de código** — o Reviewer reexecutou PIT, JaCoCo e build e reproduziu os dois números. Fecha o item **#2** do backlog. 2 testes novos, **zero linha de `src/main/`**, `cobertura_pct: 100`.
+  - `LegendaParser` **6/8 → 7/8**; `PaymentRequestStrategy` branch **7/8 → 8/8** (linha 49/49). O sobrevivente restante **continua vivo por projeto** — equivalente demonstrado. **7/8 é teto, não pendência:** nenhum reforço de teste leva a 8/8, e task que prometa isso promete o impossível.
+  - **Primeira task sob o `mutation_gate` (ADR 0021): 94,7% de `test strength` ≥ 80% ✅.** Nenhuma classe foi removida do escopo, nenhum teste foi escrito para levantar métrica, o piso não foi mexido.
+  - 🔑 **O achado que inverte a lição da sprint:** no alvo 2 o **PIT não se moveu** — dava 11/11 antes de existir teste que atingisse o `throw`, porque nenhum mutante é gerado na construção da exceção. Quem achou o buraco foi o **JaCoCo**. É o espelho exato do `LegendaParser`, onde a cobertura era 100/100 e quem achou foi o PIT. **Nenhuma das duas ferramentas domina a outra**, e agora existe dado deste projeto nas duas direções — argumento para nunca rodar só uma.
+  - **A tag do marco zero está desbloqueada** — as duas classes que a feature do experimento toca estão no estado final.
 
 - **FIX-008 — CI aceita `develop` no gate de convenção de branch.** PR #126 mergeado. Destrava o PR de sincronização `develop → integration`, que o gate rejeitava. **Executada pelo planner sob autorização explícita, sem Reviewer** — desvio registrado no status; `territorio: excecao-autorizada`.
   - Débito herdado: a faixa `[a-z0-9]` da regex é **sensível a locale** — sob `LC_COLLATE=en_US`, `feature/QA-013` é **aceita**. Não introduzido pela task; registrado no global.
@@ -56,16 +63,13 @@
 - **ADR 0022 — via de entrega declarada para skills em subagentes.** Fecha a auditoria de alcance de skills (2026-08-16, commits `36459bd`, `e8eb931`, `fb5f24b`). O achado: **`skills:` no frontmatter é pré-carga, não permissão** — quem barra o acesso é a ausência da ferramenta `Skill` em `tools:`. Três agentes tinham prosa mandando usar skill que eles **não alcançavam**; a falha é silenciosa, o agente roda e produz saída plausível sem nunca aplicar a skill.
   - Corrigidos: `backend` (preload das duas skills de Java, `ba8f12e`), `planner` e `ai-engineer` (ganharam a ferramenta `Skill`, `36459bd`).
   - `validate_agent.py` da skill `creating-agents` agora **detecta skill inalcançável**, para o defeito não voltar sem aviso.
-  - ⚠️ **Risco em aberto, não confirmado:** a doc oficial nunca diz como um link relativo dentro do `SKILL.md` (`references/…`, `examples/…`) resolve em disco, e é lá que mora ~3/4 do conteúdo das skills de Java — **todos os exemplos de código**. Se o path não resolver, o agente recebe a política sem os padrões. **A QA-015 vai medir isso em runtime**, como coleta de evidência fora dos critérios de aceite.
+  - 🔴 **O risco que estava "em aberto" foi CONFIRMADO em runtime pela QA-015, no mesmo dia.** O path relativo dos assets (`references/…`) resolve contra o **diretório de trabalho da sessão**, não contra o diretório da skill: o path que o próprio `SKILL.md` publica **falha**, o absoluto funciona — provado com par falha/sucesso sobre o **mesmo arquivo existente**. É onde mora a maior parte do conteúdo das skills de Java (**todos os exemplos de código**; 10 links numa, 5 na outra). O agente recebe a política **sem os padrões**, em silêncio. Correção candidata: âncora explícita (`${CLAUDE_SKILL_DIR}` ou path da raiz) — ⚠️ **mexe em `.claude/`, aguardando autorização do humano.** Registrado no débito global.
 
 ### 🔵 Próximo a refinar
 
-- **Item #2 do backlog s04 — corrigir os testes fracos revelados pelos pilotos.** ✅ **planejado como `QA-015`** (2026-08-16), `pronto-pra-execucao`, aguardando dispatch. Dois alvos: caso com palavra-chave no **índice 0** em `LegendaParser` (6/8 → **7/8** no PIT) e o `throw` de `parsePedido` em `PaymentRequestStrategy` (branch 7/8 → **8/8** no JaCoCo). Os mutantes equivalentes **não devem** ser perseguidos.
-  - **Primeira task do repositório com `mutation_gate: true`.** Piso de 80% de `test strength` sobre as duas classes (ADR 0021); esperado 18/19 ≈ 94,7%.
-  - Precisa acontecer **antes** da tag do marco zero — autorizado pelo humano. Toca as classes que a feature do experimento vai tocar, e mexer nelas no meio do experimento invalida a comparação entre runs.
-  - **Carrega também uma coleta de evidência sobre o harness** (`09a55e9`): o status report deve trazer a seção `Verificação de carregamento de skills`, respondendo se as skills de Java estavam em contexto desde o primeiro turno e se algum asset de `references/`/`examples/` foi lido, com o path usado. **Não é critério de aceite** e não reprova a task — "não consegui resolver o path" é resultado válido. Rodada única, ligada ao risco em aberto da ADR 0022.
-- **Itens #9 e #10 — planejados como `BE-031`** (2026-08-16), `aguardando-decisao-humana`: gate de mutação e destino da mensagem. Roda **depois** da QA-015; fecha o #9 inteiro e o #10 **em parte** — o órfão por rollback fica para ADR.
-- **Itens #9 e #10 do backlog s04 — dois achados de produção do planejamento da QA-015.** (#9) A mensagem de erro caprichada dentro de `PaymentRequestStrategy.parsePedido` é **inalcançável** — o usuário sempre vê a genérica do dispatcher; a QA-014 registrou o contrário e o dado está corrigido no backlog. (#10) O upload ao S3 acontece **antes** da validação e **dentro** da `@Transactional`: se a persistência falhar, o rollback não desfaz o objeto no bucket. ⚠️ **Não podem entrar na QA-015** — mudança de produção contamina o antes/depois do PIT. Pacote viável como sequência.
+- **Itens #9 e #10 — planejados como `BE-031`** (2026-08-16), `aguardando-decisao-humana`. **É o único item da sprint com plano pronto, e a dependência da QA-015 já caiu.** (#9) A mensagem de erro dentro de `PaymentRequestStrategy.parsePedido` é **inalcançável** — o usuário sempre vê a genérica do dispatcher (`MensagemEntranteService:60-63`); confirmado no fonte pelo Reviewer da QA-015. (#10) O upload ao S3 acontece **antes** da validação e **dentro** da `@Transactional`: se a persistência falhar, o rollback não desfaz o objeto no bucket. Fecha o #9 inteiro e o #10 **em parte** — o órfão por rollback fica para ADR.
+  - **O que trava:** `mutation_gate: pendente`. Adotar o gate sobre `MensagemEntranteService` exigiria ampliar `targetClasses` no `pom.xml`, congelado pela QA-012. **Pergunta em aberto com o humano.**
+  - A QA-015 mostrou que o `throw` do #9 **agora está protegido por teste de contrato** — o que muda o custo de mexer nele: remover a redundância deixou de ser mudança sem rede.
 - **Item #8 — gate da convenção `*IntegrationTest`.** A QA-013 trouxe **segunda evidência a favor do ArchUnit**: nenhuma das três ferramentas da sprint mede conformidade arquitetural. Decisão ArchUnit × reflection puro segue com o humano.
 - **Ferramental de qualidade está completo** — PIT, PMD e JaCoCo instalados, com baseline congelado em cada. O que resta da sprint é instrumentação de medição e configuração de agentes.
 - Demais frentes não refinadas: mecanismo de "classes tocadas" (#7), hooks de coleta de custo, pinagem de modelo dos agentes.
@@ -76,6 +80,15 @@
 
 - **Ordem em relação à tag do marco zero.** Definir se a sprint inteira precede a tag do baseline do experimento, ou só as tasks que tocam código de produção. (A dependência antiga do FIX-006 **caiu** — ver "Deploy" abaixo. O `README.md` do experimento, item 6, ainda registra a versão antiga e precisa ser corrigido.)
   - **Resolvido em parte, 2026-08-16:** o humano autorizou o **item #2 antes da tag**. O escopo geral — se o resto da sprint também precede — segue em aberto.
+  - **A QA-015 fechou e a tag está tecnicamente desbloqueada** — as duas classes que a feature do experimento toca estão no estado final. A decisão que resta é de escopo, não de dependência: **criar a tag agora**, ou esperar a BE-031, que toca `PaymentRequestStrategy` (a mesma classe) e reabriria a questão.
+
+- **Autorizar a correção dos paths dos assets nas skills** (`.claude/skills/*/SKILL.md`, 15 links). Débito confirmado em runtime pela QA-015, correção de baixo esforço, **território do humano**.
+
+- **Regra do campo `lint` no `PRE-MERGE-CHECKLIST`** para "tocou Java, mas fora do escopo configurado do linter". Hoje cai em `na`, que passa a significar duas coisas. **Ação do planner**, aguardando só a decisão da regra.
+
+- **Parte 2 do débito de cobertura:** passo no `.claude/agents/backend.md` **ou** política de `qa_required: true` para task que toca produção.
+
+- **`mutation_gate` da BE-031** — adotar exigiria ampliar o `targetClasses` congelado.
 
 ---
 
@@ -135,7 +148,7 @@ main (protegida — só via PR; merge dispara deploy)
 - **integration → develop:** planner abre no fim da sprint; **humano homologa** — único gate humano do fluxo de features.
 - **develop → integration (sync):** planner abre **durante** a sprint sempre que publicar em `develop` algo que o implementador precisa enxergar — plano de task, ADR, mudança de agente ou de template. Auto-aceitável: `develop` sempre contém a integration, então não há divergência possível. Último: **PR #132**, 2026-08-16.
 - **fix/hotfix → develop:** PR direto.
-- Última task usada por prefixo: **QA-014**, **BE-030**, **FE-017**, **FIX-008**.
+- Última task usada por prefixo: **QA-015**, **BE-030** (a BE-031 tem plano, ainda não executada), **FE-017**, **FIX-008**.
 
 ---
 

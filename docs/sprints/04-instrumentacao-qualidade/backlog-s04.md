@@ -48,9 +48,27 @@ As três primeiras são **exatamente o código que a feature Baixa do experiment
 
 ---
 
-## 2. Corrigir os testes fracos revelados pelo piloto
+## 2. ~~Corrigir os testes fracos revelados pelo piloto~~ — ✅ **CONCLUÍDO**
 
-> ✅ **Refinado como [`QA-015`](plans/QA-015-fortalecer-testes-revelados-pelos-pilotos.md)** em 2026-08-16. O plano é a fonte da verdade; o detalhamento abaixo fica como registro da origem.
+> ✅ **ENTREGUE pela [`QA-015`](plans/QA-015-fortalecer-testes-revelados-pelos-pilotos.md)** — mergeada em 2026-08-16 (PR #133 → integration, #134 → develop). Reviewer: `approved-with-notes`, zero achado `critical`/`high`, nenhuma remediação de código. [Status](status/QA-015-fortalecer-testes-revelados-pelos-pilotos.md) · [Revisão](avaliacoes/review-QA-015-fortalecer-testes-revelados-pelos-pilotos.md).
+>
+> **Números finais, reproduzidos pelo Reviewer:**
+>
+> | Alvo | Antes | Depois |
+> |---|---|---|
+> | `LegendaParser` — PIT | 6/8 = 75% | **7/8 = 87,5%** |
+> | `PaymentRequestStrategy` — JaCoCo branch | 7/8 = 88% | **8/8 = 100%** (linha 49/49) |
+> | Gate de mutação (ADR 0021) | — | **94,7%** de `test strength` ≥ 80% ✅ |
+>
+> O sobrevivente restante de `LegendaParser:28` **continua vivo e é o resultado esperado** — equivalente com demonstração escrita. **7/8 é teto, não pendência:** nenhum reforço futuro de teste leva a 8/8, e uma task que prometa isso está prometendo o impossível.
+>
+> ⚠️ **Errata sobre o número agregado.** O plano mandava elevar o teto do `STATE.md` de 39/42 para 40/42. **Errado** — o `39/42` é teto (`42 − 2 equivalentes − 1 inalcançável`) e **não muda**; o mutante morto já estava contado dentro dele. O que mudou é o **score: 37/42 → 38/42**. Derrubado pelo Reviewer (M1); errata registrada no plano.
+>
+> **Dois achados que valem mais que os números** (detalhe em §Débitos de `pendencias-tecnicas.md`): (a) o PIT **não se moveu** no alvo 2 — ele dava 11/11 antes de existir teste que atingisse o `throw`, porque nenhum mutante é gerado na construção da exceção; foi o **JaCoCo** que achou o buraco, o espelho exato do caso `LegendaParser`, onde foi o PIT. Nenhuma das duas ferramentas domina a outra, e agora há dado deste projeto nas duas direções. (b) O `throw` de `parsePedido` é **inalcançável pelo dispatcher**, o que **superestimava** a severidade do débito 2 da QA-014.
+>
+> **A tag do marco zero está desbloqueada** — as duas classes que a feature do experimento toca estão no estado final.
+>
+> Registro da origem abaixo.
 >
 > **Escopo fechado com o humano — dois alvos:** (1) `LegendaParser`, caso com palavra-chave no **índice 0**, matando o sobrevivente nº 1 da QA-012 (6/8 → **7/8**); (2) `PaymentRequestStrategy`, o `throw` de `parsePedido` que a QA-014 registrou como débito 2 (branch 7/8 → **8/8**).
 >

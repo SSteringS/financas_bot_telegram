@@ -99,11 +99,23 @@ Materialização em `.claude/`, portanto **território do `ai-engineer`**. Até 
 - **Mudança em `.claude/agents/` só vale a partir da PRÓXIMA sessão** — configuração de agente é lida no spawn. Corrigir um agente não conserta a sessão em curso.
 - **Custo de disciplina no `ai-engineer`:** toda edição de prosa de agente que introduza nome de skill passa a exigir conferência do frontmatter, até a regra do §4 existir.
 
-**Risco em aberto — explicitamente NÃO resolvido por esta ADR:**
+**Risco RESOLVIDO — verificado em runtime pela QA-015 em 2026-08-16, no mesmo dia desta ADR:**
+
+> ⚠️ **O risco descrito abaixo era hipótese quando esta ADR foi escrita. Deixou de ser: ele se confirma.** A QA-015 rodou a verificação que este parágrafo pedia e o resultado é conclusivo — **o path relativo NÃO é ancorado no diretório da skill; ele resolve contra o diretório de trabalho da sessão** (a raiz do repo).
+>
+> **A evidência que fecha a questão** é um par falha/sucesso sobre o **mesmo arquivo existente**: `references/test-doubles-guidelines.md`, escrito exatamente como o `SKILL.md` de `writing-java-unit-tests` o publica (linhas 52 e 73), **falhou** com `File does not exist. Note: your current working directory is C:\Users\satya\src\financas_bot_telegram`; o path absoluto até `.claude/skills/writing-java-unit-tests/references/…` **funcionou**, 29 linhas lidas. Uma primeira tentativa com nome de arquivo chutado foi corretamente **descartada** pelo implementador como evidência ambígua.
+>
+> **Consequência para o §1 desta ADR:** a garantia de entrega vale para o corpo do `SKILL.md`, e **não** se estende aos assets — hoje um `SKILL.md` entregue corretamente aponta para o vazio em **15 links** (10 em `developing-java-spring-applications`, 5 em `writing-java-unit-tests`), que é onde estão todos os exemplos de código.
+>
+> **Correção candidata:** âncora explícita — `${CLAUDE_SKILL_DIR}` ou path a partir da raiz do repo. **Não aplicada:** mexe em `.claude/`, e exige autorização explícita do humano, que não foi pedida nem dada. Registrado em `docs/PENDENCIAS-TECNICAS.md`.
+>
+> **Nota de honestidade sobre o que a coleta NÃO provou:** o agente registrou não conseguir afirmar se o corpo dos `SKILL.md` pré-carregados estava em seu contexto — não há como um agente inspecionar o próprio contexto para provar ausência. O sinal indireto (precisou ler `_TEMPLATE-status.md` do disco, o que seria redundante se o `artifact-report-contract` estivesse em contexto) é **incerteza registrada, não conclusão**. A §1 desta ADR permanece apoiada na documentação, não em observação de runtime.
+
+Texto original do risco, mantido para registro:
 
 A doc oficial **nunca** diz como um link markdown relativo dentro de um `SKILL.md` (ex.: `references/mvc-architecture.md`) se resolve pra um caminho em disco. A substituição `${CLAUDE_SKILL_DIR}` é documentada apenas para injeção em bash (`docs/claude/skills/01-skills.md` l. 302). A única regra documentada de "relativo resolve contra o arquivo que contém" está escopada aos imports `@path` do CLAUDE.md (`docs/claude/configuracao/07-memoria-e-claude-md.md` l. 109) e **não** é estendida a skills.
 
-Isso pesa porque as duas skills de Java concentram a maior parte do conteúdo em assets: em `developing-java-spring-applications`, `references/` + `examples/` somam ~3/4 dos bytes; em `writing-java-unit-tests`, cerca de 60%. Se o caminho não resolver, o agente recebe a política sem os padrões — e a §1 desta ADR terá garantido entrega de um `SKILL.md` que aponta pro vazio. **Pendente de verificação em runtime na próxima task Java.**
+Isso pesa porque as duas skills de Java concentram a maior parte do conteúdo em assets: em `developing-java-spring-applications`, `references/` + `examples/` somam ~3/4 dos bytes; em `writing-java-unit-tests`, cerca de 60%. Se o caminho não resolver, o agente recebe a política sem os padrões — e a §1 desta ADR terá garantido entrega de um `SKILL.md` que aponta pro vazio. ~~**Pendente de verificação em runtime na próxima task Java.**~~ → **Verificado e confirmado pela QA-015; ver o bloco acima.**
 
 **Métricas pra avaliar adoção:**
 

@@ -2,7 +2,7 @@
 
 > **Registro de sprint.** Débitos levantados pelas tasks desta sprint, consolidados pelo planner a partir dos status reports e das avaliações do Reviewer.
 >
-> **Consolidação lida até:** `QA-012`, `QA-013` e `QA-014` — status + avaliação de cada, incluindo as rodadas de delta-review. Próxima consolidação começa da QA-015.
+> **Consolidação lida até:** `QA-012`, `QA-013`, `QA-014` e `QA-015` — status + avaliação de cada, incluindo as rodadas de delta-review. Próxima consolidação começa da **BE-031**.
 >
 > **O que fica aqui e o que vai para o global:** débito de **código ou de repositório** — que sobrevive ao fim da sprint — é promovido para [`../../PENDENCIAS-TECNICAS.md`](../../PENDENCIAS-TECNICAS.md) e aqui fica só o ponteiro. O que é **metodológico ou específico do ferramental desta sprint** fica aqui.
 
@@ -28,6 +28,8 @@ Ver [`docs/PENDENCIAS-TECNICAS.md`](../../PENDENCIAS-TECNICAS.md):
 | Código defensivo nunca exercitado — 3 gaps confirmados por PIT **e** JaCoCo | QA-014 débitos 1, 2, 3 | média |
 | Cobertura da suíte de integração nunca medida — pacotes de infra **indeterminados** | QA-014 débitos 4, 5 | média |
 | 8 classes em 0% no recorte unitário (exceções e DTOs de 1 a 6 linhas) | QA-014 | baixa |
+| Redundância de validação em `PaymentRequestStrategy` — mesmo `PEDIDO_PATTERN` em `supports()` e em `parsePedido` | QA-015 débito 4 | baixa |
+| `MetaSignatureValidator:28` é o **último** mutante matável vivo nas 4 classes do escopo | QA-015 débito 6 + Reviewer | baixa |
 
 ---
 
@@ -154,6 +156,60 @@ Nenhuma das duas é falsa no próprio contexto; as duas são resíduo do fix do 
 2. §Próximos passos mantém *"não precisa de suíte verde **nem de build**"*; o runbook já ganhou a ressalva do `F4`.
 
 **Custo de fechar:** duas frases. **Não bloqueia nada** — o artefato congelado (XML) e o operacional (runbook) estão corretos, e o baseline não depende de nenhuma das duas. Fica registrado para não sumir; pode ser fechado de carona no próximo commit que tocar o arquivo.
+
+---
+
+### 🔴 Path relativo dos assets das skills não resolve — **confirmado em runtime pela QA-015**
+
+**Origem:** coleta de evidência da QA-015 (§Verificação de carregamento de skills), pedida pelo plano após a ADR 0022. Era hipótese de leitura de documentação; **deixou de ser.**
+
+Os `SKILL.md` linkam seus arquivos de apoio por path relativo (`references/test-doubles-guidelines.md`). O agente `backend` rodou um probe deliberado, declarado como tal, **depois** de os testes estarem verdes, para não contaminar o comportamento natural:
+
+| Tentativa | Path | Resultado |
+|---|---|---|
+| 1 — descartada | `references/mocking-guidelines.md` (nome chutado) | falhou, mas ambíguo: arquivo não existe |
+| **2 — a que vale** | `references/test-doubles-guidelines.md`, **exatamente como o `SKILL.md` escreve** (linhas 52 e 73), arquivo **existente** | **falhou** — `File does not exist. Note: your current working directory is …` |
+| 3 — controle | path absoluto até `.claude/skills/writing-java-unit-tests/references/…` | **sucesso**, 29 linhas |
+
+**O par falha/sucesso sobre o mesmo arquivo é a prova:** o path relativo é resolvido contra o **diretório de trabalho da sessão** (raiz do repo), não contra o diretório da skill. O arquivo existe; o path publicado não chega nele.
+
+**Por que importa:** é onde mora a maior parte do conteúdo das duas skills de Java — **todos os exemplos de código**. O agente recebe a política sem os padrões, e **a falha é silenciosa**. Alcance medido por `grep -o -E "\]\((references|examples)/[^)]+\)"`: **10** links em `developing-java-spring-applications` (linhas 52-78) e **5** em `writing-java-unit-tests` (linhas 50-74).
+
+**Correção candidata:** âncora explícita nos `SKILL.md` — `${CLAUDE_SKILL_DIR}` ou path a partir da raiz do repo. ⚠️ **Mexe em `.claude/`, logo exige autorização explícita do humano**, que não foi pedida nem dada. O implementador corretamente não tocou em nada.
+
+**Nota honesta sobre o que NÃO foi provado:** o agente registrou não conseguir afirmar se o corpo dos `SKILL.md` pré-carregados estava no contexto dele — não há como um agente inspecionar o próprio contexto para provar ausência. O sinal indireto é que ele **precisou ler `_TEMPLATE-status.md` do disco** para conhecer o schema do frontmatter, o que seria redundante se o `artifact-report-contract` estivesse em contexto. **Isso é incerteza, não conclusão.** O que está provado é só a resolução de path.
+
+**Prioridade:** média — nada quebra, mas o investimento feito nas skills não está chegando ao agente.
+
+---
+
+### O `clean` do comando do JaCoCo apaga o relatório do PIT
+
+**Origem:** QA-015, débito 2. Correlato do `append=true` registrado acima.
+
+O comando canônico da §Camada 1.6 do runbook começa com `clean` — que é obrigatório, porque `append=true` é o default do JaCoCo. Efeito colateral não documentado: **apaga `target/pit-reports/`**. Quem rodar §Camada 1.5 e depois §Camada 1.6 perde os números do PIT sem aviso.
+
+**Custo de fechar:** uma linha no runbook — capturar os números do PIT antes, ou rodar JaCoCo primeiro. **Prioridade:** baixa.
+
+---
+
+### A severidade do débito 2 da QA-014 estava superestimada — correção de registro
+
+**Origem:** QA-015, débito 3, confirmado pelo Reviewer **no fonte**.
+
+A QA-014 classificou o gap do `throw` de `parsePedido` como *"média — é a mensagem de erro que o usuário final vê"*. **Não é.** O `throw` é inalcançável pelo caminho do dispatcher: `supports()` e `parsePedido` aplicam o mesmo `PEDIDO_PATTERN` sobre o mesmo `caption.trim()`, e o Reviewer foi além, verificando o **único call site de `process()` em produção** (`MensagemEntranteService:73`, logo após o `.filter(s -> s.supports(dto))` da linha 58, sem mutação do DTO no meio). A mensagem que o usuário de fato vê vem de **`MensagemEntranteService:60-63`**.
+
+O gap era real e valeu ter fechado — o teste é **de contrato do método público**, não reprodução de cenário de usuário. O que estava errado era a justificativa. **É correção de registro, não de código.** **Prioridade:** baixa.
+
+---
+
+### `PRE-MERGE-CHECKLIST` não tem valor para "tocou Java, mas fora do escopo do linter"
+
+**Origem:** QA-015 débito 7, achado `L4` do Reviewer.
+
+O campo `lint` admite `ok`/`fail`/`na`. Um diff só de teste, com `pmd.includeTests=false`, cai em `na` — o mesmo valor que "não se aplica porque a task não tem Java". **`na` passa a significar duas coisas diferentes**, e o campo perde o poder de agregação que o schema do ADR 0007 promete.
+
+**Ação: é do planner.** Definir a regra (ex.: `na` vale também quando o diff está inteiro fora do escopo configurado do linter, exigindo justificativa por escrito) e escrever no `PRE-MERGE-CHECKLIST.md`. **Prioridade:** baixa — ambiguidade de registro, não de qualidade.
 
 ---
 
