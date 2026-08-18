@@ -41,10 +41,12 @@ Isolamento vale pra **código**. `docs/` é compartilhada — toda instância po
 
 | Instância (`responsavel`) | Caminhos de código permitidos | + sempre |
 |---|---|---|
-| `claude-back` | `financas_bot_telegram/`, `infra/`, `finbot.service`, `.github/workflows/` | `docs/` |
+| `claude-back` | `financas_bot_telegram/`, `infra/`, `finbot.service`, `.github/workflows/`, `scripts/` | `docs/` |
 | `claude-front` | `frontend/` | `docs/` |
 | `claude-plan` | — | `docs/` (mantenedor da estrutura) |
 | qualquer | arquivos da raiz (`CLAUDE.md`, `.gitignore`, `TODO.md`) quando necessário | — |
+
+`scripts/` (scripts de repositório: coleta de custo, recorte de classes tocadas) foi acrescentado ao território de `claude-back` em 2026-08-18, ao planejar a QA-017 — o fluxo já estava definido no `README.md` da sprint 04 ("scripts do repositório → branch + PR + Reviewer"), mas a tabela não listava o caminho, e o gate `territorio` não sabia classificar a task.
 
 O gate `territorio` falha quando uma instância altera **código fora** do seu território (ex.: o front mexendo em `financas_bot_telegram/`). Mudança em `docs/` nunca dispara o gate.
 
