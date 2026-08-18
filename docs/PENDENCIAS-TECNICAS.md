@@ -410,6 +410,42 @@ Duas consequências, ambas não-óbvias:
 
 ---
 
+### Assets das skills são inalcançáveis pelo path que o próprio `SKILL.md` publica
+
+**Contexto (QA-015, débito #1 — 2026-08-16). Confirmado em runtime, não é hipótese.** Os `SKILL.md` linkam seus arquivos de apoio por path relativo (`references/test-doubles-guidelines.md`). O agente `backend` provou, com par falha/sucesso sobre o **mesmo arquivo existente**, que esse path é resolvido contra o **diretório de trabalho da sessão** (raiz do repo), não contra o diretório da skill: o path publicado falha, o path absoluto até `.claude/skills/.../references/` funciona.
+
+**Por que é dívida e não curiosidade:** é onde mora a maior parte do conteúdo das duas skills de Java — **todos os exemplos de código** (10 links em `developing-java-spring-applications`, 5 em `writing-java-unit-tests`). O agente recebe a política sem os padrões, e **a falha é silenciosa**: nada avisa, a saída sai plausível. É o mesmo modo de falha que a ADR 0022 fechou para o alcance das skills, agora um nível abaixo — no alcance dos **assets**.
+
+**Fix sugerido:** âncora explícita nos `SKILL.md` — `${CLAUDE_SKILL_DIR}` ou path a partir da raiz do repo. ⚠️ **Mexe em `.claude/`: exige autorização explícita do humano**, e é o motivo de a QA-015 ter parado no diagnóstico.
+
+**Esforço:** baixo (15 links). **Prioridade: média** — nada quebra, mas o investimento feito nas skills não chega a quem deveria consumi-lo. Detalhe e tabela do probe em `docs/sprints/04-instrumentacao-qualidade/pendencias-tecnicas.md`.
+
+---
+
+### Redundância de validação em `PaymentRequestStrategy`, e o `throw` inalcançável que ela cria
+
+**Contexto (QA-015, débitos #3 e #4 — 2026-08-16):** o mesmo `PEDIDO_PATTERN` é aplicado **duas vezes** sobre o mesmo `caption.trim()` — em `supports()` (linha 48) e dentro de `parsePedido` (linha 85-87). Como `process()` só é chamado depois de `supports()` devolver `true`, o `throw` da segunda validação é **inalcançável pelo caminho do dispatcher**. Verificado pelo Reviewer no **único call site de `process()` em produção** (`MensagemEntranteService:73`, logo após o `.filter(s -> s.supports(dto))` da linha 58, sem mutação do DTO no meio).
+
+**Não é bug e não foi mexido** — a QA-015 proibia tocar produção, e o caminho agora está protegido por teste de contrato, que era o objetivo. A decisão de fundo fica: ou o `throw` vira genuinamente alcançável (validando só em um lugar), ou a duplicação sai.
+
+⚠️ **Correção de registro junto:** o débito #2 da QA-014 descrevia esse gap como *"a mensagem de erro que o usuário final vê"* — **severidade superestimada**. A mensagem que o usuário vê vem de `MensagemEntranteService:60-63`.
+
+**Esforço:** baixo. **Prioridade: baixa.** Tem interseção com a **BE-031**, que trata a mesma classe — avaliar junto.
+
+---
+
+### `MetaSignatureValidator:28` é o último mutante matável vivo no escopo do PIT
+
+**Contexto (QA-015, débito #6 + Reviewer — 2026-08-16):** depois da QA-015, dos 4 mutantes não mortos nas 4 classes do `targetClasses`, **três são irredutíveis** (2 equivalentes demonstrados + 1 `NO_COVERAGE` inalcançável) e sobra **um**: o warn de `app-secret` ausente. É exatamente o que separa o score `38/42` do teto `39/42`.
+
+Matá-lo exige **infraestrutura de captura de appender de log**, que o repo não tem (débito próprio, registrado pela QA-012).
+
+**Por que virou item agora:** deixou de ser "um entre vários" e passou a ser **o próximo alvo natural** de qualquer task que queira mover o número agregado — o que torna o custo/benefício da infra de log finalmente decidível, em vez de teórico.
+
+**Esforço:** médio (é a infra, não o teste). **Prioridade: baixa** — decisão do humano se vale a task.
+
+---
+
 > **Nota de consolidação (QA-012, 2026-08-10).** O status report e a avaliação listaram 9 débitos. Quatro viraram itens acima. Os outros cinco não viraram, com motivo: **#1** (`LegendaParser` sem caso com palavra-chave no índice 0) é o alvo concreto do item #2 do backlog da sprint 04, não débito solto; **#6** (`cobertura_pct: na` sem JaCoCo) é o item #6 do mesmo backlog; **#9** (três imprecisões textuais no status report) já foi corrigido na rodada 2 do Reviewer. Registrar aqui duplicaria backlog vivo com dívida.
 
 ---
