@@ -60,7 +60,7 @@ If mode is not specified, use `implementation-mode`.
 
 ## Mode Activation
 - Any backend implementation request with no mode stated: use `implementation-mode` and follow the full `Required Workflow Pattern` below.
-- A request that only addresses findings from a reviewer or QA artifact: use `fix-mode` — steps 1 through 12 still apply, with the scope narrowed to the listed findings and step 3 limited to them. Do not expand a fix into new scope; report the extra work back to the planner instead.
+- A request that only addresses findings from a reviewer or QA artifact: use `fix-mode` — steps 1 through 13 still apply, with the scope narrowed to the listed findings and step 3 limited to them. Do not expand a fix into new scope; report the extra work back to the planner instead.
 
 ## Required Workflow Pattern
 1) Confirm the sprint folder, `TASK-ID`, plan, acceptance criteria, and gates.
@@ -69,12 +69,13 @@ If mode is not specified, use `implementation-mode`.
 4) Add or update tests for non-trivial logic, sourcing external payload fixtures from the real contract.
 5) Run the relevant build and tests and capture the command and output.
 6) If the plan declares `mutation_gate: true`, run the mutation testing gate as described in `Mutation Testing Gate (conditional)` below, before the reviewer handoff. When the plan sets `mutation_gate: false` or omits it, the gate does not apply and nothing is executed.
-7) Invoke the reviewer for independent validation; this is mandatory for code changes.
-8) Apply reviewer findings and request a new review when needed.
-9) If `qa_required=true`, invoke QA and resolve critical issues; if `qa_required=false`, record QA as `not-applicable` with the plan's rationale.
-10) Record every external contract field with its source.
-11) Record technical debt found during implementation.
-12) Write the status artifact to `docs/sprints/<NN>-<slug>/status/<TASK-ID>-<task-slug>.md` from the status template, and publish the response contract.
+7) If the task changed at least one production class, measure coverage as described in `Coverage Measurement (conditional)` below — after the mutation gate and before the reviewer handoff.
+8) Invoke the reviewer for independent validation; this is mandatory for code changes.
+9) Apply reviewer findings and request a new review when needed.
+10) If `qa_required=true`, invoke QA and resolve critical issues; if `qa_required=false`, record QA as `not-applicable` with the plan's rationale.
+11) Record every external contract field with its source.
+12) Record technical debt found during implementation.
+13) Write the status artifact to `docs/sprints/<NN>-<slug>/status/<TASK-ID>-<task-slug>.md` from the status template, and publish the response contract.
 
 ## Mutation Testing Gate (conditional)
 Applies only when the plan frontmatter declares `mutation_gate: true`. Otherwise skip this section entirely: do not run PIT and do not report mutation numbers.
@@ -89,12 +90,31 @@ Applies only when the plan frontmatter declares `mutation_gate: true`. Otherwise
 
 Source of truth for the criterion: `financas_bot_telegram/CLAUDE.md` > "Critério de mutation testing — gate opcional". Operational detail: `docs/runbooks/ROTEIRO-TESTES-BACKEND.md` > "Camada 1.5".
 
+## Coverage Measurement (conditional)
+Applies when the task changed at least one production class under `financas_bot_telegram/src/main/`, **regardless of `qa_required`**. The reviewer audits `gates.cobertura_pct` on every change that touches production code, so a task with `qa_required: false` still owes the number — and this agent is the one that writes the field. When the task changed no production class, skip this section entirely: do not run JaCoCo, and report `cobertura_pct: na` stating that reason. This section covers backend Java only; for another stack, report `na`, state that the measurement procedure is undefined there, register it as technical debt, and do not improvise a command.
+
+1) **When the plan sets `qa_required: true`, do not measure twice.** The QA specialist runs this same measurement and publishes the value for this agent to copy into `gates.cobertura_pct`. Run the command here only when QA is not in the plan, or when QA ran and returned no number. When copying a published value, record in the status that the QA artifact is its origin, together with the command QA recorded — a copied number and its source are one measurement, not two.
+2) **Run it after the mutation gate, never before.** The command below starts with `clean`, which deletes `financas_bot_telegram/target/` — including `target/pit-reports/`. When `mutation_gate: true`, transcribe the `killed` and `covered` counts and every survivor into the status **before** running this; otherwise the mutation evidence is destroyed and the gate has to be re-run from zero.
+3) **Green suite first.** A failing test stops the build before `jacoco:report` runs, so there is no number to read. Report the red suite as the finding and `cobertura_pct: na` with "measurement attempted, suite red" written beside it; never estimate a value.
+4) **Run the canonical command whole, from the repository root:**
+   `./financas_bot_telegram/mvnw clean jacoco:prepare-agent test jacoco:report -f financas_bot_telegram/pom.xml -Dtest='!*IntegrationTest' -Dsurefire.failIfNoSpecifiedTests=false`
+   The plugin is deliberately outside the build lifecycle, so the two phases and the two goals must travel in the same Maven session. **`clean` is part of the measurement, not hygiene:** the JaCoCo agent defaults to `append=true`, so without it the run sums into the `jacoco.exec` of previous runs — including runs that contained `*IntegrationTest` — and the result stops being unit-only with nothing in the log saying so. `-Djacoco.append=false` is equivalent. Copy the command verbatim; a shortened variant is a different measurement.
+5) **Two silent failure modes — check both before reading any number.**
+   - `jacoco:report` on its own prints `Skipping JaCoCo execution due to missing execution data file` and returns `BUILD SUCCESS` with no report generated. If `financas_bot_telegram/target/site/jacoco/index.html` is missing, search the log for that line before searching anywhere else. Never run the goal alone.
+   - Coverage at or near 0% is broken instrumentation, not absent tests: a surefire `<argLine>` without `@{argLine}` overrides the JaCoCo agent and zeroes the result with no error. Stop, report it, and do not publish the number.
+6) **Read the numbers from `financas_bot_telegram/target/site/jacoco/jacoco.xml`**, which carries `LINE` and `BRANCH` counters per package, class and method. Restrict the reading to the production classes this task changed. That recorte is manual today and is the most fragile step of this procedure — a wrong class list produces a plausible and wrong number, and it is the first thing the reviewer checks. When the mutation gate also ran, it is the same class list used as its denominator: two different lists reported for the two gates means one of them is wrong.
+7) **Report line and branch together, always.** `gates.cobertura_pct` carries the line coverage of the production classes this task changed; the branch figure, the command that produced it, and the list of classes measured go in the status body. Line alone hides untested guards — measured in this project, `FecharMesServiceImpl` reads 100% line and 79% branch, with five `null` guards never exercised. State that the recorte is unit-only (`*IntegrationTest` excluded) and therefore **underestimates** real coverage: persistence adapters and REST handlers read low without that meaning untested. Do not compare it to external benchmarks.
+8) **When the measurement cannot be completed, say which one failed.** The status schema admits a number or `na` and nothing else, so an attempt that broke uses `na` with the reason written beside it in the status body — red suite, broken instrumentation, or a stack with no defined procedure — and is registered as technical debt in the same report. Never fill the field with an estimate, with a number from an earlier run, or with a number measured for another task.
+
+Coverage answers what was never executed. It does not answer whether a test verifies anything — that is the mutation gate. Do not present `cobertura_pct` as a measure of test quality: `LegendaParser` measured 100% line and 100% branch while 25% of its mutants survived. Metric-reading table, the Lombok caveat and the PIT divergence: `docs/runbooks/ROTEIRO-TESTES-BACKEND.md` > "Camada 1.6 — Cobertura de código (JaCoCo), sob demanda", which is the source of truth for the command above.
+
 ## Pre-Status Checklist (mandatory)
 - Plan objective and acceptance criteria were implemented.
 - Reviewer handoff executed and outcome recorded.
 - QA gate handled according to the plan.
 - Test and build commands were executed with evidence.
 - Mutation gate handled as the plan declares: when `mutation_gate: true`, the status records the command, its output, the `test strength` over the changed classes against the 80% floor, and a written demonstration for each survivor declared equivalent.
+- Coverage handled as the change requires: when the task changed production classes, the status carries `gates.cobertura_pct` with its branch figure, the command that produced it, and the list of classes measured; `na` appears only when no production class changed, or with a written reason for a measurement that failed.
 - Every external contract field has a named source.
 - `Open Issues` and `Next Step` are filled, even when the value is `none`.
 - Status artifact path and filename are canonical, with `<task-slug>` copied from the plan file name and never re-derived from the title.
@@ -114,6 +134,13 @@ Use the backend response contract in `artifact-report-contract`. The persisted s
 - Do not lower the 80% floor, shrink `targetClasses`, or drop a changed class from the measurement scope to reach the floor.
 - Do not add a class to `targetClasses` when the runbook triage rejects it; stop and report instead of working around it.
 - Do not run the mutation gate when the plan does not declare `mutation_gate: true`.
+- Do not run `jacoco:report` by itself, and do not report a coverage number from a run that omitted `clean`.
+- Do not run the coverage command before the mutation numbers are transcribed into the status; `clean` deletes `financas_bot_telegram/target/pit-reports/`.
+- Do not report near-zero coverage as a testing gap before ruling out broken instrumentation.
+- Do not write `gates.cobertura_pct` without its branch figure, its command, and the list of classes measured beside it in the status body.
+- Do not leave `cobertura_pct: na` on a task that changed production classes; `na` there is a reviewer finding, not an omission.
+- Do not re-run the measurement when the QA specialist already published a number, and do not present a copied number as an independent second measurement.
+- Do not estimate a coverage value, reuse one from an earlier run, or present the unit-only number as the project's real coverage.
 - Do not introduce out-of-scope architectural changes without escalation.
 - Do not reimplement logic owned by the Java skills; delegate to them.
 - Do not reference process documents or plan section numbers inside code or test names.
@@ -125,6 +152,9 @@ Use the backend response contract in `artifact-report-contract`. The persisted s
 - [ ] Non-trivial logic has automated tests.
 - [ ] Build and test commands were executed and recorded.
 - [ ] Mutation gate executed with evidence when `mutation_gate: true`, and not executed otherwise.
+- [ ] Coverage measured with the full command including `clean` when production classes changed, or `na` with the stated reason.
+- [ ] `gates.cobertura_pct` recorded with its branch figure, its command, and the classes measured.
+- [ ] Mutation numbers transcribed before the coverage command deleted `financas_bot_telegram/target/`.
 - [ ] External contract fields are traced to an authoritative source.
 - [ ] Test fixtures are independent from the code under test.
 - [ ] Reviewer handoff executed and outcome recorded.
