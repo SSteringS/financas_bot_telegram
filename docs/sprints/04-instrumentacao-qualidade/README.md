@@ -1,8 +1,12 @@
 # Sprint 04 — Instrumentação e qualidade
 
-**Status:** 🟠 **em execução** (atualizado 2026-08-16) — **ferramental de qualidade completo**. Entregues: `QA-012` (PIT), `QA-013` (PMD), `QA-014` (JaCoCo) e `FIX-008` (gate de branch do CI). O escopo restante — instrumentação de medição e configuração dos agentes — continua sendo montado conforme o humano revisa os docs do experimento.
+**Status:** 🟠 **em execução** (atualizado 2026-08-18) — **ferramental de qualidade completo**. Entregues: `QA-012` (PIT), `QA-013` (PMD), `QA-014` (JaCoCo), `QA-015` (reforço dos testes fracos) e `FIX-008` (gate de branch do CI). Em 2026-08-18 o humano fechou **onze decisões** de uma vez, incluindo o escopo da tag do marco zero: **a sprint inteira precede a tag**.
 
-**Próxima task:** [`QA-015`](plans/QA-015-fortalecer-testes-revelados-pelos-pilotos.md) — fortalecer os testes fracos revelados pelos pilotos (item #2 do backlog). Plano pronto, aguardando dispatch.
+**Prontas para dispatch (3):** [`BE-031`](plans/BE-031-validacao-antes-do-upload-e-mensagem-morta.md) · [`QA-016`](plans/QA-016-gate-convencao-integration-test.md) · [`QA-017`](plans/QA-017-mecanismo-classes-tocadas.md). As três têm arquivos disjuntos.
+
+⚠️ **Pré-condição de dispatch:** o `.claude/agents/backend.md` mudou em 2026-08-18 (commit `0305813`) e precisa chegar à `integration/04` pelo **PR de sincronização `develop → integration`** antes de qualquer dispatch. Config de agente é lida no spawn — sem o sync, o implementador roda com a definição antiga e **não mede cobertura**.
+
+**Ainda sem plano:** as duas frentes de instrumentação restantes (pipeline de custo e configuração dos agentes). O passo zero delas é **revalidar o `05-instrumentacao-e-harness.md` contra o disco** — o doc está desatualizado desde 10/08 e piorou com as mudanças de agente de 16/08 e 18/08.
 
 **Objetivo:** instalar o ferramental de qualidade e a instrumentação de medição que o repositório ainda não tem, e corrigir a configuração dos subagentes que hoje impede medir modelo por papel.
 
@@ -44,7 +48,7 @@ Diferente da 02b (kaizen), esta sprint é **mista** — e o fluxo muda por task:
 | Configuração de subagente | `.claude/` | **`ai-engineer` ou humano**, com autorização explícita. Commit direto em `develop`, com `git show HEAD` conferido pelo humano antes do push |
 | Documentação e decisões | `docs/` | commit direto em `develop` pelo planner |
 
-**Prefixo de task:** `QA-NNN` para o ferramental de qualidade — é tooling que não altera comportamento de feature (ADR 0017). Numeração global e sequencial; a última usada foi **`QA-014`** (próxima: `QA-015`). Em FIX, a última foi **`FIX-008`**.
+**Prefixo de task:** `QA-NNN` para o ferramental de qualidade — é tooling que não altera comportamento de feature (ADR 0017). Numeração global e sequencial; a última usada foi **`QA-017`** (próxima: `QA-018`). Em BE, a última foi **`BE-031`**. Em FIX, a última foi **`FIX-008`**.
 
 **Branch de integração:** `integration/04-instrumentacao-qualidade` — **criada e em uso**. Já levou três ciclos para `develop` (PRs #124, #128 e #131) e recebeu dois PRs de sincronização vindos de `develop` (#125 e #129).
 
