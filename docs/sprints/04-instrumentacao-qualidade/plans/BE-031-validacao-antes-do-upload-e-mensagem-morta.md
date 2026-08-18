@@ -7,14 +7,14 @@ branch_alvo: feature/be-031-validacao-antes-do-upload-e-mensagem-morta
 prioridade: media
 esforco: baixo
 territorio: back
-estado: aguardando-decisao-humana
+estado: pronto-pra-execucao
 depende_de: [QA-015]
 bloqueia: []
 skills_dispatched: []
 integration_branch: integration/04-instrumentacao-qualidade
 fluxos_qa: []
-mutation_gate: pendente
-mutation_rationale: "PENDENTE — pergunta em aberto com o humano. Ver §Gate de mutação: a decisão tem uma amarra que não existia na QA-015, porque adotar o gate sobre MensagemEntranteService exigiria ampliar targetClasses no pom.xml, e isso mexe em configuração congelada pela QA-012."
+mutation_gate: true
+mutation_rationale: "Adotado por decisão explícita do humano em 2026-08-18, na mesma conversa em que ele confinou o escopo de produto a PaymentRequestStrategy. A amarra descrita em §Gate de mutação dissolveu-se: MensagemEntranteService fica fora da task, e PaymentRequestStrategy — única classe de produção alterada — já está no targetClasses congelado pela QA-012, medindo 11/11 hoje. O gate é medível sem tocar no pom.xml. Critério inalterado: test strength (mortos ÷ cobertos) >= 80% apenas sobre a classe alterada; código pré-existente fora do denominador; sobrevivente equivalente exige demonstração escrita."
 ---
 
 # BE-031 — Validar antes de subir ao S3 e eliminar a mensagem de erro morta
@@ -107,7 +107,7 @@ if (!matcher.matches()) {
 
 **O que NÃO fazer:** apagar a validação. Defesa redundante em método público de `@Component` é razoável, e o item #9 do backlog registra isso explicitamente.
 
-**A pergunta que sobra é de produto, e é do humano:** os cinco exemplos e a dica de auto-categorização são melhores que o `ERROR_MESSAGE` atual. Levá-los para o dispatcher faria o usuário finalmente vê-los — mas mexe em `MensagemEntranteService`, que serve **os dois** fluxos (pedido e comprovante), e arrasta a consequência técnica descrita em §Gate de mutação. Ver §Pontos de aprovação humana.
+**✅ Resolvido em 2026-08-18.** Os cinco exemplos e a dica de auto-categorização **não** sobem para o dispatcher nesta task: `MensagemEntranteService` fica fora. A melhoria da mensagem que o usuário de fato vê vira item de produto em `docs/plans/BACKLOG-produto.md` — o texto bom não se perde, só não entra aqui.
 
 ### Gate de mutação — a amarra que a QA-015 não tinha
 
@@ -116,7 +116,9 @@ if (!matcher.matches()) {
 - Se o escopo desta task ficar **só em `PaymentRequestStrategy`**, ela já está dentro do `targetClasses` e o gate é medível sem tocar em configuração.
 - Se a task mexer em **`MensagemEntranteService`** (opção de produto acima), essa classe **não está** no `targetClasses`. Adotar o gate exigiria ampliá-lo — o que muda a configuração congelada, altera o denominador do baseline da QA-012 e precisa de decisão própria. **Ampliar `targetClasses` de carona numa task de fix é exatamente o tipo de mudança silenciosa que o Reviewer é instruído a caçar** (`Mutation Gate Audit`, item 5).
 
-Por isso as duas perguntas estão amarradas: **escopo de produto define se o gate é barato ou se ele abre outra discussão.**
+Por isso as duas perguntas estavam amarradas: **escopo de produto define se o gate é barato ou se ele abre outra discussão.**
+
+**✅ Desatado em 2026-08-18.** O humano confinou o escopo de produto a `PaymentRequestStrategy` e adotou o gate. Cai o segundo caso: `MensagemEntranteService` não é tocada, o `targetClasses` **não muda**, o baseline de 42 mutantes da QA-012 fica intacto. O implementador mede o gate sobre uma classe que já está no escopo e que hoje dá 11/11 — qualquer queda é finding, não ruído.
 
 ---
 
@@ -129,7 +131,7 @@ Por isso as duas perguntas estão amarradas: **escopo de produto define se o gat
 
 ### Não tocar
 
-- `MensagemEntranteService` — **só se** o humano aprovar a mudança de mensagem. Sem aprovação, fica fora.
+- `MensagemEntranteService` — **fora, por decisão do humano em 2026-08-18.** Tocar nela reabre a discussão de `targetClasses` e é finding do Reviewer nesta task.
 - `S3ImageUploadService` — nenhum método novo nesta task (ver §Fora de escopo).
 - `pom.xml`, `pmd-ruleset.xml`, `lombok.config` — ferramental congelado.
 - `PaymentProofStrategy` — **verificar se tem o mesmo padrão de upload-antes-de-validar e reportar**, mas não alterar. Se tiver, é item de backlog novo.
@@ -228,9 +230,13 @@ Os 48 `*IntegrationTest` falham localmente por Docker — débito de ambiente co
 
 ## Pontos de aprovação humana
 
-1. **Gate de mutação** — a task altera código Java de produção. Adotar? Se o escopo ficar em `PaymentRequestStrategy`, é barato: a classe já está no `targetClasses` e mede 11/11 hoje. Default na ausência de resposta: **não adota**.
-2. **Destino da mensagem** — o texto bom (cinco exemplos + dica de auto-categorização) morre junto com o ramo, ou sobe para o `ERROR_MESSAGE` do dispatcher e passa a ser visto? A segunda opção mexe em `MensagemEntranteService`, muda o que o usuário lê nos dois fluxos, e arrasta a discussão de `targetClasses`.
-3. **Prefixo da task** — planejei como `BE-031` por ser trabalho planejado dentro da sprint, com decisão de produto embutida, e que precisa fluir pela `integration/04` junto da QA-015. Se preferir tratar como correção de defeito, vira `FIX-009` e sai direto de `develop` — mas aí perde o encadeamento com a QA-015.
+> ✅ **Os três respondidos em 2026-08-18.** O `estado` passou de `aguardando-decisao-humana` para `pronto-pra-execucao`. Nada aqui foi inferido: cada resposta abaixo é do humano, na conversa de planejamento.
+
+1. **Gate de mutação — ✅ ADOTA.** `mutation_gate: true`. Escopo de medição: **apenas `PaymentRequestStrategy`**, única classe de produção alterada, já presente no `targetClasses` congelado. Piso de 80% de `test strength`, sem tocar no `pom.xml`.
+2. **Destino da mensagem — ✅ o ramo defensivo FICA, o texto morto SAI.** É exatamente a §Parte 2 deste plano: a exceção passa a declarar que é defesa, com comentário dizendo por que o ramo existe. **`MensagemEntranteService` fica fora da task** — os cinco exemplos não sobem para o dispatcher nesta entrega.
+   - ⚠️ **A primeira leitura registrada foi a errada** (apagar o guard inteiro) e o humano corrigiu na sequência. Fica registrado porque a ressalva escrita no plano — "não é para apagar a validação, defesa em método público é razoável" — foi o que expôs a divergência antes do dispatch. O guardrail pagou o próprio custo.
+   - **Perda declarada:** o texto bom morre com o ramo. Vai para `docs/plans/BACKLOG-produto.md` como item de produto ("melhorar a mensagem de erro do dispatcher"), para não se perder junto com o código.
+3. **Prefixo — ✅ segue `BE-031`.** Mantido o encadeamento com a QA-015 pela `integration/04`.
 
 ---
 
